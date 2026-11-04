@@ -5,13 +5,13 @@
 
 <script lang="ts">
 	import { SIZE, SPLIT, corners, type Pt } from '#lib/logo.ts';
-	import { steps, progress, span, lerp, clamp, outCubic, GLYPH, S, MID, X, Y, WORD, WX, BECOMES, BOUNDS, STEP, LIGHTNING, BLUEPRINT, BLUEPRINT_STEP } from '#lib/origin.ts';
+	import { steps, progress, span, lerp, clamp, outCubic, GLYPH, S, MID, X, Y, WORD, WX, BECOMES, STEP, LIGHTNING, BLUEPRINT, BLUEPRINT_STEP } from '#lib/origin.ts';
 
 	let { t }: { t: number } = $props();
 
 	const LEAN = 1 / Math.tan(Math.PI / 3); // 30° from upright: the shear that turns upright edges into 60° ones
 
-	const [, pCpp, pPlus, pL, pOpen, pLean, pBolt, pSoft, pFill] = $derived(steps.slice(0, 9).map((_, i) => progress(t, i)));
+	const [, , pCpp, pPlus, pL, pOpen, pBolt, , pSoft, pFill] = $derived(steps.slice(0, 10).map((_, i) => progress(t, i)));
 	// a line drawing, like the sketches, until the icon is finished; then it fills in, just before the blueprint
 	// the blueprint's outlined parts take over from the solid icon
 	const B0 = steps[BLUEPRINT_STEP].from;
@@ -45,25 +45,21 @@
 	// the plus's blocks take over from the middle + of "C++" just as it starts to grow
 	const blocks = $derived(clamp((t - plusStep.from) / 0.2));
 
-	// "llama.cpp": "llama." steps aside and fades while c becomes C and each p a +. Each pair shares one box that
-	// moves from the letter's to its counterpart's, and the two cross-fade inside it, so the letter reshapes in place
-	const cppStep = steps[STEP['C++']];
-	const leave = $derived(outCubic(clamp((t - cppStep.from) / ((cppStep.to - cppStep.from) * 0.6))));
-	const boxAt = (b: number[], ox: number): Box => [ox + b[0] * S, Y - b[3] * S, ox + b[2] * S, Y - b[1] * S];
-	function into(b: number[], ox: number, box: Box) {
-		const src = boxAt(b, ox);
-		const kx = (box[2] - box[0]) / (src[2] - src[0]), ky = (box[3] - box[1]) / (src[3] - src[1]);
-		return `translate(${box[0] - src[0] * kx} ${box[1] - src[1] * ky}) scale(${kx} ${ky}) translate(${ox} ${Y}) scale(${S} ${-S})`;
-	}
+	// "llama.cpp": "llama." steps aside and fades while the camera closes in on ".cpp"; once it has settled, each p
+	// cross-fades into a + as it slides the few units to the +'s place (the c already is the c of "c++"). Nothing is
+	// resized, so no letter gets stretched
+	const zoomStep = steps[STEP['.cpp']];
+	const leave = $derived(outCubic(clamp((t - zoomStep.from) / ((zoomStep.to - zoomStep.from) * 0.6))));
+	const at_ = (x: number) => `translate(${x} ${Y}) scale(${S} ${-S})`;
 	const letters = $derived(
 		WORD.layout.map(([ch, x], i) => {
 			const g = WORD.glyphs[ch], ox = WX + x * S, to = BECOMES[i];
 			if (!to) return { i, d: g.d, transform: `translate(${ox - 200 * leave} ${Y}) scale(${S} ${-S})`, opacity: 1 - leave };
-			const tox = X + to.x * S, tb = BOUNDS[to.to];
-			const box = lerpBox(boxAt(g.bounds, ox), boxAt(tb, tox), pCpp);
+			const tox = X + to.x * S, now = lerp(ox, tox, pCpp);
 			// C and the second + hand over to the "C++" drawn below once they land; the middle + to the plus's blocks
 			const stays = i === 7 ? 1 - blocks : pCpp < 1 ? 1 : 0;
-			return { i, d: g.d, transform: into(g.bounds, ox, box), opacity: 1 - pCpp, to: { d: GLYPH[to.to], transform: into(tb, tox, box), opacity: pCpp * stays } };
+			if (to.to === 'C') return { i, d: g.d, transform: at_(now), opacity: stays }; // the c just stays
+			return { i, d: g.d, transform: at_(now), opacity: 1 - pCpp, to: { d: GLYPH[to.to], transform: at_(now), opacity: pCpp * stays } };
 		})
 	);
 
@@ -88,14 +84,55 @@
 			? `M0 ${SPLIT}L${e}A${r} ${r} 0 0 1 ${f}L466.154 0L240 ${SPLIT}Z`
 			: `M240 ${SPLIT}L600 ${SPLIT}L${e}A${r} ${r} 0 0 1 ${f}L120 ${SIZE}Z`;
 	}
-	const k = $derived(LEAN * pLean);
+	// no gradual lean and no flash on the upright L: it just fades out, and the slanted L comes back with the bolt
+	const boltStep = steps[STEP.Bolt];
+	const vanish = 0.18; // seconds the upright L takes to fade out, just before the strike
+	const leaned = $derived(t >= boltStep.from ? 1 : 0);
+	const k = $derived(LEAN * leaned);
 
 	// the strike: a lightning bolt fitted to the L races down over it from the top, flares, flickers once and dies
 	// away in yellow, with a glow; the L itself keeps its shape and only catches a little of the light
-	const round = $derived(outCubic(clamp(pSoft)));
-	const strike = $derived(pBolt <= 0 || pBolt >= 1 ? 0 : pBolt < 0.06 ? pBolt / 0.06 : pBolt < 0.13 ? lerp(1, 0.3, (pBolt - 0.06) / 0.07) : pBolt < 0.2 ? lerp(0.3, 1, (pBolt - 0.13) / 0.07) : 1 - outCubic((pBolt - 0.2) / 0.8));
-	const reach = $derived(-20 + 1100 * outCubic(clamp(pBolt / 0.08))); // how far down the strike has got: past the tip (y 784) and its glow
-	const flash = $derived(`${Math.round(strike * 100)}%`); // scaled by the theme's --l-bolt-tint
+	const round = $derived(pSoft); // already eased by the Soften step
+	// the bolt comes first, as the idea: it strikes where the slanted L will be, and the slanted L appears with it;
+	// the two flash together a few times (on, off, on, dim, on), then the bolt settles to a glow and fades once the
+	// L has held there a moment
+	const leanEnd = steps[STEP.Lean].to;
+	const glow = 0.7;
+	const pulses: [number, number][] = [[0.07, 1], [0.13, 0.08], [0.2, 1], [0.26, 0.3], [0.36, 1]]; // [until, level]
+	const strike = $derived.by(() => {
+		if (pBolt <= 0) return 0;
+		const pulse = pulses.find(([until]) => pBolt < until);
+		if (pulse) return pulse[1];
+		if (pBolt < 1) return lerp(1, glow, outCubic((pBolt - 0.36) / 0.64));
+		return glow * (1 - outCubic(clamp((t - leanEnd - 0.1) / 0.45)));
+	});
+	const reach = $derived(-20 + 1100 * outCubic(clamp(pBolt / 0.15))); // how far down the strike has got: past the tip (y 784) and its glow
+	const flash = $derived(`${Math.round(strike * 100)}%`); // scaled by the theme's --l-bolt-tint for the fill
+
+	// the L flashes with the bolt, so the bolt seems to turn into it: its strokes go yellow and glow, and while the
+	// strike is fresh they glitch, two offset copies jumping every ~33 ms like a broken signal. It is all driven by
+	// t, so scrubbing shows the same glitch every time
+	const rand = (n: number) => {
+		const x = Math.sin(n * 12.9898 + 78.233) * 43758.5453;
+		return x - Math.floor(x);
+	};
+	const glitch = $derived(pBolt > 0 && pBolt < 0.6 ? Math.sqrt(1 - pBolt / 0.6) : 0); // strong at first, easing off
+	// the L's own visibility: the upright one fades out before the strike; the slanted one blinks with the flashes
+	// (dark between them), then stays
+	const lAlpha = $derived(
+		t < boltStep.from - vanish ? 1 : t < boltStep.from ? 1 - (t - (boltStep.from - vanish)) / vanish : pBolt < 0.36 ? Math.max(0.12, strike) : 1
+	);
+	const jitter = $derived.by(() => {
+		if (!glitch) return null;
+		const frame = Math.floor(t * 30);
+		const r = [0, 1, 2, 3, 4].map((j) => rand(frame * 7 + j));
+		return {
+			on: r[4] > 0.25, // some frames drop out, so it stutters
+			a: `translate(${(r[0] - 0.5) * 100 * glitch} ${(r[1] - 0.5) * 34 * glitch})`,
+			b: `translate(${(0.5 - r[2]) * 100 * glitch} ${(r[3] - 0.5) * 34 * glitch})`,
+			bolt: `translate(${(r[0] - 0.5) * -36 * glitch} 0)`
+		};
+	});
 	const top = $derived(round > 0 ? blade(0, round) : poly(at.top, k));
 	const foot = $derived(round > 0 ? blade(1, round) : poly(at.right, k));
 </script>
@@ -127,18 +164,31 @@
 		<g transform="matrix(1 0 {-k} 1 {SIZE * k} 0)">
 			<!-- the arms that go: they retract, and a faint outline of where they were stays until the lean -->
 			{#each going as g, i (i)}
-				<path d={poly(g.was)} class="ghost" style:opacity={0.7 * g.p * (1 - pLean)} />
+				<path d={poly(g.was)} class="ghost" style:opacity={0.7 * g.p * (1 - leaned) * lAlpha} />
 				<path d={poly(g.now)} class="fill" style:opacity={1 - g.p ** 6} />
 			{/each}
 		</g>
-		<path d={top} class="blade" style:--flash={flash} />
-		<path d={foot} class="blade" style:--flash={flash} />
+		<path d={top} class="blade" style:--flash={flash} style:opacity={lAlpha} />
+		<path d={foot} class="blade" style:--flash={flash} style:opacity={lAlpha} />
+		{#if jitter?.on}
+			<g class="glitch" style:opacity={glitch}>
+				<g transform={jitter.a}><path d={top} /><path d={foot} /></g>
+				<g transform={jitter.b} class="split"><path d={top} /><path d={foot} /></g>
+			</g>
+		{/if}
 		</g>
 		<!-- the strike, over the L: a blurred yellow flare and the bolt itself, revealed from the top down -->
 		{#if strike > 0}
 			<g clip-path="url(#strike-reach)" style:opacity={strike}>
-				<path d={LIGHTNING} class="flare" filter="url(#strike-glow)" />
-				<path d={LIGHTNING} class="bolt" />
+				<g transform={jitter?.on ? jitter.bolt : undefined}>
+					<path d={LIGHTNING} class="flare" filter="url(#strike-glow)" />
+					<path d={LIGHTNING} class="bolt" />
+				</g>
+			</g>
+			<!-- the L's own glow, in the bolt's yellow -->
+			<g class="l-flare" filter="url(#strike-glow)" style:opacity={strike}>
+				<path d={top} />
+				<path d={foot} />
 			</g>
 		{/if}
 	</g>
@@ -158,9 +208,26 @@
 		stroke-linejoin: round;
 		vector-effect: non-scaling-stroke;
 	}
-	/* the one colour on the page: the lightning; the outlined L catches a little of its light */
+	/* the one colour on the page: the lightning. The L's strokes flash with it in full; its fill (once filled) only
+	   by the theme's tint */
 	.blade {
-		stroke: color-mix(in srgb, var(--l-bolt) calc(var(--flash, 0%) * var(--l-bolt-tint)), var(--l-shape));
+		stroke: color-mix(in srgb, var(--l-bolt) var(--flash, 0%), var(--l-shape));
+	}
+	.l-flare path {
+		fill: none;
+		stroke: var(--l-bolt);
+		stroke-width: 16;
+		stroke-linejoin: round;
+	}
+	.glitch path {
+		fill: none;
+		stroke: var(--l-bolt);
+		stroke-width: 3;
+		vector-effect: non-scaling-stroke;
+	}
+	.glitch .split path {
+		stroke: var(--l-ink);
+		opacity: 0.55;
 	}
 	.ghost {
 		fill: none;

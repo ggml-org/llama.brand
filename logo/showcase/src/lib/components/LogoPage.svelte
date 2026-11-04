@@ -88,7 +88,7 @@
 	}
 	function startTour() {
 		stopTour();
-		timers = [...features.map((x) => x.f), null].map((f, i) => setTimeout(() => (touring = f), 300 + i * 600));
+		timers = [...features.map((x) => x.f), null].map((f, i) => setTimeout(() => (touring = f), 150 + i * 300));
 	}
 
 	// the origin animation's clock: it plays once on load, from the + of C++ into this very blueprint
@@ -362,7 +362,7 @@
 			<p>
 				It begins with the + of C++, the language llama.cpp is written in. The icon started as a pencil sketch of that plus drawn into an L. Stand the blades upright and it is still
 				there: the tall blade is the top arm of the +, the foot is its right arm, and the corner they would share is
-				left out, so the two meet at a single point. Lean it 30° and a lightning bolt fits it exactly; soften two corners, and you have the mark.
+				left out, so the two meet at a single point. Then a lightning bolt, for speed, flashes and leans it 30° in an instant, the bolt inside; soften two corners, and you have the mark.
 			</p>
 			{#if sketch}
 				<button type="button" class="sketch-open" onclick={() => sketchDialog?.showModal()}>View the original sketch</button>
@@ -394,18 +394,18 @@
 			{/snippet}
 			{@render stage('03', 'Open the corner', 'Lift out the centre block the + and the L share. Stem and foot now touch at one point.', upright, s3)}
 
+			{#snippet sBolt()}
+				<path d={LIGHTNING} class="strike" />
+				{#each parts as d, i (i)}<path {d} class="cell-outline" />{/each}
+			{/snippet}
+			{@render stage('04', 'Bolt', 'Then the idea that drives it: a lightning bolt, for speed, which is what llama.cpp is about.', leaning, sBolt)}
+
 			{#snippet s4()}
 				{#each parts as d, i (i)}<path {d} class="lifted" />{/each}
-				<g transform={sheared}>{#each parts as d, i (i)}<path {d} fill="var(--l-shape)" />{/each}</g>
-				<circle cx="240" cy={SPLIT} r="14" class="joint" />
-			{/snippet}
-			{@render stage('04', 'Lean', `Slant it 30° from upright on the baseline: every edge now runs at ${deg}°.`, leaning, s4)}
-
-			{#snippet sBolt()}
-				<g transform={sheared}>{#each parts as d, i (i)}<path {d} class="cell-outline" />{/each}</g>
 				<path d={LIGHTNING} class="strike" />
+				<g transform={sheared}>{#each parts as d, i (i)}<path {d} class="cell-outline" />{/each}</g>
 			{/snippet}
-			{@render stage('05', 'Bolt', 'Cut the blade along its diagonal and turn that half about the joint: a lightning bolt inside the L. Speed, which is what llama.cpp is about.', leaning, sBolt)}
+			{@render stage('05', 'Lean', `In a flash the bolt leans it: the L slants 30° on the baseline, every edge at ${deg}°, with the bolt inside.`, leaning, s4)}
 
 			{#snippet s5()}
 				<g transform={sheared}>{#each parts as d, i (i)}<path {d} class="ghost" />{/each}</g>
@@ -605,14 +605,14 @@
 	/* blueprint highlighting: with a part active, everything tagged dims except that part's idea */
 	[data-f] {
 		cursor: pointer;
-		transition: opacity 200ms ease-out;
+		transition: opacity 120ms ease-out;
 	}
 	[data-f] :is(line, circle, path, text),
 	[data-f]:is(path, text) {
-		transition: stroke 200ms ease-out, fill 200ms ease-out, fill-opacity 200ms ease-out, stroke-width 200ms ease-out;
+		transition: stroke 120ms ease-out, fill 120ms ease-out, fill-opacity 120ms ease-out, stroke-width 120ms ease-out;
 	}
 	.static {
-		transition: opacity 200ms ease-out;
+		transition: opacity 120ms ease-out;
 	}
 	.hero svg.focused [data-f]:not(.on),
 	.hero svg.focused .static {
