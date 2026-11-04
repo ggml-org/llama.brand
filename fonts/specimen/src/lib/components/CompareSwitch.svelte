@@ -36,6 +36,13 @@
 	.segmented {
 		border-radius: 7px;
 	}
+	/* on phones the controls dock at the bottom, so the switch moves to the top */
+	@media (max-width: 600px) {
+		.compare {
+			top: calc(12px + env(safe-area-inset-top, 0px));
+			bottom: auto;
+		}
+	}
 	.kbd {
 		padding: 2px 7px;
 		border: 1px solid var(--rule);

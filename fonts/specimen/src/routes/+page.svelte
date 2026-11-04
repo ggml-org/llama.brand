@@ -123,6 +123,12 @@
 		display: grid;
 		gap: 56px;
 	}
+	/* room at the bottom on phones, where the controls float over the page */
+	@media (max-width: 600px) {
+		.wrap {
+			padding-bottom: calc(150px + env(safe-area-inset-bottom, 0px));
+		}
+	}
 	header {
 		display: grid;
 		gap: 20px;

@@ -20,11 +20,13 @@
 	const named = $derived(
 		styles.reduce((a, s) => (Math.abs(s.weight - weight) < Math.abs(a.weight - weight) ? s : a)).weight
 	);
+	// on phones the bar floats at the bottom with weight and version only; the rest opens on request
+	let more = $state(false);
 </script>
 
-<div class="bar">
+<div class="bar" class:more>
 	<span class="label">Weight</span>
-	<div class="segmented" role="radiogroup" aria-label="Weight">
+	<div class="segmented weights" role="radiogroup" aria-label="Weight">
 		{#each styles as s (s.weight)}
 			<label>
 				<input type="radio" name="weight" checked={named === s.weight} onchange={() => (weight = s.weight)} />
@@ -33,7 +35,7 @@
 		{/each}
 	</div>
 
-	<div class="group">
+	<div class="group versions">
 		<span class="label">Version</span>
 		<div class="segmented" role="radiogroup" aria-label="Version">
 			{#each variants as v (v)}
@@ -44,9 +46,12 @@
 			{/each}
 		</div>
 		<span class="kbd">press V</span>
+		<button type="button" class="more-toggle" aria-expanded={more} aria-controls="more-controls" onclick={() => (more = !more)}>
+			{more ? 'Less' : 'More'}
+		</button>
 	</div>
 
-
+	<div class="extra" id="more-controls">
 	<label class="slider" for="wght">
 		Fine <input id="wght" type="range" min={axis.min} max={axis.max} step="1" bind:value={weight} />
 		<output>{weight}</output>
@@ -61,6 +66,7 @@
 			Tracking <input type="range" min="-40" max="120" bind:value={tracking} /> <output>{tracking}</output>
 		</label>
 		<label class="toggle"><input type="checkbox" bind:checked={guides} /> Show line boxes</label>
+	</div>
 	</div>
 </div>
 
@@ -77,10 +83,85 @@
 		background: var(--paper);
 		border-bottom: 1px solid var(--rule);
 	}
-	/* on phones every control together is a third of the screen: let it scroll away instead */
+	/* the fine slider and the Try it row sit in the bar's own flow on wide screens */
+	.extra {
+		display: contents;
+	}
+	.more-toggle {
+		display: none;
+	}
+	/* on phones the bar floats at the bottom of the screen: weight and version always, the rest behind More */
 	@media (max-width: 600px) {
 		.bar {
-			position: static;
+			position: fixed;
+			top: auto;
+			left: max(8px, env(safe-area-inset-left, 0px));
+			right: max(8px, env(safe-area-inset-right, 0px));
+			bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+			z-index: 20;
+			flex-direction: column;
+			align-items: stretch;
+			gap: 8px;
+			max-height: min(70vh, 520px);
+			overflow-y: auto;
+			padding: 8px;
+			border: 1px solid var(--rule);
+			border-radius: 14px;
+			box-shadow: 0 8px 28px rgba(0, 0, 0, 0.22);
+		}
+		.bar > .label,
+		.versions .label,
+		.kbd {
+			display: none;
+		}
+		.segmented label {
+			flex: 1;
+		}
+		.segmented label span {
+			text-align: center;
+			padding: 8px 6px;
+		}
+		.versions {
+			margin-left: 0;
+		}
+		.versions .segmented {
+			flex: 1;
+		}
+		.more-toggle {
+			display: block;
+			padding: 8px 12px;
+			border: 1px solid var(--rule);
+			border-radius: 6px;
+			background: none;
+			color: var(--ink);
+			font: 500 13px var(--mono);
+			cursor: pointer;
+		}
+		.more-toggle:focus-visible {
+			outline: 2px solid var(--guide);
+			outline-offset: 2px;
+		}
+		.extra {
+			display: none;
+		}
+		.more .extra {
+			display: grid;
+			gap: 10px;
+			order: -1; /* opens above the switches, toward the page */
+			padding: 4px 4px 10px;
+			border-bottom: 1px dashed var(--rule);
+		}
+		.slider input,
+		.row .slider input {
+			flex: 1;
+			width: auto;
+			min-width: 0;
+		}
+		.row {
+			display: grid;
+			gap: 10px;
+			padding-top: 0;
+			border-top: 0;
 		}
 	}
 	.group {
