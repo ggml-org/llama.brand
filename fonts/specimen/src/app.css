@@ -1,0 +1,89 @@
+/* A type designer's proof sheet: header with vertical metrics, live settings, interface samples,
+   the glyph grid drawn on its guides, a tester, then the design notes. */
+:root {
+	--paper: #f2f4f3;
+	--sheet: #fbfcfb;
+	--ink: #111614;
+	--muted: #5d6764;
+	--rule: #d5dbd8;
+	--guide: #2f7fd6;
+	--guide-soft: rgba(47, 127, 214, 0.28);
+	--mark: #c4306f;
+	--body: 'Hanken Grotesk', 'Helvetica Neue', Arial, sans-serif;
+	--mono: 'IBM Plex Mono', ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+	:root:not([data-theme='light']) {
+		--paper: #0f1312; --sheet: #161b1a; --ink: #e9eeec; --muted: #94a09c; --rule: #2a3230;
+		--guide: #6aa9f0; --guide-soft: rgba(106, 169, 240, 0.3); --mark: #f27aae;
+		color-scheme: dark;
+	}
+}
+:root[data-theme='dark'] {
+	--paper: #0f1312; --sheet: #161b1a; --ink: #e9eeec; --muted: #94a09c; --rule: #2a3230;
+	--guide: #6aa9f0; --guide-soft: rgba(106, 169, 240, 0.3); --mark: #f27aae;
+	color-scheme: dark;
+}
+
+body {
+	margin: 0;
+	background: var(--paper);
+	color: var(--ink);
+	font: 16px/1.55 var(--body);
+}
+body::before {
+	content: '';
+	position: fixed;
+	inset: 0 0 auto;
+	height: env(safe-area-inset-top, 0px);
+	z-index: 10;
+	background: var(--paper);
+}
+
+.label {
+	font: 500 11px/1.4 var(--mono);
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: var(--muted);
+}
+
+/* segmented control: weights, versions, compare */
+.segmented {
+	display: flex;
+	border: 1px solid var(--rule);
+	border-radius: 6px;
+	overflow: hidden;
+}
+.segmented label input {
+	position: absolute;
+	opacity: 0;
+	pointer-events: none;
+}
+.segmented label span {
+	display: block;
+	padding: 6px 12px;
+	font: 400 13px var(--mono);
+	color: var(--muted);
+	cursor: pointer;
+}
+.segmented label span em {
+	font-style: normal;
+	opacity: 0.65;
+}
+.segmented label + label span {
+	border-left: 1px solid var(--rule);
+}
+.segmented label input:checked + span {
+	background: var(--ink);
+	color: var(--paper);
+}
+.segmented label input:focus-visible + span {
+	outline: 2px solid var(--guide);
+	outline-offset: -2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	* {
+		transition: none !important;
+	}
+}

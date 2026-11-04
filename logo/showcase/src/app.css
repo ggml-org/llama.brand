@@ -1,0 +1,40 @@
+/* The page around the icon breakdown: the same grayscale ground as the breakdown itself. */
+:root {
+	--page: #ededed;
+	--ink: #111111;
+	--body: 'Llama Sans Text', 'Helvetica Neue', Arial, sans-serif;
+	--mono: 'IBM Plex Mono', ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+	:root:not([data-theme='light']) {
+		--page: #141414;
+		--ink: #fafafa;
+		color-scheme: dark;
+	}
+}
+:root[data-theme='dark'] {
+	--page: #141414;
+	--ink: #fafafa;
+	color-scheme: dark;
+}
+
+body {
+	margin: 0;
+	background: var(--page);
+	color: var(--ink);
+	font: 16px/1.55 var(--body);
+}
+body::before {
+	content: '';
+	position: fixed;
+	inset: 0 0 auto;
+	height: env(safe-area-inset-top, 0px);
+	z-index: 10;
+	background: var(--page);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	* {
+		transition: none !important;
+	}
+}
