@@ -10,22 +10,26 @@ export const outQuart = (x: number) => 1 - (1 - x) ** 4;
 export const outCubic = (x: number) => 1 - (1 - x) ** 3;
 export const inOutCubic = (x: number) => (x < 0.5 ? 4 * x ** 3 : 1 - (-2 * x + 2) ** 3 / 2);
 export const inOutQuart = (x: number) => (x < 0.5 ? 8 * x ** 4 : 1 - (-2 * x + 2) ** 4 / 2);
+export const inOutQuint = (x: number) => (x < 0.5 ? 16 * x ** 5 : 1 - (-2 * x + 2) ** 5 / 2);
 const linear = (x: number) => x;
 
-// each step overlaps the one before it, so the shape never stops moving (seconds)
+// one step at a time, each with a short hold after it, so every stage of the shape gets its moment (seconds);
+// every change starts softly, moves through the middle and settles, the bigger moves on the stronger curve
 export const steps = [
 	{ name: 'llama.cpp', from: 0, to: 0, ease: outCubic, note: 'It begins with a name: llama.cpp.' },
-	{ name: 'C++', from: 0.7, to: 1.5, ease: inOutQuart, note: 'Its .cpp is C++, the language llama.cpp is written in.' },
-	{ name: 'Plus', from: 1.6, to: 2.4, ease: inOutQuart, note: 'Its plus grows the icon’s own arms: 240 wide upright, 208 deep across.' },
-	{ name: 'L', from: 2.45, to: 3.05, ease: outQuart, note: 'Keep the top arm, the centre and the right arm: an L inside the +.' },
-	{ name: 'Open the corner', from: 2.85, to: 3.4, ease: inOutCubic, note: 'Lift out the centre block. Stem and foot now touch at one point.' },
-	{ name: 'Lean', from: 3.25, to: 4.15, ease: inOutQuart, note: 'Slant it 30° on the baseline: every edge now runs at 60°.' },
-	{ name: 'Bolt', from: 4.15, to: 4.95, ease: linear, note: 'Lightning strikes through the slanted L, cut along the blade’s diagonal and turned about the joint: speed, which is what llama.cpp is about.' },
-	{ name: 'Soften', from: 4.85, to: 5.65, ease: linear, note: 'Round only the two outer corners.' },
-	{ name: 'Fill', from: 5.6, to: 6.05, ease: inOutCubic, note: 'Fill it in: the Llama icon.' },
-	{ name: 'Blueprint', from: 6.1, to: 7.35, ease: linear, note: 'And this is how it is built.' }
+	{ name: '.cpp', from: 0.8, to: 1.7, ease: inOutQuart, note: 'Look closer: its .cpp.' },
+	{ name: 'C++', from: 1.95, to: 2.5, ease: inOutCubic, note: 'Its .cpp is C++, the language llama.cpp is written in.' },
+	{ name: 'Plus', from: 2.85, to: 3.75, ease: inOutQuint, note: 'Its plus grows the icon’s own arms: 240 wide upright, 208 deep across.' },
+	{ name: 'L', from: 4.1, to: 4.75, ease: inOutQuart, note: 'Keep the top arm, the centre and the right arm: an L inside the +.' },
+	{ name: 'Open the corner', from: 5.1, to: 5.7, ease: inOutQuart, note: 'Lift out the centre block. Stem and foot now touch at one point.' },
+	{ name: 'Bolt', from: 6.05, to: 6.65, ease: linear, note: 'Then the idea: a lightning bolt, for speed, which is what llama.cpp is about.' },
+	// the lean isn't a move: the L snaps to 30° in the bolt's flash (see Morph); this step only carries its caption
+	{ name: 'Lean', from: 6.7, to: 6.72, ease: linear, note: 'In a flash the bolt leans the L 30°: every edge runs at 60°, with the bolt inside.' },
+	{ name: 'Soften', from: 7.5, to: 8.2, ease: inOutQuart, note: 'Round only the two outer corners.' },
+	{ name: 'Fill', from: 8.5, to: 9.0, ease: inOutCubic, note: 'Fill it in: the Llama icon.' },
+	{ name: 'Blueprint', from: 9.3, to: 10.55, ease: linear, note: 'And this is how it is built.' }
 ];
-export const END = 7.5;
+export const END = 10.7;
 /** A step's index by name, so the code that times things off a step doesn't depend on the order. */
 export const STEP = Object.fromEntries(steps.map((s, i) => [s.name, i])) as Record<string, number>;
 export const BLUEPRINT_STEP = STEP.Blueprint;
@@ -41,20 +45,21 @@ export function progress(t: number, i: number) {
 export const span = (t: number, from: number, to: number) => inOutCubic(clamp((t - from) / (to - from)));
 export const stepAt = (t: number) => Math.max(0, steps.findLastIndex((s) => t >= s.from));
 
-// "C++" set in Llama Sans Display Bold (font units, y up), placed so its middle + is centred on the plus.
+// "c++" set in Llama Sans Display Bold (font units, y up), placed so its middle + is centred on the plus; the c stays
+// lowercase, so the c of "llama.cpp" is simply the c of "c++".
 // Its + is two 114-unit bars, so it splits into the same five blocks as the plus, and each block grows into its own.
 export const GLYPH = {
-	C: 'M361 -16Q264 -16 189 28Q146 54 116 90Q85 126 66 169Q47 212 38 259Q30 306 30 354Q30 467 71 551Q112 635 187 680Q262 726 363 726Q500 726 576 658Q648 594 672 479L528 457Q516 527 474 567Q433 606 363 606Q304 606 262 575Q228 549 209 513Q190 477 182 436Q175 394 175 354Q175 276 198 221Q219 169 262 137Q304 105 362 105Q437 105 479 147Q520 189 531 264L676 244Q662 167 624 110Q594 66 552 38Q511 10 462 -3Q412 -16 361 -16Z',
+	C: 'M293 -12Q212 -12 152 23Q108 48 80 86Q52 125 38 172Q25 219 25 268Q25 352 58 415Q82 458 118 488Q154 517 199 532Q244 547 293 547Q362 547 417 523Q470 499 504 454Q537 409 546 352L405 334Q397 385 367 411Q337 437 293 437Q234 437 201 392Q169 348 169 268Q169 187 201 142Q234 98 293 98Q337 98 368 124Q398 151 404 205L547 190Q538 132 507 88Q482 53 448 31Q414 9 374 -2Q334 -12 293 -12Z', // the lowercase c: llama.cpp's own c is the c of c++
 	plus: 'M214 44V231H27V345H214V532H328V345H515V231H328V44Z',
-	advance: { C: 703, plus: 542 }
+	advance: { C: 563, plus: 542 }
 };
 export const S = 1.25; // font units to drawing units
-export const MID = GLYPH.advance.C; // the middle + starts where the C ends
+export const MID = GLYPH.advance.C; // the middle + starts where the c ends
 export const X = -(MID + 271) * S; // the middle + centred on the plus centre
 export const Y = (SIZE + SPLIT) / 2 + 288 * S;
 
 // "llama.cpp" in Llama Sans Display Bold, with the font's own advances and kerning (font units, y up), placed so its
-// "c" starts where the C of "C++" does: then c grows into C and each p into a +, while "llama." steps aside
+// "c" is the c of "c++": each p turns into a + in place, while "llama." steps aside
 export const WORD = {
 	glyphs: {
 		'l': { d: 'M194 0H55V710H194Z', bounds: [55, 0, 194, 710] },
@@ -66,25 +71,25 @@ export const WORD = {
 	} as Record<string, { d: string; bounds: number[] }>,
 	layout: [['l', 0], ['l', 237], ['a', 484], ['m', 1033], ['a', 1889], ['.', 2481], ['c', 2686], ['p', 3237], ['p', 3827]] as [string, number][]
 };
-export const WX = X - 2686 * S; // the c of "llama.cpp" lines up with the C of "C++"
-/** The letters of ".cpp" that become "C++", and where each one lands (x in "C++", font units). */
+export const WX = X - 2686 * S; // the c of "llama.cpp" is the c of "c++"
+/** The letters of ".cpp" that become "c++", and where each one lands (x in "c++", font units). */
 export const BECOMES: Record<number, { to: 'C' | 'plus'; x: number }> = { 6: { to: 'C', x: 0 }, 7: { to: 'plus', x: MID }, 8: { to: 'plus', x: MID + GLYPH.advance.plus } };
-export const BOUNDS = { C: [30, -16, 676, 726], plus: [27, 44, 515, 532] };
+export const BOUNDS = { C: [25, -12, 547, 547], plus: [27, 44, 515, 532] };
 
 // the camera: the word, then the whole plus, then the icon, then out to the blueprint's own frame.
 // Each frame is a box to fit (centre x, centre y, width, height), fitted to the stage's shape.
 export type Frame = [number, number, number, number];
 const name: Frame = [WX + (55 + 4404) / 2 * S, Y - 280 * S, 4349 * S * 1.15, 860 * S * 1.9]; // "llama.cpp", ink with a margin
-const word: Frame = [X + 895 * S, Y - 355 * S, 1730 * S * 1.35, 742 * S * 1.7];
+const word: Frame = [X + 871 * S, Y - 198 * S, 1693 * S * 1.35, 697 * S * 1.9]; // ".cpp" and "c++" alike, ink with a margin
 const plusFrame: Frame = [0, (SIZE + SPLIT) / 2, 1300, 1300]; // the plus runs 0 to SIZE + SPLIT
 const iconFrame: Frame = [300, 400, 1300, 1300]; // room below for the lightning's tip and its glow
 
 export function camera(t: number, aspect: number, final: Frame) {
 	const fit = ([cx, cy, w, h]: Frame) => [cx, cy, w / h > aspect ? w : h * aspect];
 	const frames = [name, word, plusFrame, iconFrame, final].map(fit);
-	const over = (from: number, to: number) => inOutCubic(clamp((t - from) / (to - from)));
+	const over = (from: number, to: number) => inOutQuart(clamp((t - from) / (to - from)));
 	const legs = [
-		over(steps[STEP['C++']].from, steps[STEP['C++']].to),
+		over(steps[STEP['.cpp']].from, steps[STEP['.cpp']].to), // the zoom to .cpp, before any letter changes
 		over(steps[STEP.Plus].from, steps[STEP.Plus].to),
 		over(steps[STEP.L].from, steps[STEP.Lean].to),
 		over(steps[BLUEPRINT_STEP].from, steps[BLUEPRINT_STEP].from + 0.8)
