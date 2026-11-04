@@ -3,7 +3,7 @@
 	import { onMount, type Snippet } from 'svelte';
 	import Morph from './Morph.svelte';
 	import { PATHS, SIZE, SPLIT, edges, corners, angle, extend, type Pt } from '#lib/logo.ts';
-	import { steps as originSteps, END, BLUEPRINT, BLUEPRINT_STEP, LIGHTNING, camera, span, stepAt } from '#lib/origin.ts';
+	import { steps as originSteps, END, BLUEPRINT, BLUEPRINT_STEP, STEP, LIGHTNING, camera, span, stepAt } from '#lib/origin.ts';
 
 	const box: [number, number, number, number] = [-320, -160, 920, 760];
 	const vb = `${box[0]} ${box[1]} ${box[2] - box[0]} ${box[3] - box[1]}`;
@@ -142,6 +142,8 @@
 		Object.fromEntries(Object.entries(BLUEPRINT).map(([k, [a, b]]) => [k, done ? 1 : span(t, B0 + a, B0 + b)])) as Record<keyof typeof BLUEPRINT, number>
 	);
 	const step = $derived(stepAt(t));
+	// the steps that have a tile below carry its number (01 Plus to 06 Soften)
+	const stepNumber = (i: number) => (i >= STEP.Plus && i <= STEP.Soften ? `${String(i - STEP.Plus + 1).padStart(2, '0')} ` : '');
 	const current = $derived(features.find((x) => x.f === active));
 	const featureAt = (e: Event) => ((e.target as Element).closest('[data-f]') as HTMLElement | null)?.dataset.f as Feature | undefined;
 	const pin = (f: Feature) => (pinned = pinned === f ? null : f);
@@ -337,7 +339,7 @@
 				{/each}
 			</div>
 			<p class="caption" aria-live="polite">
-				{#if !done}<strong>{String(step).padStart(2, '0')} {originSteps[step].name}.</strong> {originSteps[step].note}{:else if current}<strong>{current.name}.</strong> {current.note}{:else}Hover or tap any part of the drawing, or pick one here.{/if}
+				{#if !done}<strong>{stepNumber(step)}{originSteps[step].name}.</strong> {originSteps[step].note}{:else if current}<strong>{current.name}.</strong> {current.note}{:else}Hover or tap any part of the drawing, or pick one here.{/if}
 			</p>
 		</div>
 	</section>

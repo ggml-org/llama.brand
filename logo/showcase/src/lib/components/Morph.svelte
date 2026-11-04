@@ -5,13 +5,13 @@
 
 <script lang="ts">
 	import { SIZE, SPLIT, corners, type Pt } from '#lib/logo.ts';
-	import { steps, progress, span, lerp, clamp, outCubic, GLYPH, S, MID, X, Y, LIGHTNING, BLUEPRINT, BLUEPRINT_STEP } from '#lib/origin.ts';
+	import { steps, progress, span, lerp, clamp, outCubic, GLYPH, S, MID, X, Y, WORD, WX, BECOMES, BOUNDS, STEP, LIGHTNING, BLUEPRINT, BLUEPRINT_STEP } from '#lib/origin.ts';
 
 	let { t }: { t: number } = $props();
 
 	const LEAN = 1 / Math.tan(Math.PI / 3); // 30° from upright: the shear that turns upright edges into 60° ones
 
-	const [, pPlus, pL, pOpen, pLean, pBolt, pSoft, pFill] = $derived(steps.slice(0, 8).map((_, i) => progress(t, i)));
+	const [, pCpp, pPlus, pL, pOpen, pLean, pBolt, pSoft, pFill] = $derived(steps.slice(0, 9).map((_, i) => progress(t, i)));
 	// a line drawing, like the sketches, until the icon is finished; then it fills in, just before the blueprint
 	// the blueprint's outlined parts take over from the solid icon
 	const B0 = steps[BLUEPRINT_STEP].from;
@@ -40,7 +40,32 @@
 	};
 	const at = $derived(Object.fromEntries(Object.keys(block).map((b) => [b, lerpBox(fromGlyph[b], block[b], pPlus)])) as Record<string, Box>);
 	// the C and the other + step aside and fade while the middle + grows
-	const aside = $derived(outCubic(clamp((t - steps[1].from) / ((steps[1].to - steps[1].from) * 0.7))));
+	const plusStep = steps[STEP.Plus];
+	const aside = $derived(outCubic(clamp((t - plusStep.from) / ((plusStep.to - plusStep.from) * 0.7))));
+	// the plus's blocks take over from the middle + of "C++" just as it starts to grow
+	const blocks = $derived(clamp((t - plusStep.from) / 0.2));
+
+	// "llama.cpp": "llama." steps aside and fades while c becomes C and each p a +. Each pair shares one box that
+	// moves from the letter's to its counterpart's, and the two cross-fade inside it, so the letter reshapes in place
+	const cppStep = steps[STEP['C++']];
+	const leave = $derived(outCubic(clamp((t - cppStep.from) / ((cppStep.to - cppStep.from) * 0.6))));
+	const boxAt = (b: number[], ox: number): Box => [ox + b[0] * S, Y - b[3] * S, ox + b[2] * S, Y - b[1] * S];
+	function into(b: number[], ox: number, box: Box) {
+		const src = boxAt(b, ox);
+		const kx = (box[2] - box[0]) / (src[2] - src[0]), ky = (box[3] - box[1]) / (src[3] - src[1]);
+		return `translate(${box[0] - src[0] * kx} ${box[1] - src[1] * ky}) scale(${kx} ${ky}) translate(${ox} ${Y}) scale(${S} ${-S})`;
+	}
+	const letters = $derived(
+		WORD.layout.map(([ch, x], i) => {
+			const g = WORD.glyphs[ch], ox = WX + x * S, to = BECOMES[i];
+			if (!to) return { i, d: g.d, transform: `translate(${ox - 200 * leave} ${Y}) scale(${S} ${-S})`, opacity: 1 - leave };
+			const tox = X + to.x * S, tb = BOUNDS[to.to];
+			const box = lerpBox(boxAt(g.bounds, ox), boxAt(tb, tox), pCpp);
+			// C and the second + hand over to the "C++" drawn below once they land; the middle + to the plus's blocks
+			const stays = i === 7 ? 1 - blocks : pCpp < 1 ? 1 : 0;
+			return { i, d: g.d, transform: into(g.bounds, ox, box), opacity: 1 - pCpp, to: { d: GLYPH[to.to], transform: into(tb, tox, box), opacity: pCpp * stays } };
+		})
+	);
 
 	// the arms that go slide back into the centre; the centre then folds into the point where stem and foot meet
 	const going = $derived.by(() => {
@@ -84,13 +109,21 @@
 			<clipPath id="strike-reach"><rect x="-400" y="-40" width="1400" height={Math.max(0, reach + 40)} /></clipPath>
 		</defs>
 
+		<!-- "llama.cpp", becoming "C++" -->
+		{#if blocks < 1}
+			{#each letters as l (l.i)}
+				{#if l.opacity > 0}<path d={l.d} class="fill" transform={l.transform} style:opacity={l.opacity} />{/if}
+				{#if l.to && l.to.opacity > 0}<path d={l.to.d} class="fill" transform={l.to.transform} style:opacity={l.to.opacity} />{/if}
+			{/each}
+		{/if}
 		<!-- the rest of "C++": the C and the second + step aside and fade -->
-		{#if aside < 1}
+		{#if pCpp >= 1 && aside < 1}
 			<g style:opacity={1 - aside}>
 				<path d={GLYPH.C} class="fill" transform="translate({X - 160 * aside} {Y}) scale({S} {-S})" />
 				<path d={GLYPH.plus} class="fill" transform="translate({X + (MID + GLYPH.advance.plus) * S + 160 * aside} {Y}) scale({S} {-S})" />
 			</g>
 		{/if}
+		<g style:opacity={blocks}>
 		<g transform="matrix(1 0 {-k} 1 {SIZE * k} 0)">
 			<!-- the arms that go: they retract, and a faint outline of where they were stays until the lean -->
 			{#each going as g, i (i)}
@@ -100,6 +133,7 @@
 		</g>
 		<path d={top} class="blade" style:--flash={flash} />
 		<path d={foot} class="blade" style:--flash={flash} />
+		</g>
 		<!-- the strike, over the L: a blurred yellow flare and the bolt itself, revealed from the top down -->
 		{#if strike > 0}
 			<g clip-path="url(#strike-reach)" style:opacity={strike}>
