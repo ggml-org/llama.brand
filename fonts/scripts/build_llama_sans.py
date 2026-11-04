@@ -14,9 +14,10 @@ Run:  python scripts/build_llama_sans.py
       -> variable/LlamaSans{Display,UI}[wght].ttf
          static/LlamaSans{Display,UI}-{Regular,Medium,SemiBold,Bold}.ttf, cut from them
 
-Display and UI share every outline. Display is for headlines and big sizes (tight tracking, stronger
-kerning, compact line spacing); UI is for interfaces and running text, spaced and kerned after SF Pro's text
-sizes, with a line box centred on the cap height for buttons and cards (prose sets its own line-height).
+Display and UI share every outline but UI's deeper descenders. Display is for headlines and big sizes
+(tight tracking, stronger kerning, compact line spacing); UI is for interfaces and running text, spaced and kerned
+after SF Pro's text sizes, with a line box centred on the cap height for buttons and cards (prose sets its own
+line-height).
 """
 import hashlib
 import math
@@ -53,7 +54,8 @@ FAMILIES = {
     # the cap height ((980 - 270) / 2 = 355 = 710 / 2), so capitals and cap-height icons centre in
     # buttons and chips with even padding; 12/16/20 px give whole-pixel 15/20/25 px lines.
     # Geist's kerning at 105% and the pair corrections at 75%, then UI_KERN brings it to SF Pro's text kerning.
-    "UI":      dict(track=-4,  kern=1.05, pairs=0.75, fixes="UI_KERN", line=(980, -270, 0)),
+    # Its descenders run deeper than Display's, to `descender` units below the baseline.
+    "UI":      dict(track=-4,  kern=1.05, pairs=0.75, fixes="UI_KERN", descender=155, line=(980, -270, 0)),
 }
 NAMED = [(400, "Regular"), (500, "Medium"), (600, "SemiBold"), (700, "Bold")]
 STATICS = [(400, "Regular"), (500, "Medium"), (600, "SemiBold"), (700, "Bold")]
@@ -61,7 +63,7 @@ A_FOOT = {700: (24, 72, 20)}  # per master: the a's bracketed foot (out, height,
 A_BOWL_DROP = 5               # units the a's bowl top rises where it meets the stem (negative: flatter than Geist)
 A_BOWL_FILLET = 0             # radius rounding the corners where the bowl top meets the stem (0 = sharp)
 ROUND_BY_GLYPH = {"G": 1.0, "S": 1.0, "s": 1.0}   # curve easing toward circular (default bg.ROUND = 0.55)
-WIDEN = {"G": 1.05, "S": 1.07, "s": 1.07}         # horizontal stretch of the drawing, sidebearings kept
+WIDEN = {"G": 1.05, "S": 1.07, "s": 1.03}         # horizontal stretch of the drawing, sidebearings kept
 # The Llama icon (ggml-org/llama.brand, icon/icon-light.svg, 600 x 600), drawn into the font at U+E000.
 # The brand assets are CC BY-NC 4.0: the font may only ship with this glyph once ggml-org allows it.
 ICON_CODEPOINT = 0xE000
@@ -71,6 +73,8 @@ ICON_PATHS = [
 ]
 ICON_SIDE = 60   # space either side of the icon, font units
 CAP_RAISE = 0    # units added to the cap height (capitals scale up from the baseline; accents above them follow)
+DESCENDER = 140  # how deep lowercase descenders reach (Geist's 150): p, q, j, y, and g's bowl in proportion;
+                 # a version can set its own (FAMILIES' descender)
 T_SHAPE = dict(left=0.95, right=0.90)  # the t's arms, as a share of Geist's: crossbar left, crossbar and foot right (None = Geist's)
 FIT_ERR = 1.5  # max deviation (font units) when a TrueType spline is refit as one cubic
 
@@ -269,6 +273,16 @@ def widen(segs_by_master, f):
                 segs[i] = (kind, tuple((x0 + (p[0] - x0) * f, p[1]) for p in pts))
 
 
+def shorten_descender(segs_by_master, depth, start=20):
+    """Squeeze (or stretch) everything more than `start` units below the baseline, so a 150-unit descender reaches
+    `depth`. The overshoot of rounds on the baseline sits above `start`, so it stays as drawn."""
+    k = (depth - start) / (150 - start)
+    for s in segs_by_master:
+        for segs in s:
+            for i, (kind, pts) in enumerate(segs):
+                segs[i] = (kind, tuple((x, y if y >= -start else -start + (y + start) * k) for x, y in pts))
+
+
 def shape_t(segs_by_master, left, right):
     """Narrow the t: its arms (left of the stem, and right of it: crossbar and foot) cut to `left`/`right` of their
     length. The outer half of each arm moves as one piece, so the angled foot end and the hook keep their exact
@@ -379,7 +393,7 @@ def geist_source():
     return GEIST_PATH
 
 
-def build_masters(var, track):
+def build_masters(var, track, descender=DESCENDER):
     masters = [instantiateVariableFont(var, {"wght": g}, inplace=False, overlap=OverlapMode.KEEP_AND_SET_FLAGS,
                                        updateFontNames=False) for _, g in MASTERS]
     for m in masters:
@@ -400,6 +414,8 @@ def build_masters(var, track):
         edit_glyph(name, cubics, scales, stems[0], metrics, rev)
         if name in WIDEN:
             widen(cubics, WIDEN[name])
+        if descender != 150 and (rev.get(name) or rev.get(name.split(".")[0], "")).islower():
+            shorten_descender(cubics, descender)
         if name == "t" and T_SHAPE:
             t_deltas = shape_t(cubics, T_SHAPE["left"], T_SHAPE["right"])
         write_compatible(name, cubics, masters)
@@ -514,10 +530,12 @@ UI_KERN = [
     ('F', 'a', -13), ('F', 'A', 50), ('P', 'A', 30), ('A', 'vwy', -5), ('A', 'VW', 52), ('VW', 'A', 52),
     ('A', 'T', 11), ('T', 'A', 11), ('L', 'VW', 100), ('L', 'Y', 75), ('L', 'T', 54), ('L', 'y', 16),
     ('L', Q_CLOSE, -26), ('A', Q_CLOSE, -62), (Q_OPEN, 'A', -62), (Q_CLOSE, 's', -27), (Q_OPEN, 's', -15),
-    ('rvwy', '.,', -8), ('r', 'a', 42), ('r', 'cdeoq', 27), ('e', 'vwy', 19), ('vwy', 'eo', 7), ('a', 'vwy', 4),
+    ('rvwy', '.,', -8), ('r', 'a', 42), ('r', 'cdoq', 27), ('r', 'e', 12), ('e', 'vwy', 19), ('vwy', 'eo', 7), ('a', 'vwy', 4),
     ('o', 'vwxy', 12), ('xk', 'ceo', 28), ('f', 'ceo', 24), ('r', 'vwy', 29), ('vwy', 'a', 5),
 ]
-DISPLAY_KERN = [("VW", "-", -29), ("Y", ".,", -88), ("Y", "-", -73)]  # SF at its display size (opsz 28)
+# In both versions r·e closes up by hand, 15 units tighter than the rest of r before rounds: the open space under
+# r's arm reads loose before e (UI's ('r', 'e', 12) above, Display's here).
+DISPLAY_KERN = [("VW", "-", -29), ("Y", ".,", -88), ("Y", "-", -73), ("r", "e", -15)]  # the rest: SF at opsz 28
 
 
 def add_kerning(font, groups, scale=1.0):
@@ -640,7 +658,7 @@ if __name__ == "__main__":
         os.makedirs(os.path.join(out_dir, d), exist_ok=True)
     for opt, cfg in FAMILIES.items():
         family = f"Llama Sans {opt}"
-        masters = build_masters(var, cfg["track"])
+        masters = build_masters(var, cfg["track"], cfg.get("descender", DESCENDER))
         for m in masters:
             scale_kerning(m, cfg["kern"])
             if cfg.get("pairs"):
