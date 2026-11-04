@@ -63,4 +63,10 @@
 		margin: 0;
 		color: var(--muted);
 	}
+	/* design notes are for the desktop page; on phones the specimen keeps to the type itself */
+	@media (max-width: 600px) {
+		.notes {
+			display: none;
+		}
+	}
 </style>

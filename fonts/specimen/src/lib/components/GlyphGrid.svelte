@@ -89,6 +89,12 @@
 	line.sb {
 		stroke-dasharray: 2 3;
 	}
+	/* on phones each cell shows its character only, not its advance width */
+	@media (max-width: 600px) {
+		figcaption span:last-child {
+			display: none;
+		}
+	}
 	figcaption {
 		display: flex;
 		justify-content: space-between;
