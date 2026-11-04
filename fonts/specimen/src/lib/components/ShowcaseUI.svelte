@@ -128,7 +128,7 @@
 		flex: 1;
 		padding: 0.45em 0.8em;
 		border: 0;
-		border-radius: 6px;
+		border-radius: 8px;
 		background: none;
 		color: var(--muted);
 		font: 500 13px / normal var(--display);
@@ -149,7 +149,7 @@
 	.input {
 		padding: 0.55em 0.75em;
 		border: 1px solid var(--rule);
-		border-radius: 6px;
+		border-radius: 8px;
 		background: var(--paper);
 		color: var(--ink);
 		font: 400 14px / normal var(--display);
@@ -166,7 +166,7 @@
 		display: inline-flex;
 		justify-self: start;
 		border: 1px solid var(--rule);
-		border-radius: 6px;
+		border-radius: 8px;
 		overflow: hidden;
 	}
 	.seg-item {
@@ -188,7 +188,7 @@
 	}
 	.btn {
 		padding: 0.5em 0.95em;
-		border-radius: 6px;
+		border-radius: 8px;
 		font: 500 13px / normal var(--display);
 		cursor: pointer;
 	}

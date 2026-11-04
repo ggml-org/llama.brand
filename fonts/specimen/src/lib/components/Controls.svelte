@@ -131,7 +131,7 @@
 			display: block;
 			padding: 8px 12px;
 			border: 1px solid var(--rule);
-			border-radius: 6px;
+			border-radius: 8px;
 			background: none;
 			color: var(--ink);
 			font: 500 13px var(--mono);
