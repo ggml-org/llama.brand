@@ -14,18 +14,21 @@ const linear = (x: number) => x;
 
 // each step overlaps the one before it, so the shape never stops moving (seconds)
 export const steps = [
-	{ name: 'C++', from: 0, to: 0, ease: outCubic, note: 'It begins with the + of C++, the language llama.cpp is written in.' },
-	{ name: 'Plus', from: 0.5, to: 1.3, ease: inOutQuart, note: 'Its plus grows the icon’s own arms: 240 wide upright, 208 deep across.' },
-	{ name: 'L', from: 1.35, to: 1.95, ease: outQuart, note: 'Keep the top arm, the centre and the right arm: an L inside the +.' },
-	{ name: 'Open the corner', from: 1.75, to: 2.3, ease: inOutCubic, note: 'Lift out the centre block. Stem and foot now touch at one point.' },
-	{ name: 'Lean', from: 2.15, to: 3.05, ease: inOutQuart, note: 'Slant it 30° on the baseline: every edge now runs at 60°.' },
-	{ name: 'Bolt', from: 3.05, to: 3.85, ease: linear, note: 'Lightning strikes through the slanted L, cut along the blade’s diagonal and turned about the joint: speed, which is what llama.cpp is about.' },
-	{ name: 'Soften', from: 3.75, to: 4.55, ease: linear, note: 'Round only the two outer corners.' },
-	{ name: 'Fill', from: 4.5, to: 4.95, ease: inOutCubic, note: 'Fill it in: the Llama icon.' },
-	{ name: 'Blueprint', from: 5.0, to: 6.25, ease: linear, note: 'And this is how it is built.' }
+	{ name: 'llama.cpp', from: 0, to: 0, ease: outCubic, note: 'It begins with a name: llama.cpp.' },
+	{ name: 'C++', from: 0.7, to: 1.5, ease: inOutQuart, note: 'Its .cpp is C++, the language llama.cpp is written in.' },
+	{ name: 'Plus', from: 1.6, to: 2.4, ease: inOutQuart, note: 'Its plus grows the icon’s own arms: 240 wide upright, 208 deep across.' },
+	{ name: 'L', from: 2.45, to: 3.05, ease: outQuart, note: 'Keep the top arm, the centre and the right arm: an L inside the +.' },
+	{ name: 'Open the corner', from: 2.85, to: 3.4, ease: inOutCubic, note: 'Lift out the centre block. Stem and foot now touch at one point.' },
+	{ name: 'Lean', from: 3.25, to: 4.15, ease: inOutQuart, note: 'Slant it 30° on the baseline: every edge now runs at 60°.' },
+	{ name: 'Bolt', from: 4.15, to: 4.95, ease: linear, note: 'Lightning strikes through the slanted L, cut along the blade’s diagonal and turned about the joint: speed, which is what llama.cpp is about.' },
+	{ name: 'Soften', from: 4.85, to: 5.65, ease: linear, note: 'Round only the two outer corners.' },
+	{ name: 'Fill', from: 5.6, to: 6.05, ease: inOutCubic, note: 'Fill it in: the Llama icon.' },
+	{ name: 'Blueprint', from: 6.1, to: 7.35, ease: linear, note: 'And this is how it is built.' }
 ];
-export const END = 6.4;
-export const BLUEPRINT_STEP = steps.length - 1;
+export const END = 7.5;
+/** A step's index by name, so the code that times things off a step doesn't depend on the order. */
+export const STEP = Object.fromEntries(steps.map((s, i) => [s.name, i])) as Record<string, number>;
+export const BLUEPRINT_STEP = STEP.Blueprint;
 /** When each part of the blueprint fades in, in seconds after the Blueprint step starts. */
 export const BLUEPRINT = { grid: [0.1, 0.6], parts: [0.25, 0.75], lines: [0.3, 0.85], dims: [0.55, 1.05], title: [0.8, 1.25] } as const;
 
@@ -50,20 +53,41 @@ export const MID = GLYPH.advance.C; // the middle + starts where the C ends
 export const X = -(MID + 271) * S; // the middle + centred on the plus centre
 export const Y = (SIZE + SPLIT) / 2 + 288 * S;
 
+// "llama.cpp" in Llama Sans Display Bold, with the font's own advances and kerning (font units, y up), placed so its
+// "c" starts where the C of "C++" does: then c grows into C and each p into a +, while "llama." steps aside
+export const WORD = {
+	glyphs: {
+		'l': { d: 'M194 0H55V710H194Z', bounds: [55, 0, 194, 710] },
+		'a': { d: 'M212 -12Q129 -12 77 27Q25 65 25 134Q25 204 69 243Q112 281 200 299L375 339Q375 366 369 384Q363 402 350 416Q326 443 278 443Q233 443 208 423Q180 399 173 353H32Q44 452 113 502Q176 547 278 547Q395 547 455 490Q514 433 514 324V72Q514 51 521 36Q528 20 538 20V0H393V76Q386 64 378 53Q358 30 330 16Q303 1 272 -6Q242 -12 212 -12ZM243 86Q283 86 313 102Q344 119 360 150Q375 180 375 215V248L245 216Q205 208 187 191Q169 174 169 147Q169 118 188 102Q207 86 243 86Z', bounds: [25, -12, 538, 547] },
+		'm': { d: 'M55 0V535H181L184 446Q192 464 203 480Q225 511 257 529Q289 547 330 547Q398 547 439 508Q469 480 484 438Q493 463 506 482Q528 514 562 530Q597 547 636 547Q692 547 732 524Q763 505 782 476Q800 447 808 412Q815 378 815 344V0H676V307Q676 371 655 403Q634 436 590 436Q561 436 541 420Q523 407 514 388Q505 368 502 346Q498 324 498 304V0H371V304Q371 368 352 402Q333 436 287 436Q258 436 237 420Q220 407 210 388Q201 368 198 346Q194 324 194 304V0Z', bounds: [55, 0, 815, 547] },
+		'.': { d: 'M25 0V147H180V0Z', bounds: [25, 0, 180, 147] },
+		'c': { d: 'M293 -12Q212 -12 152 23Q108 48 80 86Q52 125 38 172Q25 219 25 268Q25 352 58 415Q82 458 118 488Q154 517 199 532Q244 547 293 547Q362 547 417 523Q470 499 504 454Q537 409 546 352L405 334Q397 385 367 411Q337 437 293 437Q234 437 201 392Q169 348 169 268Q169 187 201 142Q234 98 293 98Q337 98 368 124Q398 151 404 205L547 190Q538 132 507 88Q482 53 448 31Q414 9 374 -2Q334 -12 293 -12Z', bounds: [25, -12, 547, 547] },
+		'p': { d: 'M55 -150V535H189L191 455Q202 475 217 492Q242 518 276 532Q311 547 350 547Q426 547 476 510Q513 482 535 442Q557 402 567 357Q577 312 577 268Q577 190 551 127Q526 63 475 26Q425 -12 349 -12Q312 -12 278 2Q243 16 218 42Q203 56 194 73V-150ZM314 98Q369 98 401 143Q433 188 433 268Q433 347 401 392Q369 438 314 438Q276 438 250 419Q226 402 214 376Q202 351 198 322Q194 294 194 268Q194 212 208 174Q221 139 248 118Q276 98 314 98Z', bounds: [55, -150, 577, 547] }
+	} as Record<string, { d: string; bounds: number[] }>,
+	layout: [['l', 0], ['l', 237], ['a', 484], ['m', 1033], ['a', 1889], ['.', 2481], ['c', 2686], ['p', 3237], ['p', 3827]] as [string, number][]
+};
+export const WX = X - 2686 * S; // the c of "llama.cpp" lines up with the C of "C++"
+/** The letters of ".cpp" that become "C++", and where each one lands (x in "C++", font units). */
+export const BECOMES: Record<number, { to: 'C' | 'plus'; x: number }> = { 6: { to: 'C', x: 0 }, 7: { to: 'plus', x: MID }, 8: { to: 'plus', x: MID + GLYPH.advance.plus } };
+export const BOUNDS = { C: [30, -16, 676, 726], plus: [27, 44, 515, 532] };
+
 // the camera: the word, then the whole plus, then the icon, then out to the blueprint's own frame.
 // Each frame is a box to fit (centre x, centre y, width, height), fitted to the stage's shape.
 export type Frame = [number, number, number, number];
+const name: Frame = [WX + (55 + 4404) / 2 * S, Y - 280 * S, 4349 * S * 1.15, 860 * S * 1.9]; // "llama.cpp", ink with a margin
 const word: Frame = [X + 895 * S, Y - 355 * S, 1730 * S * 1.35, 742 * S * 1.7];
 const plusFrame: Frame = [0, (SIZE + SPLIT) / 2, 1300, 1300]; // the plus runs 0 to SIZE + SPLIT
 const iconFrame: Frame = [300, 400, 1300, 1300]; // room below for the lightning's tip and its glow
 
 export function camera(t: number, aspect: number, final: Frame) {
 	const fit = ([cx, cy, w, h]: Frame) => [cx, cy, w / h > aspect ? w : h * aspect];
-	const frames = [word, plusFrame, iconFrame, final].map(fit);
+	const frames = [name, word, plusFrame, iconFrame, final].map(fit);
+	const over = (from: number, to: number) => inOutCubic(clamp((t - from) / (to - from)));
 	const legs = [
-		inOutCubic(clamp((t - steps[1].from) / (steps[1].to - steps[1].from))),
-		inOutCubic(clamp((t - steps[2].from) / (steps[4].to - steps[2].from))),
-		inOutCubic(clamp((t - steps[BLUEPRINT_STEP].from) / 0.8))
+		over(steps[STEP['C++']].from, steps[STEP['C++']].to),
+		over(steps[STEP.Plus].from, steps[STEP.Plus].to),
+		over(steps[STEP.L].from, steps[STEP.Lean].to),
+		over(steps[BLUEPRINT_STEP].from, steps[BLUEPRINT_STEP].from + 0.8)
 	];
 	let [cx, cy, vw] = frames[0];
 	legs.forEach((p, i) => ([cx, cy, vw] = [cx, cy, vw].map((v, j) => lerp(v, frames[i + 1][j], p))));
