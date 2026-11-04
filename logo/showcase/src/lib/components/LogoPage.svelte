@@ -213,7 +213,7 @@
 
 <div class="logo">
 	<section class="hero" aria-label="Construction">
-		<div class="stage">
+		<div class="hero-stage">
 		<!-- pointer and tap highlighting is a shortcut; the legend buttons below give the same to keyboards and screen readers -->
 		<!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_noninteractive_element_interactions -->
 		<svg
@@ -672,7 +672,7 @@
 	}
 	/* the drawing and its panel (controls, chips, caption), which floats along the bottom of the drawing and shows
 	   while the pointer is over it or a control has focus */
-	.stage {
+	.hero-stage {
 		position: relative;
 	}
 	.bar {
@@ -731,8 +731,8 @@
 		pointer-events: none;
 		transition: opacity 180ms ease-out, transform 180ms ease-out;
 	}
-	.stage:hover .legend,
-	.stage:focus-within .legend {
+	.hero-stage:hover .legend,
+	.hero-stage:focus-within .legend {
 		opacity: 1;
 		transform: none;
 		pointer-events: auto;
