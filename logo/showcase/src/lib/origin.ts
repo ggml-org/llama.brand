@@ -22,14 +22,14 @@ export const steps = [
 	{ name: 'Plus', from: 2.85, to: 3.75, ease: inOutQuint, note: 'Its plus grows the icon’s own arms: 240 wide upright, 208 deep across.' },
 	{ name: 'L', from: 4.1, to: 4.75, ease: inOutQuart, note: 'Keep the top arm, the centre and the right arm: an L inside the +.' },
 	{ name: 'Open the corner', from: 5.1, to: 5.7, ease: inOutQuart, note: 'Lift out the centre block. Stem and foot now touch at one point.' },
-	{ name: 'Bolt', from: 6.05, to: 6.65, ease: linear, note: 'Then the idea: a lightning bolt, for speed, which is what llama.cpp is about.' },
+	{ name: 'Bolt', from: 6.05, to: 7.05, ease: linear, note: 'Then the idea: a lightning bolt, for speed, which is what llama.cpp is about.' },
 	// the lean isn't a move: the L snaps to 30° in the bolt's flash (see Morph); this step only carries its caption
-	{ name: 'Lean', from: 6.7, to: 6.72, ease: linear, note: 'In a flash the bolt leans the L 30°: every edge runs at 60°, with the bolt inside.' },
-	{ name: 'Soften', from: 7.5, to: 8.2, ease: inOutQuart, note: 'Round only the two outer corners.' },
-	{ name: 'Fill', from: 8.5, to: 9.0, ease: inOutCubic, note: 'Fill it in: the Llama icon.' },
-	{ name: 'Blueprint', from: 9.3, to: 10.55, ease: linear, note: 'And this is how it is built.' }
+	{ name: 'Lean', from: 7.1, to: 7.12, ease: linear, note: 'In a flash the bolt leans the L 30°: every edge runs at 60°, with the bolt inside.' },
+	{ name: 'Soften', from: 7.9, to: 8.6, ease: inOutQuart, note: 'Round only the two outer corners.' },
+	{ name: 'Fill', from: 8.9, to: 9.4, ease: inOutCubic, note: 'Fill it in: the Llama icon.' },
+	{ name: 'Blueprint', from: 9.7, to: 10.95, ease: linear, note: 'And this is how it is built.' }
 ];
-export const END = 10.7;
+export const END = 11.1;
 /** A step's index by name, so the code that times things off a step doesn't depend on the order. */
 export const STEP = Object.fromEntries(steps.map((s, i) => [s.name, i])) as Record<string, number>;
 export const BLUEPRINT_STEP = STEP.Blueprint;

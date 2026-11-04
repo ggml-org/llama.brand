@@ -84,10 +84,12 @@
 			? `M0 ${SPLIT}L${e}A${r} ${r} 0 0 1 ${f}L466.154 0L240 ${SPLIT}Z`
 			: `M240 ${SPLIT}L600 ${SPLIT}L${e}A${r} ${r} 0 0 1 ${f}L120 ${SIZE}Z`;
 	}
-	// no gradual lean and no flash on the upright L: it just fades out, and the slanted L comes back with the bolt
+	// the strike, in three beats over the Bolt step (x = 0 to 1): the bolt appears over the upright L, which keeps
+	// its own colour (the idea); both fade out and the stage is empty a moment; then they come back together as the
+	// slanted L inside the bolt, flashing yellow a few times, before the bolt fades and the L cools to its colour
 	const boltStep = steps[STEP.Bolt];
-	const vanish = 0.18; // seconds the upright L takes to fade out, just before the strike
-	const leaned = $derived(t >= boltStep.from ? 1 : 0);
+	const GONE = 0.25, DARK = 0.33, SNAP = 0.38, SETTLE = 0.62;
+	const leaned = $derived(pBolt >= SNAP ? 1 : 0);
 	const k = $derived(LEAN * leaned);
 
 	// the strike: a lightning bolt fitted to the L races down over it from the top, flares, flickers once and dies
@@ -98,16 +100,22 @@
 	// L has held there a moment
 	const leanEnd = steps[STEP.Lean].to;
 	const glow = 0.7;
-	const pulses: [number, number][] = [[0.07, 1], [0.13, 0.08], [0.2, 1], [0.26, 0.3], [0.36, 1]]; // [until, level]
+	const pulses: [number, number][] = [[0.43, 1], [0.47, 0.08], [0.52, 1], [0.56, 0.3], [SETTLE, 1]]; // [until, level]
 	const strike = $derived.by(() => {
-		if (pBolt <= 0) return 0;
-		const pulse = pulses.find(([until]) => pBolt < until);
-		if (pulse) return pulse[1];
-		if (pBolt < 1) return lerp(1, glow, outCubic((pBolt - 0.36) / 0.64));
+		const x = pBolt;
+		if (x <= 0) return 0;
+		if (x < 0.06) return x / 0.06; // the bolt appears over the upright L
+		if (x < GONE) return lerp(1, 0.8, (x - 0.06) / (GONE - 0.06));
+		if (x < DARK) return lerp(0.8, 0, (x - GONE) / (DARK - GONE)); // and goes, with the L
+		if (x < SNAP) return 0; // a moment of nothing
+		const pulse = pulses.find(([until]) => x < until);
+		if (pulse) return pulse[1]; // back as the slanted L in the bolt, flashing
+		if (x < 1) return lerp(1, glow, outCubic((x - SETTLE) / (1 - SETTLE)));
 		return glow * (1 - outCubic(clamp((t - leanEnd - 0.1) / 0.45)));
 	});
 	const reach = $derived(-20 + 1100 * outCubic(clamp(pBolt / 0.15))); // how far down the strike has got: past the tip (y 784) and its glow
-	const flash = $derived(`${Math.round(strike * 100)}%`); // scaled by the theme's --l-bolt-tint for the fill
+	// only the slanted L flashes yellow; the upright one keeps its colour while the bolt shows over it
+	const flash = $derived(`${Math.round(strike * leaned * 100)}%`); // scaled by the theme's --l-bolt-tint for the fill
 
 	// the L flashes with the bolt, so the bolt seems to turn into it: its strokes go yellow and glow, and while the
 	// strike is fresh they glitch, two offset copies jumping every ~33 ms like a broken signal. It is all driven by
@@ -116,11 +124,11 @@
 		const x = Math.sin(n * 12.9898 + 78.233) * 43758.5453;
 		return x - Math.floor(x);
 	};
-	const glitch = $derived(pBolt > 0 && pBolt < 0.6 ? Math.sqrt(1 - pBolt / 0.6) : 0); // strong at first, easing off
-	// the L's own visibility: the upright one fades out before the strike; the slanted one blinks with the flashes
-	// (dark between them), then stays
+	const glitch = $derived(pBolt >= SNAP && pBolt < 0.8 ? Math.sqrt(1 - (pBolt - SNAP) / (0.8 - SNAP)) : 0); // strong at first, easing off
+	// the L's own visibility: the upright one stays under the bolt, then fades out with it; the slanted one blinks
+	// with the flashes (dark between them), then stays
 	const lAlpha = $derived(
-		t < boltStep.from - vanish ? 1 : t < boltStep.from ? 1 - (t - (boltStep.from - vanish)) / vanish : pBolt < 0.36 ? Math.max(0.12, strike) : 1
+		pBolt < GONE ? 1 : pBolt < DARK ? 1 - (pBolt - GONE) / (DARK - GONE) : pBolt < SNAP ? 0 : pBolt < SETTLE ? Math.max(0.12, strike) : 1
 	);
 	const jitter = $derived.by(() => {
 		if (!glitch) return null;
@@ -185,8 +193,8 @@
 					<path d={LIGHTNING} class="bolt" />
 				</g>
 			</g>
-			<!-- the L's own glow, in the bolt's yellow -->
-			<g class="l-flare" filter="url(#strike-glow)" style:opacity={strike}>
+			<!-- the slanted L's own glow, in the bolt's yellow -->
+			<g class="l-flare" filter="url(#strike-glow)" style:opacity={strike * leaned}>
 				<path d={top} />
 				<path d={foot} />
 			</g>
