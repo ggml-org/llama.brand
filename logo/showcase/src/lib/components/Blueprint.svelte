@@ -9,7 +9,7 @@
 	import Morph from './Morph.svelte';
 	import { PATHS, SIZE, SPLIT, corners } from '#lib/logo.ts';
 	import { box, vb, lines, dims, deg, r, features, type Feature } from '#lib/blueprint.ts';
-	import { steps as originSteps, END, BLUEPRINT, BLUEPRINT_STEP, STEP, camera, span, stepAt } from '#lib/origin.ts';
+	import { steps as originSteps, END, BLUEPRINT, BLUEPRINT_STEP, TILES, camera, span, stepAt } from '#lib/origin.ts';
 
 	let {
 		t = $bindable(0),
@@ -19,20 +19,7 @@
 	}: { t?: number; pinned?: Feature | null; autoplay?: boolean; controls?: boolean } = $props();
 
 	let hovered = $state<Feature | null>(null);
-	let touring = $state<Feature | null>(null);
-	const active = $derived(hovered ?? pinned ?? touring);
-
-	// once the origin animation has settled into the blueprint, light each idea up in turn; any hover, tap or focus ends it
-	let timers: ReturnType<typeof setTimeout>[] = [];
-	function stopTour() {
-		timers.forEach(clearTimeout);
-		timers = [];
-		touring = null;
-	}
-	function startTour() {
-		stopTour();
-		timers = [...features.map((x) => x.f), null].map((f, i) => setTimeout(() => (touring = f), 150 + i * 300));
-	}
+	const active = $derived(hovered ?? pinned);
 
 	// the origin animation's clock
 	let playing = $state(false);
@@ -43,13 +30,9 @@
 		t = Math.min(END, t + (now - last) / 1000);
 		last = now;
 		if (t < END && playing) frame = requestAnimationFrame(tick);
-		else if (playing) {
-			playing = false;
-			startTour();
-		}
+		else playing = false;
 	}
 	function play() {
-		stopTour();
 		hovered = pinned = null;
 		if (t >= END) t = 0;
 		playing = true;
@@ -62,7 +45,6 @@
 	}
 	const seek = (to: number) => {
 		pause();
-		stopTour();
 		t = to;
 	};
 	onMount(() => {
@@ -71,10 +53,7 @@
 			if (matchMedia('(prefers-reduced-motion: reduce)').matches) t = END;
 			else document.fonts.ready.then(() => setTimeout(play, 250));
 		}
-		return () => {
-			pause();
-			stopTour();
-		};
+		return pause;
 	});
 
 	// the camera ends on the blueprint's own frame, so the last frame of the animation is the blueprint as drawn
@@ -86,8 +65,11 @@
 		Object.fromEntries(Object.entries(BLUEPRINT).map(([k, [a, b]]) => [k, done ? 1 : span(t, B0 + a, B0 + b)])) as Record<keyof typeof BLUEPRINT, number>
 	);
 	const step = $derived(stepAt(t));
-	// the steps that have a tile below carry its number (01 Plus to 06 Soften)
-	const stepNumber = (i: number) => (i >= STEP.Plus && i <= STEP.Soften ? `${String(i - STEP.Plus + 1).padStart(2, '0')} ` : '');
+	// the steps that have a tile below carry its number (01 llama.cpp to 06 Soften)
+	const stepNumber = (i: number) => {
+		const n = TILES.indexOf(originSteps[i].name);
+		return n < 0 ? '' : `${String(n + 1).padStart(2, '0')} `;
+	};
 	const current = $derived(features.find((x) => x.f === active));
 	const featureAt = (e: Event) => ((e.target as Element).closest('[data-f]') as HTMLElement | null)?.dataset.f as Feature | undefined;
 	const pin = (f: Feature) => (pinned = pinned === f ? null : f);
@@ -105,13 +87,11 @@
 		class:animating={!done}
 		onpointerover={(e) => {
 			if (!done) return;
-			stopTour();
 			if (e.pointerType === 'mouse') hovered = featureAt(e) ?? null;
 		}}
 		onpointerleave={() => (hovered = null)}
 		onclick={(e) => {
 			if (!done) return;
-			stopTour();
 			const f = featureAt(e);
 			if (f) pin(f);
 			else pinned = null;
@@ -207,8 +187,7 @@
 			</button>
 			<input type="range" min="0" max={END} step="0.01" value={t} oninput={(e) => seek(+e.currentTarget.value)} aria-label="Position in the origin animation" />
 		</div>
-		<!-- svelte-ignore a11y_no_static_element_interactions -->
-		<div class="chips" class:idle={!done} inert={!done} role="group" aria-label="Highlight a part of the drawing" onpointerover={stopTour} onfocusin={stopTour}>
+		<div class="chips" class:idle={!done} inert={!done} role="group" aria-label="Highlight a part of the drawing">
 			{#each features as x (x.f)}
 				<button
 					type="button"

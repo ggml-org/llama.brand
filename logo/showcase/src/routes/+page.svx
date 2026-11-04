@@ -13,32 +13,20 @@ title: Llama icon
 	import Lockups from '#lib/components/Lockups.svelte';
 	import Specs from '#lib/components/Specs.svelte';
 
-	const pct = (n) => Math.round((n / SIZE) * 100);
+	// the origin animation's clock, shared with the tiles: each lights up once the animation has drawn it, and a
+	// click on one moves the animation to it
+	let t = $state(0);
 </script>
 
-<Blueprint />
-
-<p class="kicker">Llama · the icon</p>
-
-## Two blades, one angle
-
-The Llama icon is two slanted blades that meet at a single point. Every slanted edge runs at exactly {deg}°, the blades split the height {pct(SPLIT)} to {pct(lower)}, and only the two outer corners are softened.
-
-<p class="kicker">Where it comes from</p>
-
-## Plus, L, bolt
-
-It begins with the + of C++, the language llama.cpp is written in. The icon started as a pencil sketch of that plus drawn into an L. Stand the blades upright and it is still there: the tall blade is the top arm of the +, the foot is its right arm, and the corner they would share is left out, so the two meet at a single point. Then a lightning bolt, for speed, flashes and leans it 30° in an instant, the bolt inside; soften two corners, and you have the mark.
-
-<Sketch />
+<Blueprint bind:t />
 
 <Figures layout="steps">
-	<OriginStep step="plus">A plus with the icon’s own arms: 240 wide upright, {lower} deep across.</OriginStep>
-	<OriginStep step="l">Keep the top arm, the centre and the right arm: an L inside the +.</OriginStep>
-	<OriginStep step="open">Lift out the centre block the + and the L share. Stem and foot now touch at one point.</OriginStep>
-	<OriginStep step="bolt">Then the idea that drives it: a lightning bolt, for speed, which is what llama.cpp is about.</OriginStep>
-	<OriginStep step="lean">In a flash the bolt leans it: the L slants 30° on the baseline, every edge at {deg}°, with the bolt inside.</OriginStep>
-	<OriginStep step="soften">Round only the two outer corners. That is the Llama icon.</OriginStep>
+	<OriginStep bind:t step="name">It begins with a name, and the + of its C++, the language llama.cpp is written in.</OriginStep>
+	<OriginStep bind:t step="plus">A plus with the icon’s own arms: 240 wide upright, {lower} deep across.</OriginStep>
+	<OriginStep bind:t step="l">Keep the top arm, the centre and the right arm: an L inside the +.</OriginStep>
+	<OriginStep bind:t step="open">Lift out the centre block the + and the L share. Stem and foot now touch at one point.</OriginStep>
+	<OriginStep bind:t step="lean">In a flash the bolt leans it: the L slants 30° on the baseline, every edge at {deg}°, with the bolt inside.</OriginStep>
+	<OriginStep bind:t step="soften">Round only the two outer corners. That is the Llama icon.</OriginStep>
 </Figures>
 
 <Figures layout="rules">
@@ -53,3 +41,5 @@ It begins with the + of C++, the language llama.cpp is written in. The icon star
 <Lockups />
 
 <Specs />
+
+<Sketch />

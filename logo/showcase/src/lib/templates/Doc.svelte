@@ -34,7 +34,7 @@
 		margin: 0;
 		min-width: 0;
 	}
-	/* a kicker, its heading, the lead and the sketch button read as one block, 10px apart */
+	/* a kicker, its heading and the lead read as one block, 10px apart */
 	.logo > :global(.kicker) {
 		margin-bottom: -30px;
 		font: 500 12px var(--mono);
@@ -51,10 +51,7 @@
 		color: var(--l-muted);
 		font: 400 17px / normal 'Llama Sans Text', var(--body);
 	}
-	.logo > :global(h2 + p + .sketch-open) {
-		margin-top: -30px;
-	}
-	/* the origin's tiles sit closer under their heading */
+	/* the origin's tiles sit closer under the animation they follow */
 	.logo > :global(.steps) {
 		margin-top: -20px;
 	}

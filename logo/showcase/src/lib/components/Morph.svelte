@@ -87,7 +87,6 @@
 	// the strike, in three beats over the Bolt step (x = 0 to 1): the bolt appears over the upright L and the two
 	// flash together a few times, the L in its own colour (the idea); both fade out and the stage is empty a moment;
 	// then they come back as the slanted L inside the bolt, flashing and glitching, before the bolt fades and the L stays
-	const boltStep = steps[STEP.Bolt];
 	const UPRIGHT = 0.36, GONE = 0.42, DARK = 0.48, SNAP = 0.52, SETTLE = 0.71;
 	const leaned = $derived(pBolt >= SNAP ? 1 : 0);
 	const k = $derived(LEAN * leaned);
