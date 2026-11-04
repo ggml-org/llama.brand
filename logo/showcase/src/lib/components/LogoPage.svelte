@@ -213,6 +213,7 @@
 
 <div class="logo">
 	<section class="hero" aria-label="Construction">
+		<div class="stage">
 		<!-- pointer and tap highlighting is a shortcut; the legend buttons below give the same to keyboards and screen readers -->
 		<!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_noninteractive_element_interactions -->
 		<svg
@@ -310,6 +311,7 @@
 				{/each}
 			</g>
 		</svg>
+		<!-- the controls, the highlight chips and the caption: one panel floating over the bottom of the drawing -->
 		<div class="legend">
 			<div class="bar">
 				<button type="button" class="play" onclick={() => (playing ? pause() : play())} aria-label={playing ? 'Pause' : done ? 'Replay the origin' : 'Play'}>
@@ -341,6 +343,7 @@
 			<p class="caption" aria-live="polite">
 				{#if !done}<strong>{stepNumber(step)}{originSteps[step].name}.</strong> {originSteps[step].note}{:else if current}<strong>{current.name}.</strong> {current.note}{:else}Hover or tap any part of the drawing, or pick one here.{/if}
 			</p>
+		</div>
 		</div>
 	</section>
 
@@ -503,7 +506,16 @@
 		--l-muted: #5f5f5f;
 		--l-panel: rgba(255, 255, 255, 0.65);
 		--l-rule: rgba(17, 17, 17, 0.14);
-		--l-bolt: #f2b400;
+		--l-bolt: #f65e00; /* the brand orange, as in the .cpp of the Llama.cpp lockup: the L flashes in it */
+		/* the lightning: a white-hot core, a yellow glow around it and a blue halo beyond; the L flashes in --l-bolt */
+		--l-bolt-core: #ffffff;
+		--l-bolt-glow: #ffd23f;
+		--l-bolt-halo: #3d8bff;
+		--l-ink-glow: 0.3; /* the L's glow in light mode, where it is black */
+		/* the strike's night sky, light mode only */
+		--l-night: 1;
+		--l-night-sky: #141414;
+		--l-night-ink: #fafafa;
 		/* in light mode the bolt is solid, so it reads crisply inside the black L (see-through yellow over black turns olive) */
 		--l-bolt-alpha: 1;
 		--l-bolt-tint: 0;
@@ -528,9 +540,11 @@
 			--l-muted: #a3a3a3;
 			--l-panel: rgba(255, 255, 255, 0.05);
 			--l-rule: rgba(250, 250, 250, 0.14);
-			--l-bolt: #ffd426;
+			--l-bolt: #f65e00;
 			--l-bolt-alpha: 0.85;
 			--l-bolt-tint: 0.3;
+			--l-ink-glow: 1;
+			--l-night: 0;
 			--l-paper: #1a1a1a;
 			--l-grid: rgba(250, 250, 250, 0.05);
 			--l-grid-major: rgba(250, 250, 250, 0.13);
@@ -546,9 +560,11 @@
 		--l-muted: #a3a3a3;
 		--l-panel: rgba(255, 255, 255, 0.05);
 		--l-rule: rgba(250, 250, 250, 0.14);
-		--l-bolt: #ffd426;
+		--l-bolt: #f65e00;
 		--l-bolt-alpha: 0.85;
 		--l-bolt-tint: 0.3;
+		--l-ink-glow: 1;
+		--l-night: 0;
 		--l-paper: #1a1a1a;
 		--l-grid: rgba(250, 250, 250, 0.05);
 		--l-grid-major: rgba(250, 250, 250, 0.13);
@@ -654,6 +670,11 @@
 	.hero svg.animating {
 		cursor: default;
 	}
+	/* the drawing and its panel (controls, chips, caption), which floats along the bottom of the drawing and shows
+	   while the pointer is over it or a control has focus */
+	.stage {
+		position: relative;
+	}
 	.bar {
 		display: grid;
 		grid-template-columns: auto 1fr;
@@ -692,10 +713,46 @@
 		transition: opacity 300ms ease-out;
 	}
 	.legend {
+		position: absolute;
+		left: 12px;
+		right: 12px;
+		bottom: 12px;
 		display: grid;
 		gap: 10px;
-		padding: 14px 16px 16px;
-		border-top: 1px solid var(--l-rule);
+		padding: 12px 14px 14px;
+		border: 1px solid var(--l-rule);
+		border-radius: 12px;
+		background: color-mix(in srgb, var(--l-paper) 82%, transparent);
+		backdrop-filter: blur(12px);
+		-webkit-backdrop-filter: blur(12px);
+		box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+		opacity: 0;
+		transform: translateY(6px);
+		pointer-events: none;
+		transition: opacity 180ms ease-out, transform 180ms ease-out;
+	}
+	.stage:hover .legend,
+	.stage:focus-within .legend {
+		opacity: 1;
+		transform: none;
+		pointer-events: auto;
+	}
+	/* touch screens can't hover, and on a phone a floating panel would cover most of the drawing: there the panel
+	   sits below the drawing instead */
+	@media (hover: none) {
+		.legend {
+			position: static;
+			opacity: 1;
+			transform: none;
+			pointer-events: auto;
+			border: 0;
+			border-top: 1px solid var(--l-rule);
+			border-radius: 0;
+			background: none;
+			backdrop-filter: none;
+			-webkit-backdrop-filter: none;
+			box-shadow: none;
+		}
 	}
 	.chips {
 		display: flex;
@@ -836,8 +893,12 @@
 		vector-effect: non-scaling-stroke;
 	}
 	.strike {
-		fill: var(--l-bolt);
-		fill-opacity: var(--l-bolt-alpha);
+		fill: var(--l-bolt-core);
+		stroke: var(--l-bolt-glow);
+		stroke-width: 2;
+		stroke-linejoin: round;
+		vector-effect: non-scaling-stroke;
+		filter: drop-shadow(0 0 2px var(--l-bolt-glow)) drop-shadow(0 0 6px var(--l-bolt-halo));
 	}
 	.cell {
 		fill: var(--l-faint);

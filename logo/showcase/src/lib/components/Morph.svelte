@@ -5,7 +5,7 @@
 
 <script lang="ts">
 	import { SIZE, SPLIT, corners, type Pt } from '#lib/logo.ts';
-	import { steps, progress, span, lerp, clamp, outCubic, GLYPH, S, MID, X, Y, WORD, WX, BECOMES, STEP, LIGHTNING, BLUEPRINT, BLUEPRINT_STEP } from '#lib/origin.ts';
+	import { steps, progress, span, lerp, clamp, outCubic, inOutCubic, GLYPH, S, MID, X, Y, WORD, WX, BECOMES, STEP, LIGHTNING, BLUEPRINT, BLUEPRINT_STEP } from '#lib/origin.ts';
 
 	let { t }: { t: number } = $props();
 
@@ -84,11 +84,11 @@
 			? `M0 ${SPLIT}L${e}A${r} ${r} 0 0 1 ${f}L466.154 0L240 ${SPLIT}Z`
 			: `M240 ${SPLIT}L600 ${SPLIT}L${e}A${r} ${r} 0 0 1 ${f}L120 ${SIZE}Z`;
 	}
-	// the strike, in three beats over the Bolt step (x = 0 to 1): the bolt appears over the upright L, which keeps
-	// its own colour (the idea); both fade out and the stage is empty a moment; then they come back together as the
-	// slanted L inside the bolt, flashing yellow a few times, before the bolt fades and the L cools to its colour
+	// the strike, in three beats over the Bolt step (x = 0 to 1): the bolt appears over the upright L and the two
+	// flash together a few times, the L in its own colour (the idea); both fade out and the stage is empty a moment;
+	// then they come back as the slanted L inside the bolt, flashing and glitching, before the bolt fades and the L stays
 	const boltStep = steps[STEP.Bolt];
-	const GONE = 0.25, DARK = 0.33, SNAP = 0.38, SETTLE = 0.62;
+	const UPRIGHT = 0.36, GONE = 0.42, DARK = 0.48, SNAP = 0.52, SETTLE = 0.71;
 	const leaned = $derived(pBolt >= SNAP ? 1 : 0);
 	const k = $derived(LEAN * leaned);
 
@@ -100,12 +100,16 @@
 	// L has held there a moment
 	const leanEnd = steps[STEP.Lean].to;
 	const glow = 0.7;
-	const pulses: [number, number][] = [[0.43, 1], [0.47, 0.08], [0.52, 1], [0.56, 0.3], [SETTLE, 1]]; // [until, level]
+	// [until, level]: the upright L's flashes, then the slanted L's
+	const uprightPulses: [number, number][] = [[0.08, 1], [0.12, 0.1], [0.17, 1], [0.21, 0.15], [0.26, 1], [0.3, 0.2], [UPRIGHT, 1]];
+	const pulses: [number, number][] = [[0.56, 1], [0.59, 0.08], [0.63, 1], [0.66, 0.3], [SETTLE, 1]];
 	const strike = $derived.by(() => {
 		const x = pBolt;
 		if (x <= 0) return 0;
-		if (x < 0.06) return x / 0.06; // the bolt appears over the upright L
-		if (x < GONE) return lerp(1, 0.8, (x - 0.06) / (GONE - 0.06));
+		if (x < 0.04) return x / 0.04; // the bolt appears over the upright L
+		const up = uprightPulses.find(([until]) => x < until);
+		if (up) return up[1]; // and flashes with it
+		if (x < GONE) return lerp(1, 0.8, (x - UPRIGHT) / (GONE - UPRIGHT));
 		if (x < DARK) return lerp(0.8, 0, (x - GONE) / (DARK - GONE)); // and goes, with the L
 		if (x < SNAP) return 0; // a moment of nothing
 		const pulse = pulses.find(([until]) => x < until);
@@ -113,11 +117,9 @@
 		if (x < 1) return lerp(1, glow, outCubic((x - SETTLE) / (1 - SETTLE)));
 		return glow * (1 - outCubic(clamp((t - leanEnd - 0.1) / 0.45)));
 	});
-	const reach = $derived(-20 + 1100 * outCubic(clamp(pBolt / 0.15))); // how far down the strike has got: past the tip (y 784) and its glow
-	// only the slanted L flashes yellow; the upright one keeps its colour while the bolt shows over it
-	const flash = $derived(`${Math.round(strike * leaned * 100)}%`); // scaled by the theme's --l-bolt-tint for the fill
+	const reach = $derived(-20 + 1100 * outCubic(clamp(pBolt / 0.06))); // how far down the strike has got: past the tip (y 784) and its glow
 
-	// the L flashes with the bolt, so the bolt seems to turn into it: its strokes go yellow and glow, and while the
+	// the L flashes with the bolt, so the bolt seems to turn into it: its strokes glow in their own colour, and while the
 	// strike is fresh they glitch, two offset copies jumping every ~33 ms like a broken signal. It is all driven by
 	// t, so scrubbing shows the same glitch every time
 	const rand = (n: number) => {
@@ -127,17 +129,23 @@
 	const glitch = $derived(pBolt >= SNAP && pBolt < 0.8 ? Math.sqrt(1 - (pBolt - SNAP) / (0.8 - SNAP)) : 0); // strong at first, easing off
 	// the L's own visibility: the upright one stays under the bolt, then fades out with it; the slanted one blinks
 	// with the flashes (dark between them), then stays
+	// light mode only: the sky goes dark for the strike, like lightning at night, and day comes back as the bolt
+	// fades; meanwhile the L is drawn in the night's light colour (--l-night is 1 in light mode, 0 in dark)
+	const night = $derived(
+		pBolt <= 0 ? 0 : t < leanEnd + 0.5 ? clamp(pBolt / 0.03) : 1 - inOutCubic(clamp((t - leanEnd - 0.5) / 0.45))
+	);
 	const lAlpha = $derived(
-		pBolt < GONE ? 1 : pBolt < DARK ? 1 - (pBolt - GONE) / (DARK - GONE) : pBolt < SNAP ? 0 : pBolt < SETTLE ? Math.max(0.12, strike) : 1
+		pBolt <= 0.04 ? 1 : pBolt < UPRIGHT ? Math.max(0.15, strike) : pBolt < GONE ? 1 : pBolt < DARK ? 1 - (pBolt - GONE) / (DARK - GONE) : pBolt < SNAP ? 0 : pBolt < SETTLE ? Math.max(0.12, strike) : 1
 	);
 	const jitter = $derived.by(() => {
 		if (!glitch) return null;
 		const frame = Math.floor(t * 30);
-		const r = [0, 1, 2, 3, 4].map((j) => rand(frame * 7 + j));
+		const r = [0, 1, 2, 3, 4, 5, 6].map((j) => rand(frame * 7 + j));
 		return {
 			on: r[4] > 0.25, // some frames drop out, so it stutters
 			a: `translate(${(r[0] - 0.5) * 100 * glitch} ${(r[1] - 0.5) * 34 * glitch})`,
 			b: `translate(${(0.5 - r[2]) * 100 * glitch} ${(r[3] - 0.5) * 34 * glitch})`,
+			c: `translate(${(r[5] - 0.5) * 60 * glitch} ${(0.5 - r[6]) * 24 * glitch})`,
 			bolt: `translate(${(r[0] - 0.5) * -36 * glitch} 0)`
 		};
 	});
@@ -146,14 +154,19 @@
 </script>
 
 {#if gone < 1}
-	<g class="morph" style:opacity={1 - gone} style:--solid={pFill}>
+	<g class="morph" style:opacity={1 - gone} style:--solid={pFill} style:--night={night}>
 		<defs>
 			<filter id="strike-glow" filterUnits="userSpaceOnUse" x="-400" y="-400" width="1400" height="1600">
-				<feGaussianBlur stdDeviation="28" />
+				<feGaussianBlur stdDeviation="22" />
+			</filter>
+			<filter id="strike-halo" filterUnits="userSpaceOnUse" x="-600" y="-600" width="1800" height="2000">
+				<feGaussianBlur stdDeviation="64" />
 			</filter>
 			<clipPath id="strike-reach"><rect x="-400" y="-40" width="1400" height={Math.max(0, reach + 40)} /></clipPath>
 		</defs>
 
+		<!-- the night sky for the strike (light mode): a dark field under the whole drawing -->
+		{#if night > 0}<rect x="-6000" y="-6000" width="14000" height="14000" class="night" />{/if}
 		<!-- "llama.cpp", becoming "C++" -->
 		{#if blocks < 1}
 			{#each letters as l (l.i)}
@@ -176,12 +189,13 @@
 				<path d={poly(g.now)} class="fill" style:opacity={1 - g.p ** 6} />
 			{/each}
 		</g>
-		<path d={top} class="blade" style:--flash={flash} style:opacity={lAlpha} />
-		<path d={foot} class="blade" style:--flash={flash} style:opacity={lAlpha} />
+		<path d={top} class="blade" style:opacity={lAlpha} />
+		<path d={foot} class="blade" style:opacity={lAlpha} />
 		{#if jitter?.on}
 			<g class="glitch" style:opacity={glitch}>
-				<g transform={jitter.a}><path d={top} /><path d={foot} /></g>
-				<g transform={jitter.b} class="split"><path d={top} /><path d={foot} /></g>
+				<g transform={jitter.a} class="orange"><path d={top} /><path d={foot} /></g>
+				<g transform={jitter.b} class="blue"><path d={top} /><path d={foot} /></g>
+				<g transform={jitter.c} class="yellow"><path d={top} /><path d={foot} /></g>
 			</g>
 		{/if}
 		</g>
@@ -189,12 +203,14 @@
 		{#if strike > 0}
 			<g clip-path="url(#strike-reach)" style:opacity={strike}>
 				<g transform={jitter?.on ? jitter.bolt : undefined}>
+					<!-- a blue halo, a yellow glow, and the white-hot bolt itself -->
+					<path d={LIGHTNING} class="halo" filter="url(#strike-halo)" />
 					<path d={LIGHTNING} class="flare" filter="url(#strike-glow)" />
 					<path d={LIGHTNING} class="bolt" />
 				</g>
 			</g>
 			<!-- the slanted L's own glow, in the bolt's yellow -->
-			<g class="l-flare" filter="url(#strike-glow)" style:opacity={strike * leaned}>
+			<g class="l-flare" filter="url(#strike-glow)" style:opacity={strike * lAlpha}>
 				<path d={top} />
 				<path d={foot} />
 			</g>
@@ -207,35 +223,48 @@
 		pointer-events: none;
 	}
 	/* outlines in the icon's own colour, filled only once the icon is finished (--solid) */
+	/* in the night of a light-mode strike, the L takes the night's light colour so it reads against it */
+	.morph {
+		--l-lit: color-mix(in srgb, var(--l-night-ink) calc(var(--night, 0) * var(--l-night) * 100%), var(--l-shape));
+	}
+	.night {
+		fill: var(--l-night-sky);
+		opacity: calc(var(--night, 0) * var(--l-night));
+	}
 	.fill,
 	.blade {
 		fill: var(--l-shape);
 		fill-opacity: var(--solid, 0);
-		stroke: var(--l-shape);
+		stroke: var(--l-lit);
 		stroke-width: 2;
 		stroke-linejoin: round;
 		vector-effect: non-scaling-stroke;
 	}
-	/* the one colour on the page: the lightning. The L's strokes flash with it in full; its fill (once filled) only
-	   by the theme's tint */
-	.blade {
-		stroke: color-mix(in srgb, var(--l-bolt) var(--flash, 0%), var(--l-shape));
-	}
+	/* the L stays in its own colour (white on dark, black on light) and glows in it; the colour is in the glitch */
 	.l-flare path {
+		/* a black glow reads as a smudge on light, so the theme can soften it; at night it glows in full */
+		opacity: calc(var(--l-ink-glow, 1) + (1 - var(--l-ink-glow, 1)) * var(--night, 0) * var(--l-night));
 		fill: none;
-		stroke: var(--l-bolt);
+		stroke: var(--l-lit);
 		stroke-width: 16;
 		stroke-linejoin: round;
 	}
+	/* the glitch copies split into the brand orange and the bolt's yellow and blue */
 	.glitch path {
 		fill: none;
-		stroke: var(--l-bolt);
 		stroke-width: 3;
 		vector-effect: non-scaling-stroke;
 	}
-	.glitch .split path {
-		stroke: var(--l-ink);
-		opacity: 0.55;
+	.glitch .orange path {
+		stroke: var(--l-bolt);
+	}
+	.glitch .blue path {
+		stroke: var(--l-bolt-halo);
+		opacity: 0.85;
+	}
+	.glitch .yellow path {
+		stroke: var(--l-bolt-glow);
+		opacity: 0.8;
 	}
 	.ghost {
 		fill: none;
@@ -243,12 +272,16 @@
 		stroke-width: 1.5;
 		vector-effect: non-scaling-stroke;
 	}
+	/* the bolt: a white-hot core in a yellow glow and a blue halo, like real lightning */
+	.halo {
+		fill: var(--l-bolt-halo);
+		opacity: 0.75;
+	}
 	.flare {
-		fill: var(--l-bolt);
-		opacity: 0.8;
+		fill: var(--l-bolt-glow);
+		opacity: 0.9;
 	}
 	.bolt {
-		fill: var(--l-bolt);
-		fill-opacity: var(--l-bolt-alpha);
+		fill: var(--l-bolt-core);
 	}
 </style>
