@@ -123,12 +123,6 @@
 		display: grid;
 		gap: 56px;
 	}
-	/* room at the bottom on phones, where the controls float over the page */
-	@media (max-width: 600px) {
-		.wrap {
-			padding-bottom: calc(150px + env(safe-area-inset-bottom, 0px));
-		}
-	}
 	header {
 		display: grid;
 		gap: 20px;
@@ -224,5 +218,17 @@
 		font-size: clamp(20px, 3vw, 34px);
 		line-height: 1.2;
 		color: var(--muted);
+	}
+	/* room at the bottom on phones, where the controls float over the page; and on phones the page is for looking
+	   at and trying the type, so the build line, the metrics and the keyboard hints step aside */
+	@media (max-width: 600px) {
+		.wrap {
+			padding-bottom: calc(150px + env(safe-area-inset-bottom, 0px));
+		}
+		.top,
+		.metrics,
+		.showcase-note {
+			display: none;
+		}
 	}
 </style>

@@ -14,7 +14,7 @@
 	>
 		Grotesk 42 / Quiet Monolines
 	</p>
-	<p class="hint">Click the text to edit it; size and tracking are in the bar above. All {glyphCount} glyphs are in, including accents and symbols.</p>
+	<p class="hint"><span class="wide">Click the text to edit it; size and tracking are in the bar above.</span><span class="narrow">Tap the text to edit it; size and tracking are under More.</span> All {glyphCount} glyphs are in, including accents and symbols.</p>
 </section>
 
 <style>
@@ -37,6 +37,17 @@
 	.text:focus-visible {
 		border-color: var(--guide);
 		box-shadow: 0 0 0 3px var(--guide-soft);
+	}
+	.narrow {
+		display: none;
+	}
+	@media (max-width: 600px) {
+		.wide {
+			display: none;
+		}
+		.narrow {
+			display: inline;
+		}
 	}
 	.hint {
 		margin: 0;
