@@ -16,7 +16,6 @@ export const nearest = (weight: number) =>
 	specimen.styles.reduce((a, s) => (Math.abs(s.weight - weight) < Math.abs(a.weight - weight) ? s : a)).weight;
 
 export const variantNotes: Record<string, string> = {
-	Text: 'Articles and long reading. Switch to UI or Display at the top (or press V).',
-	UI: 'Controls and small interface text. Turn on line boxes in the bar to see the alignment.',
-	Display: 'Banners, headlines and large type. Switch to Text or UI at the top (or press V).'
+	UI: 'Controls, small interface text and running text. Turn on line boxes in the bar to see the alignment.',
+	Display: 'Banners, headlines and large type. Switch to UI at the top (or press V).'
 };

@@ -1,5 +1,5 @@
-<!-- Llama Sans Text at work: reference, data, an index, docs, a size ladder, a table and a newsletter. Body copy is set
-     at real reading sizes in px, on the font's own line spacing (line-height: normal). -->
+<!-- Llama Sans UI at work in running text: reference, data, an index, docs, a size ladder, a table and a newsletter.
+     Body copy is set at real reading sizes in px, at line-height 1.5; headings and labels keep the font's own. -->
 <script lang="ts">
 	const steps = ['Tokenize', 'Embed', 'Attend', 'Sample', 'Decode'];
 	const sizes = [12, 14, 16, 18, 20];
@@ -12,7 +12,7 @@
 	];
 </script>
 
-<section class="gallery text" aria-label="Llama Sans Text at work">
+<section class="gallery prose" aria-label="Llama Sans UI in running text">
 	<!-- a reference card: a paragraph, then one big word -->
 	<article class="card c-hero reference">
 		<p class="para">
@@ -100,7 +100,7 @@
 </section>
 
 <style>
-	.text {
+	.prose {
 		font-family: var(--display);
 	}
 
@@ -113,7 +113,7 @@
 	.reference .para {
 		padding-bottom: 14px;
 		border-bottom: 1px solid var(--llama-hero-rule);
-		font: 400 15px / normal var(--display);
+		font: 400 15px / 1.5 var(--display);
 	}
 	.reference .para b {
 		font-weight: 700;
@@ -236,7 +236,7 @@
 		gap: 12px;
 		align-content: start;
 		max-width: 62ch;
-		font: 400 15px / normal var(--display);
+		font: 400 15px / 1.5 var(--display);
 	}
 	.docs h3 {
 		font: 700 24px / normal var(--display);
@@ -308,7 +308,7 @@
 		padding-top: 8px;
 		border-top: 1px solid rgb(0 0 0 / 0.1);
 		font-family: var(--display);
-		line-height: normal;
+		line-height: 1.5;
 	}
 	.ladder .row span:first-child {
 		font: 500 11px var(--mono);
@@ -354,7 +354,7 @@
 		gap: 12px;
 		align-content: start;
 		padding: 22px 24px;
-		font: 400 15px / normal var(--display);
+		font: 400 15px / 1.5 var(--display);
 	}
 	.letter h3 {
 		font: 700 22px / normal var(--display);

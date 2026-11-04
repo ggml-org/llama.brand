@@ -7,7 +7,7 @@ const from = fileURLToPath(new URL('../../../fonts/variable/', import.meta.url))
 const to = fileURLToPath(new URL('../src/lib/fonts/', import.meta.url));
 mkdirSync(to, { recursive: true });
 
-const faces = ['Display', 'UI', 'Text'].map((v) => {
+const faces = ['Display', 'UI'].map((v) => {
 	copyFileSync(`${from}LlamaSans${v}[wght].ttf`, `${to}LlamaSans${v}-VF.ttf`);
 	return `@font-face { font-family: "Llama Sans ${v}"; font-weight: 400 700; font-display: block; src: url("./LlamaSans${v}-VF.ttf") format("truetype"); }`;
 });

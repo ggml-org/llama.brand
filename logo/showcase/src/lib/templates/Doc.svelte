@@ -49,7 +49,7 @@
 		max-width: 62ch;
 		margin-top: -30px;
 		color: var(--l-muted);
-		font: 400 17px / normal 'Llama Sans Text', var(--body);
+		font: 400 17px / 1.5 'Llama Sans UI', var(--body);
 	}
 	/* the origin's tiles sit closer under the animation they follow */
 	.logo > :global(.steps) {

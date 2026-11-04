@@ -51,6 +51,6 @@
 	}
 	.text {
 		max-width: 62ch;
-		font: 400 17px / normal 'Llama Sans Text', var(--body);
+		font: 400 17px / 1.5 'Llama Sans UI', var(--body);
 	}
 </style>
