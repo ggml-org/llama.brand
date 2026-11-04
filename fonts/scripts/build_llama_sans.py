@@ -1,7 +1,8 @@
-"""Llama Sans Text, Display and UI variable fonts (wght 400–700), built from Geist's variable font.
+"""Llama Sans Display and UI variable fonts (wght 400–700), built from Geist's variable font.
 
-Geist (SIL Open Font License 1.1, no Reserved Font Name) supplies three masters:
-our 400 and 500 are Geist's 400 and 500, and our 700 is Geist at 650, a lighter Bold.
+Geist (SIL Open Font License 1.1, no Reserved Font Name) supplies three masters: design weights 400
+and 500 are Geist's 400 and 500, and design 700 is Geist at 650. The wght axis shows the design from 400
+to TOP_WEIGHT (640), stretched over 400–700, so 500, 600 and 700 are the design's 480, 560 and 640.
 Every change from llama_edits.py (angled terminals, rounder curves, the a and l,
 angled r/t/f ends, tighter tracking) is decided once on the 400 master and applied to all
 three, so the masters stay point-compatible and interpolate cleanly.
@@ -10,13 +11,12 @@ Geist's variable font is not stored in this repo: the first build downloads the 
 (GEIST_COMMIT) into sources/geist/ and checks its SHA-256 before using it.
 
 Run:  python scripts/build_llama_sans.py
-      -> variable/LlamaSans{Text,Display,UI}[wght].ttf
-         static/LlamaSans{Text,Display,UI}-{Regular,Medium,Bold}.ttf, cut from them
+      -> variable/LlamaSans{Display,UI}[wght].ttf
+         static/LlamaSans{Display,UI}-{Regular,Medium,SemiBold,Bold}.ttf, cut from them
 
-Text, Display and UI share every outline. Text is for prose and screens (looser tracking, softer
-kerning, generous line spacing); Display is for headlines and big sizes (tight tracking, stronger
-kerning, compact line spacing); UI sits between them in spacing, with a line box centred on the
-cap height for buttons, cards and small interface text.
+Display and UI share every outline. Display is for headlines and big sizes (tight tracking, stronger
+kerning, compact line spacing); UI is for interfaces and running text, spaced and kerned after SF Pro's text
+sizes, with a line box centred on the cap height for buttons and cards (prose sets its own line-height).
 """
 import hashlib
 import math
@@ -40,23 +40,23 @@ GEIST_SHA256 = "73894e0448cae90a92b6c2f8732b7bb9acb7b94c418bff559dad4a18e1de9659
 GEIST_PATH = os.path.join("sources", "geist", "Geist[wght].ttf")
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # fonts/, one level above scripts/
 
-MASTERS = [(400, 400), (500, 500), (700, 650)]  # (Llama Sans weight, Geist weight it is cut from)
+MASTERS = [(400, 400), (500, 500), (700, 650)]  # (design weight, Geist weight it is cut from)
+# The axis: design weights 400–TOP_WEIGHT, stretched over wght 400–700, so wght 500, 600 and 700 are the design's
+# 480, 560 and 640 (every 100 on the axis is 80 of the design). The design above TOP_WEIGHT is dropped.
+TOP_WEIGHT = 640
 # Optical variants: tracking (units added to every advance), kerning (scale of Geist's pair kerning),
 # line metrics (typo ascender, descender, line gap; win metrics stay at full height so nothing clips).
 # Every version's line box has its midline at half the cap height (355), so text centres the same way.
 FAMILIES = {
-    # Text: long reading at small sizes. Looser tracking, softer kerning, the optical pair corrections at
-    # half strength (evens out loose pairs without closing the text up), and 1.5 em leading.
-    "Text":    dict(track=10,  kern=0.85, pairs=0.50, line=(1005, -295, 200)),   # 1.5 em leading
-    "Display": dict(track=-26, kern=1.15, pairs=1.00, line=(930, -220, 0)),      # 1.15 em leading
-    # UI: between the two in spacing and kerning. 1.25 em line box whose midline sits exactly at half
+    "Display": dict(track=-26, kern=1.15, pairs=1.00, fixes="DISPLAY_KERN", line=(930, -220, 0)),  # 1.15 em leading
+    # UI: interfaces and running text, spaced like SF Pro at 16 pt. 1.25 em line box whose midline sits exactly at half
     # the cap height ((980 - 270) / 2 = 355 = 710 / 2), so capitals and cap-height icons centre in
     # buttons and chips with even padding; 12/16/20 px give whole-pixel 15/20/25 px lines.
-    # Kerning like Display's, a little wider: the pair corrections at 75%, Geist's kerning at 105%.
-    "UI":      dict(track=-4,  kern=1.05, pairs=0.75, line=(980, -270, 0)),
+    # Geist's kerning at 105% and the pair corrections at 75%, then UI_KERN brings it to SF Pro's text kerning.
+    "UI":      dict(track=-4,  kern=1.05, pairs=0.75, fixes="UI_KERN", line=(980, -270, 0)),
 }
 NAMED = [(400, "Regular"), (500, "Medium"), (600, "SemiBold"), (700, "Bold")]
-STATICS = [(400, "Regular"), (500, "Medium"), (700, "Bold")]
+STATICS = [(400, "Regular"), (500, "Medium"), (600, "SemiBold"), (700, "Bold")]
 A_FOOT = {700: (24, 72, 20)}  # per master: the a's bracketed foot (out, height, lip) — only near Bold
 A_BOWL_DROP = 5               # units the a's bowl top rises where it meets the stem (negative: flatter than Geist)
 A_BOWL_FILLET = 0             # radius rounding the corners where the bowl top meets the stem (0 = sharp)
@@ -71,7 +71,7 @@ ICON_PATHS = [
 ]
 ICON_SIDE = 60   # space either side of the icon, font units
 CAP_RAISE = 0    # units added to the cap height (capitals scale up from the baseline; accents above them follow)
-T_SHAPE = None   # the t's proportions: dict(left=, right=) crossbar overhang in stem widths (None = Geist's, about 0.9 / 1.7)
+T_SHAPE = dict(left=0.95, right=0.90)  # the t's arms, as a share of Geist's: crossbar left, crossbar and foot right (None = Geist's)
 FIT_ERR = 1.5  # max deviation (font units) when a TrueType spline is refit as one cubic
 
 
@@ -270,31 +270,31 @@ def widen(segs_by_master, f):
 
 
 def shape_t(segs_by_master, left, right):
-    """Narrow the t: crossbar overhangs of `left`/`right` stem widths, foot pulled in to match the
-    crossbar's right end. Returns per-master (left shift, total width removed) for respacing."""
+    """Narrow the t: its arms (left of the stem, and right of it: crossbar and foot) cut to `left`/`right` of their
+    length. The outer half of each arm moves as one piece, so the angled foot end and the hook keep their exact
+    shape, and only the half next to the stem closes up. Returns per-master (left shift, total width removed)."""
     out = []
     for s in segs_by_master:
         stem_ci = max(range(len(s)), key=lambda ci: max(p[1] for _, pts in s[ci] for p in pts))
         xs = sorted({round(pts[0][0]) for kind, pts in s[stem_ci]   # the stem's two long vertical edges
                      if kind == "L" and abs(pts[0][0] - pts[1][0]) < 1 and abs(pts[0][1] - pts[1][1]) > 200})
         xl, xr = xs[0], xs[-1]
-        sw = xr - xl
         old_l = min(p[0] for segs in s for _, pts in segs for p in pts)
         old_r = max(p[0] for segs in s for _, pts in segs for p in pts)
-        new_l, new_r = xl - left * sw, xr + right * sw
-        k = (new_r - xr) / (old_r - xr)
+        dl, dr = (xl - old_l) * (1 - left), (old_r - xr) * (1 - right)  # what each side gives up
+        zl, zr = (xl - old_l) / 2, (old_r - xr) / 2                      # the inner halves that take it
 
         def mv(p):
             x = p[0]
             if x > xr:
-                x = xr + (x - xr) * k
+                x = xr + (x - xr) * (zr - dr) / zr if x - xr < zr else x - dr
             elif x < xl:
-                x = xl - (xl - x) * (xl - new_l) / (xl - old_l)
-            return (x - (new_l - old_l), p[1])  # keep the left sidebearing
+                x = xl - (xl - x) * (zl - dl) / zl if xl - x < zl else x + dl
+            return (x - dl, p[1])  # keep the left sidebearing
         for segs in s:
             for i, (kind, pts) in enumerate(segs):
                 segs[i] = (kind, tuple(mv(p) for p in pts))
-        out.append((new_l - old_l, (new_l - old_l) + (old_r - new_r)))
+        out.append((dl, dl + dr))
     return out
 
 
@@ -502,6 +502,23 @@ PAIR_KERN = [
     ("OQD", "HIMNBEFLPR", -20),                                                   # round capitals, then stems
 ]
 
+# Kerning measured against SF Pro (macOS's SFNS.ttf, at 400) and fixed in here, so the build doesn't need it: for each
+# group, the mean gap between SF's pair kerning and ours, added on top of everything above (1000-unit em). UI follows
+# SF at its text size (opsz 17): harder after T, V, W, Y and around quotes, softer on L·V, A·V, F·A and r, k, x, f
+# before rounds. Display keeps its own stronger kerning and only gains the pairs it had none for.
+Q_OPEN, Q_CLOSE = "\u2018\u201c'\"", "\u2019\u201d'\""
+UI_KERN = [
+    ('T', 'a', -29), ('T', 'cdegoqs', -10), ('T', 'mnpr', -21), ('T', 'vwxyz', -7), ('T', '.,', 22),
+    ('T', '-', -31), ('VW', 'cdegoqs', -5), ('VW', 'mnpru', 8), ('VW', '.,', -14), ('VW', '-', -49),
+    ('Y', 'a', -15), ('Y', 'cdegoqs', -8), ('Y', 'mnpru', 8), ('Y', '.,', -98), ('Y', '-', -78), ('P', '.,', 18),
+    ('F', 'a', -13), ('F', 'A', 50), ('P', 'A', 30), ('A', 'vwy', -5), ('A', 'VW', 52), ('VW', 'A', 52),
+    ('A', 'T', 11), ('T', 'A', 11), ('L', 'VW', 100), ('L', 'Y', 75), ('L', 'T', 54), ('L', 'y', 16),
+    ('L', Q_CLOSE, -26), ('A', Q_CLOSE, -62), (Q_OPEN, 'A', -62), (Q_CLOSE, 's', -27), (Q_OPEN, 's', -15),
+    ('rvwy', '.,', -8), ('r', 'a', 42), ('r', 'cdeoq', 27), ('e', 'vwy', 19), ('vwy', 'eo', 7), ('a', 'vwy', 4),
+    ('o', 'vwxy', 12), ('xk', 'ceo', 28), ('f', 'ceo', 24), ('r', 'vwy', 29), ('vwy', 'a', 5),
+]
+DISPLAY_KERN = [("VW", "-", -29), ("Y", ".,", -88), ("Y", "-", -73)]  # SF at its display size (opsz 28)
+
 
 def add_kerning(font, groups, scale=1.0):
     """Add pair kerning (values times scale) in its own lookup, appended to every 'kern' feature."""
@@ -559,15 +576,22 @@ def name_variable(vf, family):
         nt.setName(s, nid, 1, 0, 0)
 
 
+def axis_weight(w):
+    """A design weight's place on the wght axis: 400 stays, TOP_WEIGHT lands on 700."""
+    return 400 + (w - 400) * 300 / (TOP_WEIGHT - 400)
+
+
 def build_variable(masters, family="Llama Sans"):
     ps = family.replace(" ", "")
     ds = DesignSpaceDocument()
     ax = AxisDescriptor()
-    ax.tag, ax.name, ax.minimum, ax.default, ax.maximum = "wght", "Weight", 400, 400, 700
+    # the masters go where the stretched axis puts them (700's beyond 700), then the axis is cut back to 400–700
+    top = axis_weight(MASTERS[-1][0])
+    ax.tag, ax.name, ax.minimum, ax.default, ax.maximum = "wght", "Weight", 400, 400, top
     ds.addAxis(ax)
     for (w, _), m in zip(MASTERS, masters):
         src = SourceDescriptor()
-        src.font, src.location, src.familyName = m, {"Weight": w}, family
+        src.font, src.location, src.familyName = m, {"Weight": axis_weight(w)}, family
         src.styleName = dict(NAMED)[w]
         ds.addSource(src)
     for w, style in NAMED:
@@ -576,6 +600,8 @@ def build_variable(masters, family="Llama Sans"):
         ins.postScriptFontName = f"{ps}-{style}"
         ds.addInstance(ins)
     vf, _, _ = varLib.build(ds)
+    if top > 700:
+        vf = instantiateVariableFont(vf, {"wght": (400, 400, 700)}, inplace=False)
     name_variable(vf, family)
     buildStatTable(vf, [dict(tag="wght", name="Weight", values=[
         dict(value=w, name=s, flags=0x2 if w == 400 else 0, **({"linkedValue": 700} if w == 400 else {}))
@@ -619,6 +645,8 @@ if __name__ == "__main__":
             scale_kerning(m, cfg["kern"])
             if cfg.get("pairs"):
                 add_kerning(m, PAIR_KERN, cfg["pairs"])
+            if cfg.get("fixes"):
+                add_kerning(m, globals()[cfg["fixes"]])
             set_line_metrics(m, cfg["line"])
         vf = build_variable(masters, family)
         out = os.path.join(out_dir, "variable", f"LlamaSans{opt}[wght].ttf")

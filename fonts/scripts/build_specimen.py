@@ -23,9 +23,9 @@ from fontTools.pens.boundsPen import BoundsPen
 from fontTools.ttLib import TTFont
 
 APP = "specimen"
-VARIANTS = ["Display", "UI", "Text"]          # versions of Llama Sans the page can switch between
-GRID_VARIANT = "Text"                         # the glyph grid is drawn from this version's statics
-STYLES = [(400, "Regular"), (500, "Medium"), (700, "Bold")]
+VARIANTS = ["Display", "UI"]                         # versions of Llama Sans the page can switch between
+GRID_VARIANT = "UI"                           # the glyph grid is drawn from this version's statics
+STYLES = [(400, "Regular"), (500, "Medium"), (600, "SemiBold"), (700, "Bold")]
 WATERFALL = [(400, "Regular"), (500, "Medium"), (600, "SemiBold"), (700, "Bold")]
 GROUPS = [("Uppercase", "ABCDEFGHIJKLMNOPQRSTUVWXYZ"),
           ("Lowercase", "abcdefghijklmnopqrstuvwxyz"),
