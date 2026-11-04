@@ -69,7 +69,7 @@
 	const upright = '-500 -96 1000 1000';
 	const leaning = '-200 -200 1000 1000';
 
-	// the original pencil sketch, shown on request; the button only appears once the photo is in src/lib/assets/
+	// the original pencil sketch (src/lib/assets/sketch.webp), shown on request; without the file the button is left out
 	const sketches = import.meta.glob('../assets/sketch.{jpg,jpeg,png,webp,avif}', {
 		eager: true,
 		query: '?url',
@@ -193,7 +193,7 @@
 		</header>
 		{#if sketch}
 			<dialog class="sketch" bind:this={sketchDialog} closedby="any" aria-label="The original pencil sketch">
-				<img src={sketch} alt="Pencil sketches of the icon: a slanted plus, the plus with two arms filled in, and L shapes" />
+				<img src={sketch} alt="A sketchbook page in pencil: a slanted plus, the same plus with its top and right arms shaded, the two-blade icon in a rounded square, an upright plus with two arms shaded, L shapes built on a grid and an L drawn in perspective" />
 				<form method="dialog"><button class="sketch-close">Close</button></form>
 			</dialog>
 		{/if}

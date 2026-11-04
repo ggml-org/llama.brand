@@ -30,4 +30,4 @@ cd logo/showcase && npm install && npm run build
 
 That writes `logo/showcase/build/index.html`, one file with the scripts, styles and fonts inlined. `npm run dev` serves it with hot reload. Both take Llama Sans from `fonts/variable/` (copied in by `scripts/fonts.js`).
 
-To show the original pencil sketch, put the photo at `showcase/src/lib/assets/sketch.jpg` (or `.png`, `.webp`, `.avif`): a "View the original sketch" button then appears in the origin section.
+The original pencil sketch is `showcase/src/lib/assets/sketch.webp`, opened from the "View the original sketch" button in the origin section.
