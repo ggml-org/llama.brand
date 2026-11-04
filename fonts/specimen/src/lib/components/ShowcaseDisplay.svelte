@@ -1,4 +1,8 @@
 <!-- Llama Sans Display in its element: large, tight, stacked type. Everything uses the font's own line spacing. -->
+<script lang="ts">
+	import DisplayGallery from './DisplayGallery.svelte';
+</script>
+
 <div class="display">
 	<section class="hero" aria-label="Banner">
 		<span class="kicker">Llama Sans Display</span>
@@ -31,6 +35,8 @@
 		<span class="poster-word outline">Wave Typo</span>
 		<span class="poster-meta">Kerning at 115% · pairs like AV, Wa and Ty close up</span>
 	</section>
+
+	<DisplayGallery />
 </div>
 
 <style>

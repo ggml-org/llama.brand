@@ -64,7 +64,7 @@
 		align-items: center;
 		gap: 0.45em;
 		padding: 0.5em 0.95em;
-		border-radius: 6px;
+		border-radius: 8px;
 		border: 1px solid var(--rule);
 		background: var(--sheet);
 		cursor: pointer;

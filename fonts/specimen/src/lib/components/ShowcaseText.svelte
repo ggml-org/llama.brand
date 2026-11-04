@@ -1,4 +1,9 @@
 <!-- Llama Sans Text in its element: reading. Body copy uses the font's own 1.5 em line spacing. -->
+<script lang="ts">
+	import TextGallery from './TextGallery.svelte';
+</script>
+
+<div class="text-showcase">
 <article class="article">
 	<header class="article-head">
 		<p class="kicker">Notes on type · 4 min read</p>
@@ -40,7 +45,14 @@
 	</div>
 </article>
 
+<TextGallery />
+</div>
+
 <style>
+	.text-showcase {
+		display: grid;
+		gap: 40px;
+	}
 	.article {
 		display: grid;
 		gap: 28px;

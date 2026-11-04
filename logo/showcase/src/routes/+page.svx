@@ -1,0 +1,55 @@
+---
+title: Llama icon
+---
+
+<script>
+	import { SIZE, SPLIT } from '#lib/logo.ts';
+	import { deg, lower, r, trim } from '#lib/blueprint.ts';
+	import Blueprint from '#lib/components/Blueprint.svelte';
+	import Sketch from '#lib/components/Sketch.svelte';
+	import Figures from '#lib/components/Figures.svelte';
+	import OriginStep from '#lib/components/OriginStep.svelte';
+	import Rule from '#lib/components/Rule.svelte';
+	import Lockups from '#lib/components/Lockups.svelte';
+	import Specs from '#lib/components/Specs.svelte';
+
+	const pct = (n) => Math.round((n / SIZE) * 100);
+</script>
+
+<Blueprint />
+
+<p class="kicker">Llama · the icon</p>
+
+## Two blades, one angle
+
+The Llama icon is two slanted blades that meet at a single point. Every slanted edge runs at exactly {deg}°, the blades split the height {pct(SPLIT)} to {pct(lower)}, and only the two outer corners are softened.
+
+<p class="kicker">Where it comes from</p>
+
+## Plus, L, bolt
+
+It begins with the + of C++, the language llama.cpp is written in. The icon started as a pencil sketch of that plus drawn into an L. Stand the blades upright and it is still there: the tall blade is the top arm of the +, the foot is its right arm, and the corner they would share is left out, so the two meet at a single point. Then a lightning bolt, for speed, flashes and leans it 30° in an instant, the bolt inside; soften two corners, and you have the mark.
+
+<Sketch />
+
+<Figures layout="steps">
+	<OriginStep step="plus">A plus with the icon’s own arms: 240 wide upright, {lower} deep across.</OriginStep>
+	<OriginStep step="l">Keep the top arm, the centre and the right arm: an L inside the +.</OriginStep>
+	<OriginStep step="open">Lift out the centre block the + and the L share. Stem and foot now touch at one point.</OriginStep>
+	<OriginStep step="bolt">Then the idea that drives it: a lightning bolt, for speed, which is what llama.cpp is about.</OriginStep>
+	<OriginStep step="lean">In a flash the bolt leans it: the L slants 30° on the baseline, every edge at {deg}°, with the bolt inside.</OriginStep>
+	<OriginStep step="soften">Round only the two outer corners. That is the Llama icon.</OriginStep>
+</Figures>
+
+<Figures layout="rules">
+	<Rule rule="blades">A tall blade and a short foot, offset to the right, touching at one point.</Rule>
+	<Rule rule="angle">All four slanted edges lean at {deg}°: the blades are parallel parallelograms.</Rule>
+	<Rule rule="diagonal">The upper blade’s right edge and the foot’s left edge are the same line, through the joint.</Rule>
+	<Rule rule="split">{SPLIT} above, {lower} below: close to two thirds to one third.</Rule>
+	<Rule rule="steps">Five steps of 120 span the {SIZE}: the feet, the joint and the foot’s corner all land on them.</Rule>
+	<Rule rule="corners">Only the two 120° outer corners round off: cut back {trim}, on a circle of radius ≈ {r}.</Rule>
+</Figures>
+
+<Lockups />
+
+<Specs />

@@ -7,13 +7,7 @@
 </script>
 
 <svelte:head>
-	<title>Llama Sans</title>
 	<meta name="claude:viewport-fit-sides" content="cover" />
-	<link rel="preconnect" href="https://fonts.googleapis.com" />
-	<link
-		rel="stylesheet"
-		href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap"
-	/>
 </svelte:head>
 
 {@render children()}

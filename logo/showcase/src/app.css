@@ -1,19 +1,20 @@
-/* The page around the icon breakdown: the same grayscale ground as the breakdown itself. */
+/* The page around the icon breakdown: the same grey ground as the breakdown itself. Greys follow the llama.cpp web
+   UI's design tokens (tools/ui): neutral-100 in light, neutral-925 (surface-page-dark) in dark. */
 :root {
-	--page: #ededed;
+	--page: oklch(0.97 0 0);
 	--ink: #111111;
-	--body: 'Llama Sans Text', 'Helvetica Neue', Arial, sans-serif;
-	--mono: 'IBM Plex Mono', ui-monospace, Menlo, monospace;
+	--body: 'Llama Sans Text', system-ui, -apple-system, 'Segoe UI', sans-serif;
+	--mono: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas, monospace;
 }
 @media (prefers-color-scheme: dark) {
 	:root:not([data-theme='light']) {
-		--page: #141414;
+		--page: oklch(0.16 0 0);
 		--ink: #fafafa;
 		color-scheme: dark;
 	}
 }
 :root[data-theme='dark'] {
-	--page: #141414;
+	--page: oklch(0.16 0 0);
 	--ink: #fafafa;
 	color-scheme: dark;
 }
