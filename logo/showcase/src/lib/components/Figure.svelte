@@ -1,5 +1,6 @@
 <!-- One small drawing on a card with its caption: a step of the origin (with its number) or a rule of the icon.
-     The drawing is a snippet in the icon's own coordinates; the caption is the children. -->
+     The drawing is a snippet in the icon's own coordinates; the caption is the children. dim fades it back;
+     with onclick, the whole card is a button labelled by action. -->
 <script lang="ts">
 	import type { Snippet } from 'svelte';
 
@@ -7,12 +8,16 @@
 		title,
 		n,
 		view = '-60 -60 720 720',
+		dim = false,
+		onclick,
+		action,
 		drawing,
 		children
-	}: { title: string; n?: string; view?: string; drawing: Snippet; children?: Snippet } = $props();
+	}: { title: string; n?: string; view?: string; dim?: boolean; onclick?: () => void; action?: string; drawing: Snippet; children?: Snippet } = $props();
 </script>
 
-<figure class="panel">
+<figure class="panel" class:faded={dim}>
+	{#if onclick}<button type="button" class="go" aria-label={action ?? title} {onclick}></button>{/if}
 	{#if n}<span class="step">{n}</span>{/if}
 	<svg viewBox={view} role="img" aria-label={title}>{@render drawing()}</svg>
 	<figcaption><strong>{title}</strong>{@render children?.()}</figcaption>
@@ -29,6 +34,27 @@
 		padding: 14px;
 		border-radius: 12px;
 		background: var(--l-panel);
+		transition: opacity 400ms ease-out, box-shadow 160ms ease-out;
+	}
+	.faded {
+		opacity: 0.25;
+	}
+	.go {
+		position: absolute;
+		inset: 0;
+		padding: 0;
+		border: 0;
+		border-radius: inherit;
+		background: none;
+		cursor: pointer;
+	}
+	.go:focus-visible {
+		outline: 2px solid var(--l-ink);
+		outline-offset: 2px;
+	}
+	.panel:has(> .go:hover) {
+		box-shadow: inset 0 0 0 1px var(--l-rule);
+		opacity: 1;
 	}
 	.panel svg {
 		display: block;

@@ -17,22 +17,24 @@ const linear = (x: number) => x;
 // every change starts softly, moves through the middle and settles, the bigger moves on the stronger curve
 export const steps = [
 	{ name: 'llama.cpp', from: 0, to: 0, ease: outCubic, note: 'It begins with a name: llama.cpp.' },
-	{ name: '.cpp', from: 0.8, to: 1.7, ease: inOutQuart, note: 'Look closer: its .cpp.' },
-	{ name: 'C++', from: 1.95, to: 2.5, ease: inOutCubic, note: 'Its .cpp is C++, the language llama.cpp is written in.' },
-	{ name: 'Plus', from: 2.85, to: 3.75, ease: inOutQuint, note: 'Its plus grows the icon’s own arms: 240 wide upright, 208 deep across.' },
-	{ name: 'L', from: 4.1, to: 4.75, ease: inOutQuart, note: 'Keep the top arm, the centre and the right arm: an L inside the +.' },
-	{ name: 'Open the corner', from: 5.1, to: 5.7, ease: inOutQuart, note: 'Lift out the centre block. Stem and foot now touch at one point.' },
-	{ name: 'Bolt', from: 6.05, to: 7.35, ease: linear, note: 'Then the idea: a lightning bolt, for speed, which is what llama.cpp is about.' },
+	{ name: '.cpp', from: 0.5, to: 1.1, ease: inOutQuart, note: 'Look closer: its .cpp.' },
+	{ name: 'C++', from: 1.25, to: 1.6, ease: inOutCubic, note: 'Its .cpp is C++, the language llama.cpp is written in.' },
+	{ name: 'Plus', from: 1.8, to: 2.4, ease: inOutQuint, note: 'Its plus grows the icon’s own arms: 240 wide upright, 208 deep across.' },
+	{ name: 'L', from: 2.75, to: 3.4, ease: inOutQuart, note: 'Keep the top arm, the centre and the right arm: an L inside the +.' },
+	{ name: 'Open the corner', from: 3.75, to: 4.35, ease: inOutQuart, note: 'Lift out the centre block. Stem and foot now touch at one point.' },
+	{ name: 'Bolt', from: 4.7, to: 6.0, ease: linear, note: 'Then the idea: a lightning bolt, for speed, which is what llama.cpp is about.' },
 	// the lean isn't a move: the L snaps to 30° in the bolt's flash (see Morph); this step only carries its caption
-	{ name: 'Lean', from: 7.4, to: 7.42, ease: linear, note: 'In a flash the bolt leans the L 30°: every edge runs at 60°, with the bolt inside.' },
-	{ name: 'Soften', from: 8.2, to: 8.9, ease: inOutQuart, note: 'Round only the two outer corners.' },
-	{ name: 'Fill', from: 9.2, to: 9.7, ease: inOutCubic, note: 'Fill it in: the Llama icon.' },
-	{ name: 'Blueprint', from: 10.0, to: 11.25, ease: linear, note: 'And this is how it is built.' }
+	{ name: 'Lean', from: 6.05, to: 6.07, ease: linear, note: 'In a flash the bolt leans the L 30°: every edge runs at 60°, with the bolt inside.' },
+	{ name: 'Soften', from: 6.85, to: 7.55, ease: inOutQuart, note: 'Round only the two outer corners.' },
+	{ name: 'Fill', from: 7.85, to: 8.35, ease: inOutCubic, note: 'Fill it in: the Llama icon.' },
+	{ name: 'Blueprint', from: 8.65, to: 9.9, ease: linear, note: 'And this is how it is built.' }
 ];
-export const END = 11.4;
+export const END = 10.05;
 /** A step's index by name, so the code that times things off a step doesn't depend on the order. */
 export const STEP = Object.fromEntries(steps.map((s, i) => [s.name, i])) as Record<string, number>;
 export const BLUEPRINT_STEP = STEP.Blueprint;
+/** The steps that have a tile under the animation, in order; the bolt is shown inside the lean. */
+export const TILES = ['llama.cpp', 'Plus', 'L', 'Open the corner', 'Lean', 'Soften'];
 /** When each part of the blueprint fades in, in seconds after the Blueprint step starts. */
 export const BLUEPRINT = { grid: [0.1, 0.6], parts: [0.25, 0.75], lines: [0.3, 0.85], dims: [0.55, 1.05], title: [0.8, 1.25] } as const;
 
