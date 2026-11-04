@@ -1,0 +1,19 @@
+{
+	"name": "llama.brand",
+	"version": "0.1.0",
+	"description": "Official brand assets for Llama.app and Llama.cpp",
+	"private": true,
+	"license": "CC-BY-NC-4.0",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/ggml-org/llama.brand.git"
+	},
+	"files": [
+		"cover/**/*.svg",
+		"icon/*.svg",
+		"logo/**/*.svg"
+	],
+	"exports": {
+		"./*": "./*"
+	}
+}
