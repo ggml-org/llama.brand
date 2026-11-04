@@ -52,7 +52,7 @@ The sans of the Llama family, with Mono and Serif to follow. A neo-grotesk with 
 ## Design notes
 
 <Notes>
-	<Note term="Stroke">Near-monoline, with a {stems[0]}-unit stem at 400 rising to {stems.at(-1)} at 700. Joins stay clean, without ink traps.</Note>
+	<Note term="Stroke">Near-monoline, with a {stems[0]}-unit stem at 400 rising to {stems.at(-1)} at 700. Where a bowl, arm or shoulder leaves a stem, the notch cuts a little deeper into the joint, so joins stay open without turning into ink traps.</Note>
 	<Note term="Curves">Bowls are eased toward true circles, fully circular in G, S and s, so rounds read soft and calm without turning geometric.</Note>
 	<Note term="Terminals">Every curved stroke end is trimmed the same short distance and cut almost square to the stroke, which keeps c, e, g, s, 2, 3, 5, 6 and 9 open and consistent.</Note>
 	<Note term="a">Double-story, on a straight stem with a flat foot. The hook runs long and ends in a flat cut; the bowl rises gently into the stem with sharp joints. Toward Bold, a small bracketed foot appears.</Note>

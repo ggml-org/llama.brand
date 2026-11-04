@@ -75,6 +75,7 @@ ICON_SIDE = 60   # space either side of the icon, font units
 CAP_RAISE = 0    # units added to the cap height (capitals scale up from the baseline; accents above them follow)
 DESCENDER = 140  # how deep lowercase descenders reach (Geist's 150): p, q, j, y, and g's bowl in proportion;
                  # a version can set its own (FAMILIES' descender)
+JOIN_CUT = 15    # how much deeper the notch where a bowl, arm or shoulder leaves a stem cuts into the joint (0 = Geist's)
 T_SHAPE = dict(left=0.95, right=0.90)  # the t's arms, as a share of Geist's: crossbar left, crossbar and foot right (None = Geist's)
 FIT_ERR = 1.5  # max deviation (font units) when a TrueType spline is refit as one cubic
 
@@ -283,6 +284,59 @@ def shorten_descender(segs_by_master, depth, start=20):
                 segs[i] = (kind, tuple((x, y if y >= -start else -start + (y + start) * k) for x, y in pts))
 
 
+def find_joins(segs):
+    """The notches where a bowl, arm or shoulder leaves a straight stem edge: a vertex where a long vertical line
+    meets a curve at a sharp angle, directly or through a short step (n, h, r). Returns (vertices, handle, away):
+    the vertex indices to move, the curve handle next to them, and the unit direction along the stem away from it."""
+    def unit(a, b):
+        d = math.dist(a, b)
+        return ((b[0] - a[0]) / d, (b[1] - a[1]) / d) if d else (0, 0)
+
+    def stem(seg):
+        kind, pts = seg
+        return kind == "L" and abs(pts[0][0] - pts[1][0]) <= 6 and abs(pts[0][1] - pts[1][1]) > 80
+
+    out, n = [], len(segs)
+    for k in range(n):  # vertex k joins segs[k] (ending there) and segs[k + 1] (starting there)
+        a, b = segs[k], segs[(k + 1) % n]
+        step = lambda seg: seg[0] == "L" and math.dist(*seg[1]) < 30
+        if stem(a) and b[0] == "C":                                  # stem, then a curve
+            v, line_end, vs, h = a[1][1], a[1][0], [k], ((k + 1) % n, 1)
+        elif a[0] == "C" and stem(b):                                # a curve, then a stem
+            v, line_end, vs, h = b[1][0], b[1][1], [k], (k, 2)
+        elif stem(a) and step(b) and segs[(k + 2) % n][0] == "C":    # stem, a short step, then a curve
+            v, line_end, vs, h = a[1][1], a[1][0], [k, (k + 1) % n], ((k + 2) % n, 1)
+        elif a[0] == "C" and step(b) and stem(segs[(k + 2) % n]):    # a curve, a short step, then a stem
+            nxt = segs[(k + 2) % n]
+            v, line_end, vs, h = nxt[1][0], nxt[1][1], [k, (k + 1) % n], (k, 2)
+        else:
+            continue
+        along = unit(v, line_end)                                    # from the joint up (or down) the stem
+        tip = segs[h[0]][1][0 if h[1] == 1 else 3]
+        if math.degrees(math.acos(max(-1, min(1, sum(x * y for x, y in zip(along, unit(tip, segs[h[0]][1][h[1]]))))))) < 60:
+            out.append((vs, h, (-along[0], -along[1])))
+    return out
+
+
+def cut_joins(segs_by_master, joins, depth):
+    """Slide each notch's vertices `depth` units deeper into the joint, and the curve's handle half as far."""
+    for s in segs_by_master:
+        for ci, found in joins:
+            segs, n = s[ci], len(s[ci])
+
+            def shift(si, idx, d):
+                kind, pts = segs[si]
+                pts = list(pts)
+                pts[idx] = (pts[idx][0] + d[0], pts[idx][1] + d[1])
+                segs[si] = (kind, tuple(pts))
+            for vs, (hs, hi), away in found:
+                d = (away[0] * depth, away[1] * depth)
+                for k in vs:
+                    shift(k, -1, d)
+                    shift((k + 1) % n, 0, d)
+                shift(hs, hi, (d[0] / 2, d[1] / 2))
+
+
 def shape_t(segs_by_master, left, right):
     """Narrow the t: its arms (left of the stem, and right of it: crossbar and foot) cut to `left`/`right` of their
     length. The outer half of each arm moves as one piece, so the angled foot end and the hook keep their exact
@@ -416,6 +470,9 @@ def build_masters(var, track, descender=DESCENDER):
             widen(cubics, WIDEN[name])
         if descender != 150 and (rev.get(name) or rev.get(name.split(".")[0], "")).islower():
             shorten_descender(cubics, descender)
+        if JOIN_CUT and (rev.get(name) or rev.get(name.split(".")[0], "")).islower():
+            joins = [(ci, j) for ci, segs in enumerate(cubics[0]) if (j := find_joins(segs))]
+            joins and cut_joins(cubics, joins, JOIN_CUT)
         if name == "t" and T_SHAPE:
             t_deltas = shape_t(cubics, T_SHAPE["left"], T_SHAPE["right"])
         write_compatible(name, cubics, masters)
@@ -530,19 +587,21 @@ UI_KERN = [
     ('F', 'a', -13), ('F', 'A', 50), ('P', 'A', 30), ('A', 'vwy', -5), ('A', 'VW', 52), ('VW', 'A', 52),
     ('A', 'T', 11), ('T', 'A', 11), ('L', 'VW', 100), ('L', 'Y', 75), ('L', 'T', 54), ('L', 'y', 16),
     ('L', Q_CLOSE, -26), ('A', Q_CLOSE, -62), (Q_OPEN, 'A', -62), (Q_CLOSE, 's', -27), (Q_OPEN, 's', -15),
-    ('rvwy', '.,', -8), ('r', 'a', -2), ('r', 'cdoq', 27), ('r', 'e', 12), ('e', 'vwy', 19), ('vwy', 'eo', 7), ('a', 'vwy', 4),
+    ('rvwy', '.,', -8), ('r', 'a', -2), ('r', 'cdoq', 27), ('r', 'e', 12), ('e', 'vwy', 19), ('vwy', 'eo', 7), ('y', 't', 8), ('a', 'vwy', 4),
     ('o', 'vwxy', 12), ('xk', 'ceo', 28), ('f', 'ceo', 24), ('r', 'vw', 29), ('r', 'y', 37), ('vwy', 'a', 5),
 ]
 # In both versions r·e and r·a close up by hand, r·a the most: the open space under r's arm reads loose before
 # them, and widest before a's low bowl (UI's ('r', 'e', 12) and ('r', 'a', -2) above, Display's here). r·y opens a
 # little the other way: r's arm and y's top sat almost touching.
+TT_OVERLAP = 1   # t·t: how far the crossbars of a double t overlap, so they read as one bar (tt_join)
 DISPLAY_KERN = [  # the first three: SF at opsz 28
-    ("VW", "-", -29), ("Y", ".,", -88), ("Y", "-", -73), ("r", "e", -15), ("r", "a", -21), ("r", "y", 16),
+    ("VW", "-", -29), ("Y", ".,", -88), ("Y", "-", -73), ("r", "e", -15), ("r", "a", -21), ("r", "y", 16), ("y", "t", 8),
 ]
 
 
-def add_kerning(font, groups, scale=1.0):
-    """Add pair kerning (values times scale) in its own lookup, appended to every 'kern' feature."""
+def add_kerning(font, groups, scale=1.0, composites=True):
+    """Add pair kerning (values times scale) in its own lookup, appended to every 'kern' feature. With composites,
+    each pair also covers the accented letters built on it."""
     from fontTools.otlLib.builder import buildPairPosGlyphs, buildLookup
     from fontTools.ttLib.tables import otTables
     cmap, glyf = font.getBestCmap(), font["glyf"]
@@ -552,8 +611,9 @@ def add_kerning(font, groups, scale=1.0):
         for ch in chars:
             base = cmap[ord(ch)]
             out.add(base)
-            out.update(n for n in font.getGlyphOrder()
-                       if glyf[n].isComposite() and glyf[n].components[0].glyphName == base)
+            if composites:
+                out.update(n for n in font.getGlyphOrder()
+                           if glyf[n].isComposite() and glyf[n].components[0].glyphName == base)
         return out
     pairs = {}
     for left, right, v in groups:
@@ -571,6 +631,44 @@ def add_kerning(font, groups, scale=1.0):
         if fr.FeatureTag == "kern":
             fr.Feature.LookupListIndex.append(idx)
             fr.Feature.LookupCount = len(fr.Feature.LookupListIndex)
+
+
+def tt_join(font, overlap=TT_OVERLAP):
+    """The t·t kerning that butts one t's crossbar against the next's, `overlap` units over so no seam shows.
+    Measured on this master's own outline: the crossbar is what lies in the band just under the x-height."""
+    xh, glyf = font["OS/2"].sxHeight, font["glyf"]
+    coords = [(x, y) for x, y in glyf["t"].getCoordinates(glyf)[0] if xh - 100 <= y <= xh + 1]
+    left, right = min(x for x, _ in coords), max(x for x, _ in coords)
+    return -round(font["hmtx"]["t"][0] - right + left) - overlap
+
+
+def pair_kern(font, left, right):
+    """The kerning `font` already gives left·right: every pair lookup in 'kern', by glyph or by class, summed."""
+    gpos = font["GPOS"].table
+    idx = {i for fr in gpos.FeatureList.FeatureRecord if fr.FeatureTag == "kern" for i in fr.Feature.LookupListIndex}
+    total = 0
+    for i in sorted(idx):
+        for st in gpos.LookupList.Lookup[i].SubTable:
+            st = getattr(st, "ExtSubTable", st)
+            if getattr(st, "Format", 0) == 1 and hasattr(st, "PairSet") and left in st.Coverage.glyphs:
+                recs = st.PairSet[st.Coverage.glyphs.index(left)].PairValueRecord
+                total += sum(getattr(r.Value1, "XAdvance", 0) or 0 for r in recs if r.SecondGlyph == right)
+            elif getattr(st, "Format", 0) == 2 and left in st.Coverage.glyphs:
+                c1, c2 = st.ClassDef1.classDefs.get(left, 0), st.ClassDef2.classDefs.get(right, 0)
+                total += getattr(st.Class1Record[c1].Class2Record[c2].Value1, "XAdvance", 0) or 0
+    return total
+
+
+def join_tt_liga(font, kern):
+    """Set Geist's tt ligature (two t components) so its second t sits `kern` from the first: the crossbars then
+    butt together exactly as the t·t kerning sets them, whether or not ligatures are on."""
+    glyf, hmtx = font["glyf"], font["hmtx"]
+    g, adv = glyf["t_t.liga"], hmtx["t"][0]
+    first, second = g.components
+    assert first.glyphName == second.glyphName == "t", [c.glyphName for c in g.components]
+    first.x, first.y, second.x, second.y = 0, 0, adv + kern, 0
+    g.recalcBounds(glyf)
+    hmtx["t_t.liga"] = (second.x + adv, g.xMin)
 
 
 def set_line_metrics(font, line):
@@ -654,6 +752,7 @@ if __name__ == "__main__":
     args = sys.argv[1:]
     paths = [os.path.abspath(a) for a in args if not a.startswith("--")]
     out_dir = next((os.path.abspath(a[6:]) for a in args if a.startswith("--out=")), None)
+    JOIN_CUT = next((float(a[11:]) for a in args if a.startswith("--join-cut=")), JOIN_CUT)  # try another depth
     os.chdir(ROOT)  # every path below is relative to fonts/, wherever this is run from
     out_dir = out_dir or "."
     var = TTFont(paths[0] if paths else geist_source())
@@ -668,6 +767,9 @@ if __name__ == "__main__":
                 add_kerning(m, PAIR_KERN, cfg["pairs"])
             if cfg.get("fixes"):
                 add_kerning(m, globals()[cfg["fixes"]])
+            tt = tt_join(m)  # the whole t·t spacing; Geist's own t·t kerning is already part of it
+            add_kerning(m, [("t", "t", tt - pair_kern(m, "t", "t"))], composites=False)  # ť and ţ keep their room
+            join_tt_liga(m, tt)  # and the tt ligature, which liga turns "tt" into, matches it
             set_line_metrics(m, cfg["line"])
         vf = build_variable(masters, family)
         out = os.path.join(out_dir, "variable", f"LlamaSans{opt}[wght].ttf")
