@@ -2,7 +2,7 @@
 
 The Llama type family. **Llama Sans** is here now; Llama Mono and Llama Serif will follow. Every path below is relative to this `fonts/` folder.
 
-Llama Sans is a neo-grotesk with an even stroke, round bowls and open, angle-cut terminals. It comes in two versions with identical outlines, each a variable font from 400 to 700 (Regular, Medium, SemiBold and Bold at 400, 500, 600 and 700):
+Llama Sans is a neo-grotesk with an even stroke, round bowls and open, angle-cut terminals. It comes in two versions with the same outlines, apart from UI's deeper descenders (155 units, against Display's 140), each a variable font from 400 to 700 (Regular, Medium, SemiBold and Bold at 400, 500, 600 and 700):
 
 | | Tracking | Kerning | Line spacing | For |
 |---|---|---|---|---|
@@ -43,7 +43,7 @@ python3 -m venv .venv && .venv/bin/pip install -r scripts/requirements.txt
 cd specimen && npm install && npm run build
 ```
 
-`build_llama_sans.py` starts from Geist's variable font, which isn't stored in the repo: the first build downloads the pinned version into `sources/geist/` and checks its SHA-256. It takes three masters from it (400, 500, and 650 for the design's 700), applies the edits in `llama_edits.py` to all of them identically so they stay compatible, and writes both variable fonts plus their statics. The wght axis shows the design from 400 to `TOP_WEIGHT` (640) stretched over 400–700, so Medium (500), SemiBold (600) and Bold (700) are the design's 480, 560 and 640. The design settings are constants at the top of both scripts: terminal trim and angle (`OPEN`, `TK`), curve rounding (`ROUND`, `ROUND_BY_GLYPH`), widths (`WIDEN`), the a's bowl and Bold foot (`A_BOWL_DROP`, `A_FOOT`), the t's arms and cuts (`T_SHAPE`, `T_TOP_DROP`, `T_FOOT_SLIDE`), an optional cap-height raise (`CAP_RAISE`), the UI and Display settings (`FAMILIES`) and the kerning matched to SF Pro (`UI_KERN`, `DISPLAY_KERN`).
+`build_llama_sans.py` starts from Geist's variable font, which isn't stored in the repo: the first build downloads the pinned version into `sources/geist/` and checks its SHA-256. It takes three masters from it (400, 500, and 650 for the design's 700), applies the edits in `llama_edits.py` to all of them identically so they stay compatible, and writes both variable fonts plus their statics. The wght axis shows the design from 400 to `TOP_WEIGHT` (640) stretched over 400–700, so Medium (500), SemiBold (600) and Bold (700) are the design's 480, 560 and 640. The design settings are constants at the top of both scripts: terminal trim and angle (`OPEN`, `TK`), curve rounding (`ROUND`, `ROUND_BY_GLYPH`), widths (`WIDEN`), descender depth (`DESCENDER`, and UI's own `descender` in `FAMILIES`), the a's bowl and Bold foot (`A_BOWL_DROP`, `A_FOOT`), the t's arms and cuts (`T_SHAPE`, `T_TOP_DROP`, `T_FOOT_SLIDE`), an optional cap-height raise (`CAP_RAISE`), the UI and Display settings (`FAMILIES`) and the kerning matched to SF Pro (`UI_KERN`, `DISPLAY_KERN`).
 
 `build_specimen.py` exports what the specimen needs from the fonts: glyph outlines and metrics as `specimen/src/lib/data/specimen.json`, plus copies of the variable fonts and their `@font-face` rules in `specimen/src/lib/fonts/`. Pass `--prev-fonts=DIR` (a folder laid out like this one) to add a Before/After switch comparing against an earlier build.
 
