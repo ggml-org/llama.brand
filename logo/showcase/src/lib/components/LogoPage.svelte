@@ -1,8 +1,9 @@
-<!-- The Llama icon taken apart: its construction lines, then each rule that shapes it. -->
+<!-- The Llama icon taken apart: it grows out of the + of C++ into the mark and settles into its blueprint, then each rule that shapes it. -->
 <script lang="ts">
 	import { onMount, type Snippet } from 'svelte';
 	import Morph from './Morph.svelte';
 	import { PATHS, SIZE, SPLIT, edges, corners, angle, extend, type Pt } from '#lib/logo.ts';
+	import { steps as originSteps, END, BLUEPRINT, BLUEPRINT_STEP, LIGHTNING, camera, span, stepAt } from '#lib/origin.ts';
 
 	const box: [number, number, number, number] = [-320, -160, 920, 760];
 	const vb = `${box[0]} ${box[1]} ${box[2] - box[0]} ${box[3] - box[1]}`;
@@ -78,18 +79,69 @@
 	let touring = $state<Feature | null>(null);
 	const active = $derived(hovered ?? pinned ?? touring);
 
-	// on load, light each idea up in turn once; any hover, tap or focus ends the tour
+	// once the origin animation has settled into the blueprint, light each idea up in turn; any hover, tap or focus ends it
 	let timers: ReturnType<typeof setTimeout>[] = [];
 	function stopTour() {
 		timers.forEach(clearTimeout);
 		timers = [];
 		touring = null;
 	}
+	function startTour() {
+		stopTour();
+		timers = [...features.map((x) => x.f), null].map((f, i) => setTimeout(() => (touring = f), 300 + i * 600));
+	}
+
+	// the origin animation's clock: it plays once on load, from the + of C++ into this very blueprint
+	let t = $state(0);
+	let playing = $state(false);
+	const done = $derived(t >= END);
+	let frame = 0;
+	let last = 0;
+	function tick(now: number) {
+		t = Math.min(END, t + (now - last) / 1000);
+		last = now;
+		if (t < END && playing) frame = requestAnimationFrame(tick);
+		else if (playing) {
+			playing = false;
+			startTour();
+		}
+	}
+	function play() {
+		stopTour();
+		hovered = pinned = null;
+		if (t >= END) t = 0;
+		playing = true;
+		last = performance.now();
+		frame = requestAnimationFrame(tick);
+	}
+	function pause() {
+		playing = false;
+		cancelAnimationFrame(frame);
+	}
+	const seek = (to: number) => {
+		pause();
+		stopTour();
+		t = to;
+	};
 	onMount(() => {
-		if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-		timers = [...features.map((x) => x.f), null].map((f, i) => setTimeout(() => (touring = f), 400 + i * 600));
-		return stopTour;
+		// with reduced motion, the page opens on the finished blueprint and the animation waits for the play button
+		if (matchMedia('(prefers-reduced-motion: reduce)').matches) t = END;
+		else document.fonts.ready.then(() => setTimeout(play, 250));
+		return () => {
+			pause();
+			stopTour();
+		};
 	});
+
+	// the camera ends on the blueprint's own frame, so the last frame of the animation is the blueprint as drawn
+	const final: [number, number, number, number] = [(box[0] + box[2]) / 2, (box[1] + box[3]) / 2, box[2] - box[0], box[3] - box[1]];
+	const view = $derived(done ? vb : camera(t, final[2] / final[3], final));
+	// the blueprint's layers fade in one after another as the animation hands over
+	const B0 = originSteps[BLUEPRINT_STEP].from;
+	const fade = $derived(
+		Object.fromEntries(Object.entries(BLUEPRINT).map(([k, [a, b]]) => [k, done ? 1 : span(t, B0 + a, B0 + b)])) as Record<keyof typeof BLUEPRINT, number>
+	);
+	const step = $derived(stepAt(t));
 	const current = $derived(features.find((x) => x.f === active));
 	const featureAt = (e: Event) => ((e.target as Element).closest('[data-f]') as HTMLElement | null)?.dataset.f as Feature | undefined;
 	const pin = (f: Feature) => (pinned = pinned === f ? null : f);
@@ -162,16 +214,19 @@
 		<!-- pointer and tap highlighting is a shortcut; the legend buttons below give the same to keyboards and screen readers -->
 		<!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_noninteractive_element_interactions -->
 		<svg
-			viewBox={vb}
+			viewBox={view}
 			role="img"
-			aria-label="Blueprint of the Llama icon with its construction lines and dimensions"
-			class:focused={active}
+			aria-label={done ? 'Blueprint of the Llama icon with its construction lines and dimensions' : `Animation: the + of C++ becomes the Llama icon and then its blueprint. Now: ${originSteps[step].name}`}
+			class:focused={done && active}
+			class:animating={!done}
 			onpointerover={(e) => {
+				if (!done) return;
 				stopTour();
 				if (e.pointerType === 'mouse') hovered = featureAt(e) ?? null;
 			}}
 			onpointerleave={() => (hovered = null)}
 			onclick={(e) => {
+				if (!done) return;
 				stopTour();
 				const f = featureAt(e);
 				if (f) pin(f);
@@ -186,9 +241,12 @@
 					<path d="M120 0H0V120" class="grid-major" />
 				</pattern>
 			</defs>
-			<rect x={box[0]} y={box[1]} width={box[2] - box[0]} height={box[3] - box[1]} fill="url(#bp-minor)" />
-			<rect x={box[0]} y={box[1]} width={box[2] - box[0]} height={box[3] - box[1]} fill="url(#bp-major)" />
+			<g style:opacity={fade.grid}>
+				<rect x={box[0]} y={box[1]} width={box[2] - box[0]} height={box[3] - box[1]} fill="url(#bp-minor)" />
+				<rect x={box[0]} y={box[1]} width={box[2] - box[0]} height={box[3] - box[1]} fill="url(#bp-major)" />
+			</g>
 
+			<g style:opacity={fade.lines}>
 			{#each lines as { a, b, f }, i (i)}
 				<g data-f={f} class:on={f && active === f} class:static={!f}>
 					<line x1={a[0]} y1={a[1]} x2={b[0]} y2={b[1]} class="guide" />
@@ -202,11 +260,17 @@
 					<circle cx={c.centre[0]} cy={c.centre[1]} r="4" class="joint" />
 				</g>
 			{/each}
+			</g>
+			<g style:opacity={fade.parts}>
 			{#each [['lower', PATHS[0]], ['upper', PATHS[1]]] as [f, d] (f)}
 				<path {d} class="part" data-f={f} class:on={active === f} />
 			{/each}
+			</g>
+			<!-- the origin animation, drawn into this same drawing until the blueprint takes over -->
+			{#if !done}<Morph {t} />{/if}
 
 			<!-- dimensions -->
+			<g style:opacity={fade.dims}>
 			{#each dims as d, i (i)}
 				<g class="dimension" data-f={d.f} class:on={d.f && active === d.f} class:static={!d.f}>
 					<line x1={d.a[0]} y1={d.a[1]} x2={d.b[0]} y2={d.b[1]} />
@@ -225,8 +289,10 @@
 				<text x={c.centre[0] + (i ? 22 : -22)} y={c.centre[1] + (i ? 30 : -18)} text-anchor={i ? 'start' : 'end'} class="bp-label" data-f="corners" class:on={active === 'corners'}>R {r}</text>
 			{/each}
 
+			</g>
+
 			<!-- title block -->
-			<g class="title-block" transform="translate(620 600)">
+			<g class="title-block" transform="translate(620 600)" style:opacity={fade.title}>
 				<rect width="280" height="140" />
 				<line x1="0" y1="44" x2="280" y2="44" />
 				<line x1="0" y1="92" x2="280" y2="92" />
@@ -243,8 +309,20 @@
 			</g>
 		</svg>
 		<div class="legend">
+			<div class="bar">
+				<button type="button" class="play" onclick={() => (playing ? pause() : play())} aria-label={playing ? 'Pause' : done ? 'Replay the origin' : 'Play'}>
+					{#if playing}
+						<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 3h3v10H4zM9 3h3v10H9z" /></svg>
+					{:else if done}
+						<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3a5 5 0 1 0 5 5h-1.6A3.4 3.4 0 1 1 8 4.6V7l3.5-3.2L8 .6z" /></svg>
+					{:else}
+						<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5v11l9-5.5z" /></svg>
+					{/if}
+				</button>
+				<input type="range" min="0" max={END} step="0.01" value={t} oninput={(e) => seek(+e.currentTarget.value)} aria-label="Position in the origin animation" />
+			</div>
 			<!-- svelte-ignore a11y_no_static_element_interactions -->
-			<div class="chips" role="group" aria-label="Highlight a part of the drawing" onpointerover={stopTour} onfocusin={stopTour}>
+			<div class="chips" class:idle={!done} inert={!done} role="group" aria-label="Highlight a part of the drawing" onpointerover={stopTour} onfocusin={stopTour}>
 				{#each features as x (x.f)}
 					<button
 						type="button"
@@ -259,7 +337,7 @@
 				{/each}
 			</div>
 			<p class="caption" aria-live="polite">
-				{#if current}<strong>{current.name}.</strong> {current.note}{:else}Hover or tap any part of the drawing, or pick one here.{/if}
+				{#if !done}<strong>{String(step).padStart(2, '0')} {originSteps[step].name}.</strong> {originSteps[step].note}{:else if current}<strong>{current.name}.</strong> {current.note}{:else}Hover or tap any part of the drawing, or pick one here.{/if}
 			</p>
 		</div>
 	</section>
@@ -282,7 +360,7 @@
 			<p>
 				It begins with the + of C++, the language llama.cpp is written in. The icon started as a pencil sketch of that plus drawn into an L. Stand the blades upright and it is still
 				there: the tall blade is the top arm of the +, the foot is its right arm, and the corner they would share is
-				left out, so the two meet at a single point. A lightning bolt gives it its slant: lean it 30°, soften two corners, and you have the mark.
+				left out, so the two meet at a single point. Lean it 30° and a lightning bolt fits it exactly; soften two corners, and you have the mark.
 			</p>
 			{#if sketch}
 				<button type="button" class="sketch-open" onclick={() => sketchDialog?.showModal()}>View the original sketch</button>
@@ -294,7 +372,6 @@
 				<form method="dialog"><button class="sketch-close">Close</button></form>
 			</dialog>
 		{/if}
-		<Morph />
 		<div class="stages">
 			{#snippet s1()}
 				{#each plus as d, i (i)}<path {d} class="cell" />{/each}
@@ -315,18 +392,18 @@
 			{/snippet}
 			{@render stage('03', 'Open the corner', 'Lift out the centre block the + and the L share. Stem and foot now touch at one point.', upright, s3)}
 
-			{#snippet sBolt()}
-				{#each parts as d, i (i)}<path {d} class="lifted" />{/each}
-				<path d={bolt} class="hi" />
-			{/snippet}
-			{@render stage('04', 'Bolt', 'Then a lightning bolt, for speed: it is what tips the upright stem and foot into a slant.', leaning, sBolt)}
-
 			{#snippet s4()}
 				{#each parts as d, i (i)}<path {d} class="lifted" />{/each}
 				<g transform={sheared}>{#each parts as d, i (i)}<path {d} fill="var(--l-shape)" />{/each}</g>
 				<circle cx="240" cy={SPLIT} r="14" class="joint" />
 			{/snippet}
-			{@render stage('05', 'Lean', `Slant it 30° from upright on the baseline: every edge now runs at ${deg}°.`, leaning, s4)}
+			{@render stage('04', 'Lean', `Slant it 30° from upright on the baseline: every edge now runs at ${deg}°.`, leaning, s4)}
+
+			{#snippet sBolt()}
+				<g transform={sheared}>{#each parts as d, i (i)}<path {d} class="cell-outline" />{/each}</g>
+				<path d={LIGHTNING} class="strike" />
+			{/snippet}
+			{@render stage('05', 'Bolt', 'Cut the blade along its diagonal and turn that half about the joint: a lightning bolt inside the L. Speed, which is what llama.cpp is about.', leaning, sBolt)}
 
 			{#snippet s5()}
 				<g transform={sheared}>{#each parts as d, i (i)}<path {d} class="ghost" />{/each}</g>
@@ -424,6 +501,10 @@
 		--l-muted: #5f5f5f;
 		--l-panel: rgba(255, 255, 255, 0.65);
 		--l-rule: rgba(17, 17, 17, 0.14);
+		--l-bolt: #f2b400;
+		/* in light mode the bolt is solid, so it reads crisply inside the black L (see-through yellow over black turns olive) */
+		--l-bolt-alpha: 1;
+		--l-bolt-tint: 0;
 		--l-paper: #f6f6f6;
 		--l-grid: rgba(17, 17, 17, 0.05);
 		--l-grid-major: rgba(17, 17, 17, 0.13);
@@ -445,6 +526,9 @@
 			--l-muted: #a3a3a3;
 			--l-panel: rgba(255, 255, 255, 0.05);
 			--l-rule: rgba(250, 250, 250, 0.14);
+			--l-bolt: #ffd426;
+			--l-bolt-alpha: 0.85;
+			--l-bolt-tint: 0.3;
 			--l-paper: #1a1a1a;
 			--l-grid: rgba(250, 250, 250, 0.05);
 			--l-grid-major: rgba(250, 250, 250, 0.13);
@@ -460,6 +544,9 @@
 		--l-muted: #a3a3a3;
 		--l-panel: rgba(255, 255, 255, 0.05);
 		--l-rule: rgba(250, 250, 250, 0.14);
+		--l-bolt: #ffd426;
+		--l-bolt-alpha: 0.85;
+		--l-bolt-tint: 0.3;
 		--l-paper: #1a1a1a;
 		--l-grid: rgba(250, 250, 250, 0.05);
 		--l-grid-major: rgba(250, 250, 250, 0.13);
@@ -561,6 +648,46 @@
 	.on .bp-small,
 	.bp-label.on {
 		fill: var(--l-ink);
+	}
+	.hero svg.animating {
+		cursor: default;
+	}
+	.bar {
+		display: grid;
+		grid-template-columns: auto 1fr;
+		align-items: center;
+		gap: 12px;
+	}
+	.play {
+		display: grid;
+		place-items: center;
+		width: 32px;
+		height: 32px;
+		padding: 0;
+		border: 0;
+		border-radius: 50%;
+		background: var(--l-ink);
+		color: var(--l-bg);
+		cursor: pointer;
+	}
+	.play svg {
+		width: 13px;
+		height: 13px;
+		fill: currentColor;
+	}
+	.play:focus-visible {
+		outline: 2px solid var(--l-ink);
+		outline-offset: 2px;
+	}
+	.bar input[type='range'] {
+		width: 100%;
+		accent-color: var(--l-ink);
+	}
+	.chips.idle {
+		opacity: 0.4;
+	}
+	.chips {
+		transition: opacity 300ms ease-out;
 	}
 	.legend {
 		display: grid;
@@ -699,6 +826,16 @@
 		font: 500 11px var(--mono);
 		letter-spacing: 0.08em;
 		color: var(--l-muted);
+	}
+	.cell-outline {
+		fill: none;
+		stroke: var(--l-ink);
+		stroke-width: 2;
+		vector-effect: non-scaling-stroke;
+	}
+	.strike {
+		fill: var(--l-bolt);
+		fill-opacity: var(--l-bolt-alpha);
 	}
 	.cell {
 		fill: var(--l-faint);
