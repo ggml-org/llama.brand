@@ -1,6 +1,6 @@
 <!-- The Llama icon taken apart: its construction lines, then each rule that shapes it. -->
 <script lang="ts">
-	import type { Snippet } from 'svelte';
+	import { onMount, type Snippet } from 'svelte';
 	import { PATHS, SIZE, SPLIT, edges, corners, angle, extend, type Pt } from '#lib/logo.ts';
 
 	const box: [number, number, number, number] = [-320, -160, 920, 760];
@@ -11,43 +11,87 @@
 	const dir: Pt = [sh[1][0] - sh[0][0], sh[1][1] - sh[0][1]];
 	const perp = (p: Pt): [Pt, Pt] => [p, [p[0] - dir[1], p[1] + dir[0]]];
 
-	const verticals = [0, 120, 240, corners[0].tangentFlat[0], corners[1].tangentFlat[0], 466.154, SIZE];
-	const horizontals = [0, SPLIT, SIZE, corners[0].centre[1], corners[1].centre[1]];
-	const lines: [Pt, Pt][] = [
-		...verticals.map((x) => [[x, 0], [x, 1]] as [Pt, Pt]),
-		...horizontals.map((y) => [[0, y], [1, y]] as [Pt, Pt]),
-		edges.upperLeft,
-		edges.shared,
-		edges.lowerRight,
-		perp([240, SPLIT]),
-		perp([0, SPLIT]),
-		perp([SIZE, SPLIT]),
-		perp([120, SIZE]),
-		perp([466.154, 0])
-	].map(([a, b]) => extend(a, b, box));
+	// every part of the blueprint belongs to one idea of the mark; hovering or tapping a part highlights its idea
+	type Feature = 'size' | 'upper' | 'lower' | 'joint' | 'angle' | 'split' | 'steps' | 'corners';
+	type Line = { a: Pt; b: Pt; f: Feature };
+	const vertical = (x: number, f: Feature): [Pt, Pt, Feature] => [[x, 0], [x, 1], f];
+	const horizontal = (y: number, f: Feature): [Pt, Pt, Feature] => [[0, y], [1, y], f];
+	const STEPS = [0, 120, 240, 360, 480, 600]; // five steps of 120 across the drawing
+	const lines: Line[] = (
+		[
+			...STEPS.map((x) => vertical(x, 'steps')),
+			vertical(corners[0].tangentFlat[0], 'corners'),
+			vertical(corners[1].tangentFlat[0], 'corners'),
+			vertical(466.154, 'upper'),
+			horizontal(0, 'size'),
+			horizontal(SPLIT, 'split'),
+			horizontal(SIZE, 'size'),
+			horizontal(corners[0].centre[1], 'corners'),
+			horizontal(corners[1].centre[1], 'corners'),
+			[...edges.upperLeft, 'angle'],
+			[...edges.shared, 'angle'],
+			[...edges.lowerRight, 'angle'],
+			...[[240, SPLIT], [0, SPLIT], [SIZE, SPLIT], [120, SIZE], [466.154, 0]].map(
+				(p) => [...perp(p as Pt), 'angle'] as [Pt, Pt, Feature]
+			)
+		] as [Pt, Pt, Feature][]
+	).map(([a, b, f]) => {
+		const [p, q] = extend(a, b, box);
+		return { a: p, b: q, f };
+	});
 
 
 	// blueprint dimensions: two end points, a tick offset, where the label sits
-	type Dim = { a: Pt; b: Pt; t: Pt; at: Pt; label: string; rot?: boolean };
-	const h = (y: number, x0: number, x1: number, label: string): Dim =>
-		({ a: [x0, y], b: [x1, y], t: [0, 10], at: [(x0 + x1) / 2, y - 12], label });
-	const v = (x: number, y0: number, y1: number, label: string): Dim =>
-		({ a: [x, y0], b: [x, y1], t: [10, 0], at: [x - 12, (y0 + y1) / 2], label, rot: true });
+	type Dim = { a: Pt; b: Pt; t: Pt; at: Pt; label: string; f: Feature; rot?: boolean };
+	const h = (y: number, x0: number, x1: number, label: string, f: Feature): Dim =>
+		({ a: [x0, y], b: [x1, y], t: [0, 10], at: [(x0 + x1) / 2, y - 12], label, f });
+	const v = (x: number, y0: number, y1: number, label: string, f: Feature): Dim =>
+		({ a: [x, y0], b: [x, y1], t: [10, 0], at: [x - 12, (y0 + y1) / 2], label, f, rot: true });
 	const dims: Dim[] = [
-		h(-100, 0, SIZE, `${SIZE}`),
-		h(-50, 226.15, 466.154, '240'),
-		v(-100, 0, SPLIT, `${SPLIT}`),
-		v(-100, SPLIT, SIZE, `${SIZE - SPLIT}`),
-		v(-160, 0, SIZE, `${SIZE}`),
-		h(690, 0, 120, '120'),
-		h(690, 120, 240, '120'),
-		h(690, 240, SIZE, `${SIZE - 240}`)
+		h(-100, 0, SIZE, `${SIZE}`, 'size'),
+		h(-50, 226.15, 466.154, '240', 'upper'),
+		v(-100, 0, SPLIT, `${SPLIT}`, 'split'),
+		v(-100, SPLIT, SIZE, `${SIZE - SPLIT}`, 'split'),
+		v(-160, 0, SIZE, `${SIZE}`, 'size'),
+		...STEPS.slice(1).map((x) => h(690, x - 120, x, '120', 'steps')),
+		h(740, 240, SIZE, `${SIZE - 240}`, 'lower')
 	];
 
 	const deg = angle(...edges.upperLeft).toFixed(1);
 	const lower = SIZE - SPLIT;
 	const r = Math.round(corners[0].r);
 	const trim = Math.round(corners[0].trim);
+
+	const features: { f: Feature; name: string; note: string }[] = [
+		{ f: 'upper', name: 'Upper blade', note: `The tall blade, ${SPLIT} high and 240 across: the top arm of the plus.` },
+		{ f: 'lower', name: 'Lower blade', note: `The foot, ${lower} high and 360 across: the plus’s right arm.` },
+		{ f: 'joint', name: 'Joint', note: `The one point the blades share, at 240, ${SPLIT}, where the plus’s centre was lifted out.` },
+		{ f: 'angle', name: `${Math.round(+deg)}° edges`, note: `Every slanted edge runs at ${deg}°, and the cross lines stand square to them.` },
+		{ f: 'split', name: 'Split', note: `${SPLIT} above, ${lower} below: close to two thirds to one third.` },
+		{ f: 'steps', name: 'Steps of 120', note: `Five steps of 120 span the ${SIZE}: the feet start at 0 and 120, the joint sits on 240, the foot’s corner on 480.` },
+		{ f: 'corners', name: 'Soft corners', note: `Only the two outer corners round off, cut back ${trim} on circles of radius ≈ ${r}.` },
+		{ f: 'size', name: 'Drawing', note: `${SIZE} × ${SIZE} units, the icon touching all four sides.` }
+	];
+	let hovered = $state<Feature | null>(null);
+	let pinned = $state<Feature | null>(null);
+	let touring = $state<Feature | null>(null);
+	const active = $derived(hovered ?? pinned ?? touring);
+
+	// on load, light each idea up in turn once; any hover, tap or focus ends the tour
+	let timers: ReturnType<typeof setTimeout>[] = [];
+	function stopTour() {
+		timers.forEach(clearTimeout);
+		timers = [];
+		touring = null;
+	}
+	onMount(() => {
+		if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+		timers = [...features.map((x) => x.f), null].map((f, i) => setTimeout(() => (touring = f), 900 + i * 1400));
+		return stopTour;
+	});
+	const current = $derived(features.find((x) => x.f === active));
+	const featureAt = (e: Event) => ((e.target as Element).closest('[data-f]') as HTMLElement | null)?.dataset.f as Feature | undefined;
+	const pin = (f: Feature) => (pinned = pinned === f ? null : f);
 
 
 	// where it comes from: undo the lean and the icon is an upright + and L on a 120 grid. The upper blade is
@@ -63,6 +107,10 @@
 		bottom: [-120, SIZE, 120, SIZE + lower]
 	};
 	const plus = Object.values(arm).map(rect);
+	// the plus it starts from: five equal squares of 240 (two steps of 120), centred where the stretched one sits
+	const [cx, cy, q] = [0, (SPLIT + SIZE) / 2 - 20, 120];
+	const square = (dx: number, dy: number) => rect([cx + dx - q, cy + dy - q, cx + dx + q, cy + dy + q]);
+	const evenPlus = [square(0, 0), square(0, -2 * q), square(2 * q, 0), square(-2 * q, 0), square(0, 2 * q)];
 	const parts = [rect(arm.top), rect(arm.right)];
 	// a classic lightning bolt drawn on the icon's own 60° edges
 	const bolt = 'M226.15 0H466.15L346 208H520L224.4 720L300 392H0Z';
@@ -82,7 +130,7 @@
 		['Drawing', `${SIZE} × ${SIZE}`],
 		['Angle', `${deg}° on all four slanted edges`],
 		['Split', `${SPLIT} : ${lower}  (${Math.round((SPLIT / SIZE) * 100)} : ${Math.round((lower / SIZE) * 100)})`],
-		['Steps', 'feet at x = 0, 120, 240'],
+		['Steps', `five of 120 across ${SIZE}: 0, 120, 240, 360, 480, 600`],
 		['Corners', `two 120° outer corners, cut back ${trim}, radius ≈ ${r}`],
 		['Colours', '#111111 on light, #FAFAFA on dark'],
 		['In Llama Sans', 'U+E000, cap-height tall on the baseline'],
@@ -112,7 +160,25 @@
 
 <div class="logo">
 	<section class="hero" aria-label="Construction">
-		<svg viewBox={vb} role="img" aria-label="Blueprint of the Llama icon with its construction lines and dimensions">
+		<!-- pointer and tap highlighting is a shortcut; the legend buttons below give the same to keyboards and screen readers -->
+		<!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_noninteractive_element_interactions -->
+		<svg
+			viewBox={vb}
+			role="img"
+			aria-label="Blueprint of the Llama icon with its construction lines and dimensions"
+			class:focused={active}
+			onpointerover={(e) => {
+				stopTour();
+				if (e.pointerType === 'mouse') hovered = featureAt(e) ?? null;
+			}}
+			onpointerleave={() => (hovered = null)}
+			onclick={(e) => {
+				stopTour();
+				const f = featureAt(e);
+				if (f) pin(f);
+				else pinned = null;
+			}}
+		>
 			<defs>
 				<pattern id="bp-minor" width="20" height="20" patternUnits="userSpaceOnUse">
 					<path d="M20 0H0V20" class="grid-minor" />
@@ -124,32 +190,46 @@
 			<rect x={box[0]} y={box[1]} width={box[2] - box[0]} height={box[3] - box[1]} fill="url(#bp-minor)" />
 			<rect x={box[0]} y={box[1]} width={box[2] - box[0]} height={box[3] - box[1]} fill="url(#bp-major)" />
 
-			{#each lines as [a, b], i (i)}
-				<line x1={a[0]} y1={a[1]} x2={b[0]} y2={b[1]} class="guide" />
+			{#each lines as { a, b, f }, i (i)}
+				<g data-f={f} class:on={active === f}>
+					<line x1={a[0]} y1={a[1]} x2={b[0]} y2={b[1]} class="guide" />
+					<line x1={a[0]} y1={a[1]} x2={b[0]} y2={b[1]} class="hit" />
+				</g>
 			{/each}
 			{#each corners as c, i (i)}
-				<circle cx={c.centre[0]} cy={c.centre[1]} r={c.r} class="guide" />
-				<circle cx={c.centre[0]} cy={c.centre[1]} r="4" class="joint" />
+				<g data-f="corners" class:on={active === 'corners'}>
+					<circle cx={c.centre[0]} cy={c.centre[1]} r={c.r} class="guide" />
+					<circle cx={c.centre[0]} cy={c.centre[1]} r={c.r} class="hit" />
+					<circle cx={c.centre[0]} cy={c.centre[1]} r="4" class="joint" />
+				</g>
 			{/each}
-			{#each PATHS as d, i (i)}<path {d} class="part" />{/each}
-			<circle cx="240" cy={SPLIT} r="6" class="joint" />
+			{#each [['lower', PATHS[0]], ['upper', PATHS[1]]] as [f, d] (f)}
+				<path {d} class="part" data-f={f} class:on={active === f} />
+			{/each}
+			<g data-f="joint" class:on={active === 'joint'}>
+				<circle cx="240" cy={SPLIT} r="6" class="joint" />
+				<circle cx="240" cy={SPLIT} r="22" class="hit-area" />
+			</g>
 
 			<!-- dimensions -->
 			{#each dims as d, i (i)}
-				<g class="dimension">
+				<g class="dimension" data-f={d.f} class:on={active === d.f}>
 					<line x1={d.a[0]} y1={d.a[1]} x2={d.b[0]} y2={d.b[1]} />
+					<line x1={d.a[0]} y1={d.a[1]} x2={d.b[0]} y2={d.b[1]} class="hit" />
 					{#each [d.a, d.b] as p, j (j)}
 						<line x1={p[0] - d.t[0]} y1={p[1] - d.t[1]} x2={p[0] + d.t[0]} y2={p[1] + d.t[1]} />
 					{/each}
 					<text x={d.at[0]} y={d.at[1]} text-anchor="middle" transform={d.rot ? `rotate(-90 ${d.at[0]} ${d.at[1]})` : undefined}>{d.label}</text>
 				</g>
 			{/each}
-			<path d="M60 {SPLIT} A60 60 0 0 0 30 {SPLIT - 52}" class="dimension-arc" />
-			<text x="72" y={SPLIT - 18} class="bp-label">{deg}°</text>
+			<g data-f="angle" class:on={active === 'angle'}>
+				<path d="M60 {SPLIT} A60 60 0 0 0 30 {SPLIT - 52}" class="dimension-arc" />
+				<text x="72" y={SPLIT - 18} class="bp-label">{deg}°</text>
+			</g>
 			{#each corners as c, i (i)}
-				<text x={c.centre[0] + (i ? 22 : -22)} y={c.centre[1] + (i ? 30 : -18)} text-anchor={i ? 'start' : 'end'} class="bp-label">R {r}</text>
+				<text x={c.centre[0] + (i ? 22 : -22)} y={c.centre[1] + (i ? 30 : -18)} text-anchor={i ? 'start' : 'end'} class="bp-label" data-f="corners" class:on={active === 'corners'}>R {r}</text>
 			{/each}
-			<text x="252" y={SPLIT + 26} class="bp-label">JOINT 240, {SPLIT}</text>
+			<text x="252" y={SPLIT + 26} class="bp-label" data-f="joint" class:on={active === 'joint'}>JOINT 240, {SPLIT}</text>
 
 			<!-- title block -->
 			<g class="title-block" transform="translate(620 600)">
@@ -159,12 +239,35 @@
 				{#each [93, 186] as x (x)}<line x1={x} y1="92" x2={x} y2="140" />{/each}
 				<text x="12" y="30" class="bp-title">LLAMA · ICON</text>
 				<text x="12" y="74" class="bp-label">PLUS + L → BOLT</text>
-				{#each [['ANGLE', `${Math.round(+deg)}°`], ['GRID', '120'], ['SPLIT', `${SPLIT}:${SIZE - SPLIT}`]] as [k, val], n (k)}
-					<text x={n * 93 + 10} y="112" class="bp-small">{k}</text>
-					<text x={n * 93 + 10} y="130" class="bp-label">{val}</text>
+				{#each [['ANGLE', `${Math.round(+deg)}°`, 'angle'], ['GRID', '120', 'steps'], ['SPLIT', `${SPLIT}:${SIZE - SPLIT}`, 'split']] as [k, val, f], n (k)}
+					<g data-f={f} class:on={active === f}>
+						<rect x={n * 93} y="92" width="93" height="48" class="hit-area" />
+						<text x={n * 93 + 10} y="112" class="bp-small">{k}</text>
+						<text x={n * 93 + 10} y="130" class="bp-label">{val}</text>
+					</g>
 				{/each}
 			</g>
 		</svg>
+		<div class="legend">
+			<!-- svelte-ignore a11y_no_static_element_interactions -->
+			<div class="chips" role="group" aria-label="Highlight a part of the drawing" onpointerover={stopTour} onfocusin={stopTour}>
+				{#each features as x (x.f)}
+					<button
+						type="button"
+						aria-pressed={pinned === x.f}
+						class:lit={active === x.f}
+						onpointerenter={(e) => e.pointerType === 'mouse' && (hovered = x.f)}
+						onpointerleave={() => (hovered = null)}
+						onfocus={() => (hovered = x.f)}
+						onblur={() => (hovered = null)}
+						onclick={() => pin(x.f)}
+					>{x.name}</button>
+				{/each}
+			</div>
+			<p class="caption" aria-live="polite">
+				{#if current}<strong>{current.name}.</strong> {current.note}{:else}Hover or tap any part of the drawing, or pick one here.{/if}
+			</p>
+		</div>
 	</section>
 
 	<header class="head">
@@ -199,15 +302,15 @@
 		{/if}
 		<div class="stages">
 			{#snippet s1()}
-				{#each plus as d, i (i)}<path {d} class="cell" />{/each}
+				{#each evenPlus as d, i (i)}<path {d} class="cell" />{/each}
 			{/snippet}
-			{@render stage('01', 'Plus', 'Five blocks on a 120 grid: a centre and four arms.', upright, s1)}
+			{@render stage('01', 'Plus', 'Five equal squares, each two steps of 120 across: a centre and four arms.', upright, s1)}
 
 			{#snippet s2()}
 				{#each plus as d, i (i)}<path {d} class="ghost" />{/each}
 				<path d="{rect(arm.top)}{rect(arm.centre)}{rect(arm.right)}" fill="var(--l-shape)" />
 			{/snippet}
-			{@render stage('02', 'L', 'Keep the top arm, the centre and the right arm: an L inside the +.', upright, s2)}
+			{@render stage('02', 'L', `Keep the top arm, the centre and the right arm, stretched to the icon’s proportions: a ${SPLIT}-tall stem and a 360-long foot.`, upright, s2)}
 
 			{#snippet s3()}
 				{#each plus as d, i (i)}<path {d} class="ghost" />{/each}
@@ -280,12 +383,12 @@
 
 		{#snippet steps()}
 			{@render icon('var(--l-faint)')}
-			{#each [0, 120, 240] as x (x)}
-				<line x1={x} y1="-40" x2={x} y2="640" class="hi" />
-				<text x={x + 6} y="660" class="note">{x}</text>
+			{#each STEPS as x (x)}
+				<line x1={x} y1="-40" x2={x} y2="616" class="hi" />
+				<text {x} y="652" text-anchor="middle" class="note">{x}</text>
 			{/each}
 		{/snippet}
-		{@render panel('Steps of 120', 'The blade feet sit on a 120-unit step: 0, 120, 240.', steps)}
+		{@render panel('Steps of 120', `Five steps of 120 span the ${SIZE}: the feet, the joint and the foot’s corner all land on them.`, steps)}
 
 		{#snippet round()}
 			{@render icon('var(--l-faint)')}
@@ -415,6 +518,95 @@
 		letter-spacing: 0;
 		fill: var(--l-ink);
 	}
+	/* blueprint highlighting: with a part active, everything tagged dims except that part's idea */
+	[data-f] {
+		cursor: pointer;
+		transition: opacity 320ms ease;
+	}
+	[data-f] :is(line, circle, path, text),
+	[data-f]:is(path, text) {
+		transition: stroke 320ms ease, fill 320ms ease, fill-opacity 320ms ease, stroke-width 320ms ease;
+	}
+	.hero svg.focused [data-f]:not(.on) {
+		opacity: 0.14;
+	}
+	.hit {
+		fill: none;
+		stroke: transparent;
+		stroke-width: 16;
+		vector-effect: non-scaling-stroke;
+		pointer-events: stroke;
+	}
+	.hit-area {
+		fill: transparent;
+	}
+	.on > .guide {
+		stroke: var(--l-ink);
+		stroke-width: 1.6;
+		stroke-dasharray: none;
+	}
+	.part.on {
+		fill: var(--l-shape-2);
+		fill-opacity: 0.6;
+		stroke-width: 2.5;
+	}
+	.on .joint {
+		fill: var(--l-ink);
+	}
+	.dimension.on line,
+	.on .dimension-arc {
+		stroke: var(--l-ink);
+	}
+	.dimension.on text,
+	.on .bp-label,
+	.on .bp-small,
+	.bp-label.on {
+		fill: var(--l-ink);
+	}
+	.legend {
+		display: grid;
+		gap: 10px;
+		padding: 14px 16px 16px;
+		border-top: 1px solid var(--l-rule);
+	}
+	.chips {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 6px;
+	}
+	.chips button {
+		padding: 0.35em 0.8em;
+		border: 0;
+		border-radius: 999px;
+		background: none;
+		box-shadow: inset 0 0 0 1px var(--l-rule);
+		color: var(--l-muted);
+		font: 500 13px / normal 'Llama Sans UI', var(--body);
+		cursor: pointer;
+		transition: background-color 160ms ease, color 160ms ease;
+	}
+	.chips button.lit {
+		box-shadow: inset 0 0 0 1px var(--l-ink);
+		color: var(--l-ink);
+	}
+	.chips button[aria-pressed='true'] {
+		background: var(--l-ink);
+		color: var(--l-bg);
+	}
+	.chips button:focus-visible {
+		outline: 2px solid var(--l-ink);
+		outline-offset: 2px;
+	}
+	.caption {
+		margin: 0;
+		min-height: 2.9em;
+		font: 400 14px / 1.45 'Llama Sans Text', var(--body);
+		color: var(--l-muted);
+	}
+	.caption strong {
+		color: var(--l-ink);
+		font-weight: 600;
+	}
 	.hero svg {
 		display: block;
 		width: 100%;
@@ -529,9 +721,20 @@
 		vector-effect: non-scaling-stroke;
 	}
 	.panels {
+		/* six panels: 3 x 2 on wide screens, 2 x 3 on tablets, one column on phones */
 		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+		grid-template-columns: repeat(3, minmax(0, 1fr));
 		gap: 16px;
+	}
+	@media (max-width: 860px) {
+		.panels {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+		}
+	}
+	@media (max-width: 520px) {
+		.panels {
+			grid-template-columns: minmax(0, 1fr);
+		}
 	}
 	.panel {
 		margin: 0;
