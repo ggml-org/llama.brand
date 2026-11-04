@@ -50,12 +50,12 @@ TOP_WEIGHT = 640
 # Every version's line box has its midline at half the cap height (355), so text centres the same way.
 FAMILIES = {
     "Display": dict(track=-26, kern=1.15, pairs=1.00, fixes="DISPLAY_KERN", line=(930, -220, 0)),  # 1.15 em leading
-    # UI: interfaces and running text, spaced like SF Pro at 16 pt. 1.25 em line box whose midline sits exactly at half
+    # UI: interfaces and running text, spaced like SF Pro at 14–15 pt. 1.25 em line box whose midline sits exactly at half
     # the cap height ((980 - 270) / 2 = 355 = 710 / 2), so capitals and cap-height icons centre in
     # buttons and chips with even padding; 12/16/20 px give whole-pixel 15/20/25 px lines.
     # Geist's kerning at 105% and the pair corrections at 75%, then UI_KERN brings it to SF Pro's text kerning.
     # Its descenders run deeper than Display's, to `descender` units below the baseline.
-    "UI":      dict(track=-4,  kern=1.05, pairs=0.75, fixes="UI_KERN", descender=155, line=(980, -270, 0)),
+    "UI":      dict(track=0,   kern=1.05, pairs=0.75, fixes="UI_KERN", descender=155, line=(980, -270, 0)),
 }
 NAMED = [(400, "Regular"), (500, "Medium"), (600, "SemiBold"), (700, "Bold")]
 STATICS = [(400, "Regular"), (500, "Medium"), (600, "SemiBold"), (700, "Bold")]
@@ -530,12 +530,12 @@ UI_KERN = [
     ('F', 'a', -13), ('F', 'A', 50), ('P', 'A', 30), ('A', 'vwy', -5), ('A', 'VW', 52), ('VW', 'A', 52),
     ('A', 'T', 11), ('T', 'A', 11), ('L', 'VW', 100), ('L', 'Y', 75), ('L', 'T', 54), ('L', 'y', 16),
     ('L', Q_CLOSE, -26), ('A', Q_CLOSE, -62), (Q_OPEN, 'A', -62), (Q_CLOSE, 's', -27), (Q_OPEN, 's', -15),
-    ('rvwy', '.,', -8), ('r', 'a', 42), ('r', 'cdoq', 27), ('r', 'e', 12), ('e', 'vwy', 19), ('vwy', 'eo', 7), ('a', 'vwy', 4),
+    ('rvwy', '.,', -8), ('r', 'a', 22), ('r', 'cdoq', 27), ('r', 'e', 12), ('e', 'vwy', 19), ('vwy', 'eo', 7), ('a', 'vwy', 4),
     ('o', 'vwxy', 12), ('xk', 'ceo', 28), ('f', 'ceo', 24), ('r', 'vwy', 29), ('vwy', 'a', 5),
 ]
-# In both versions r·e closes up by hand, 15 units tighter than the rest of r before rounds: the open space under
-# r's arm reads loose before e (UI's ('r', 'e', 12) above, Display's here).
-DISPLAY_KERN = [("VW", "-", -29), ("Y", ".,", -88), ("Y", "-", -73), ("r", "e", -15)]  # the rest: SF at opsz 28
+# In both versions r·e and r·a close up by hand, to about the same gap: the open space under r's arm reads loose
+# before them (UI's ('r', 'e', 12) and ('r', 'a', 22) above, Display's here).
+DISPLAY_KERN = [("VW", "-", -29), ("Y", ".,", -88), ("Y", "-", -73), ("r", "e", -15), ("r", "a", -8)]  # the rest: SF at opsz 28
 
 
 def add_kerning(font, groups, scale=1.0):

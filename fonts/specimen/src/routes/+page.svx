@@ -59,7 +59,7 @@ The sans of the Llama family, with Mono and Serif to follow. A neo-grotesk with 
 	<Note term="l, r, t, f">A plain l the width of the i, and a narrow t with short arms. The ends of r, t and f are angled to match the curved terminals.</Note>
 	<Note term="G, S, s">G and S wide and round, s a little leaner, with slightly open, angled ends on S and s.</Note>
 	<Note term="Display">For headlines and large sizes: tracking −26, stronger kerning (115%) and compact 1.15 em line spacing.</Note>
-	<Note term="UI">For buttons, cards, labels and running text: tracking −4 and kerning matched to SF Pro at its text sizes, with a 1.25 em line box centred on the cap height and descenders a little deeper than Display’s. Prose sets line-height 1.5 in CSS; the extra leading falls evenly above and below.</Note>
+	<Note term="UI">For buttons, cards, labels and running text: tracking 0 and kerning matched to SF Pro at its text sizes, with a 1.25 em line box centred on the cap height and descenders a little deeper than Display’s. Prose sets line-height 1.5 in CSS; the extra leading falls evenly above and below.</Note>
 	<Note term="Weights">Regular, Medium, SemiBold and Bold at 400, 500, 600 and 700, a little lighter than the numbers usually mean, with every weight in between.</Note>
 </Notes>
 
