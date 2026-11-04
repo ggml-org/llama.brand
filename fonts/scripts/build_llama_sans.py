@@ -530,12 +530,15 @@ UI_KERN = [
     ('F', 'a', -13), ('F', 'A', 50), ('P', 'A', 30), ('A', 'vwy', -5), ('A', 'VW', 52), ('VW', 'A', 52),
     ('A', 'T', 11), ('T', 'A', 11), ('L', 'VW', 100), ('L', 'Y', 75), ('L', 'T', 54), ('L', 'y', 16),
     ('L', Q_CLOSE, -26), ('A', Q_CLOSE, -62), (Q_OPEN, 'A', -62), (Q_CLOSE, 's', -27), (Q_OPEN, 's', -15),
-    ('rvwy', '.,', -8), ('r', 'a', 22), ('r', 'cdoq', 27), ('r', 'e', 12), ('e', 'vwy', 19), ('vwy', 'eo', 7), ('a', 'vwy', 4),
-    ('o', 'vwxy', 12), ('xk', 'ceo', 28), ('f', 'ceo', 24), ('r', 'vwy', 29), ('vwy', 'a', 5),
+    ('rvwy', '.,', -8), ('r', 'a', -2), ('r', 'cdoq', 27), ('r', 'e', 12), ('e', 'vwy', 19), ('vwy', 'eo', 7), ('a', 'vwy', 4),
+    ('o', 'vwxy', 12), ('xk', 'ceo', 28), ('f', 'ceo', 24), ('r', 'vw', 29), ('r', 'y', 37), ('vwy', 'a', 5),
 ]
-# In both versions r·e and r·a close up by hand, to about the same gap: the open space under r's arm reads loose
-# before them (UI's ('r', 'e', 12) and ('r', 'a', 22) above, Display's here).
-DISPLAY_KERN = [("VW", "-", -29), ("Y", ".,", -88), ("Y", "-", -73), ("r", "e", -15), ("r", "a", -8)]  # the rest: SF at opsz 28
+# In both versions r·e and r·a close up by hand, r·a the most: the open space under r's arm reads loose before
+# them, and widest before a's low bowl (UI's ('r', 'e', 12) and ('r', 'a', -2) above, Display's here). r·y opens a
+# little the other way: r's arm and y's top sat almost touching.
+DISPLAY_KERN = [  # the first three: SF at opsz 28
+    ("VW", "-", -29), ("Y", ".,", -88), ("Y", "-", -73), ("r", "e", -15), ("r", "a", -21), ("r", "y", 16),
+]
 
 
 def add_kerning(font, groups, scale=1.0):
