@@ -1,6 +1,7 @@
 <!-- The Llama icon taken apart: its construction lines, then each rule that shapes it. -->
 <script lang="ts">
 	import { onMount, type Snippet } from 'svelte';
+	import Morph from './Morph.svelte';
 	import { PATHS, SIZE, SPLIT, edges, corners, angle, extend, type Pt } from '#lib/logo.ts';
 
 	const box: [number, number, number, number] = [-320, -160, 920, 760];
@@ -12,10 +13,12 @@
 	const perp = (p: Pt): [Pt, Pt] => [p, [p[0] - dir[1], p[1] + dir[0]]];
 
 	// every part of the blueprint belongs to one idea of the mark; hovering or tapping a part highlights its idea
-	type Feature = 'size' | 'upper' | 'lower' | 'joint' | 'angle' | 'split' | 'steps' | 'corners';
-	type Line = { a: Pt; b: Pt; f: Feature };
-	const vertical = (x: number, f: Feature): [Pt, Pt, Feature] => [[x, 0], [x, 1], f];
-	const horizontal = (y: number, f: Feature): [Pt, Pt, Feature] => [[0, y], [1, y], f];
+	// (null: plain construction, such as the overall frame, which only fades back with the rest)
+	type Feature = 'upper' | 'lower' | 'angle' | 'split' | 'steps' | 'corners';
+	type Tag = Feature | null;
+	type Line = { a: Pt; b: Pt; f: Tag };
+	const vertical = (x: number, f: Tag): [Pt, Pt, Tag] => [[x, 0], [x, 1], f];
+	const horizontal = (y: number, f: Tag): [Pt, Pt, Tag] => [[0, y], [1, y], f];
 	const STEPS = [0, 120, 240, 360, 480, 600]; // five steps of 120 across the drawing
 	const lines: Line[] = (
 		[
@@ -23,18 +26,18 @@
 			vertical(corners[0].tangentFlat[0], 'corners'),
 			vertical(corners[1].tangentFlat[0], 'corners'),
 			vertical(466.154, 'upper'),
-			horizontal(0, 'size'),
+			horizontal(0, null),
 			horizontal(SPLIT, 'split'),
-			horizontal(SIZE, 'size'),
+			horizontal(SIZE, null),
 			horizontal(corners[0].centre[1], 'corners'),
 			horizontal(corners[1].centre[1], 'corners'),
 			[...edges.upperLeft, 'angle'],
 			[...edges.shared, 'angle'],
 			[...edges.lowerRight, 'angle'],
 			...[[240, SPLIT], [0, SPLIT], [SIZE, SPLIT], [120, SIZE], [466.154, 0]].map(
-				(p) => [...perp(p as Pt), 'angle'] as [Pt, Pt, Feature]
+				(p) => [...perp(p as Pt), 'angle'] as [Pt, Pt, Tag]
 			)
-		] as [Pt, Pt, Feature][]
+		] as [Pt, Pt, Tag][]
 	).map(([a, b, f]) => {
 		const [p, q] = extend(a, b, box);
 		return { a: p, b: q, f };
@@ -42,17 +45,17 @@
 
 
 	// blueprint dimensions: two end points, a tick offset, where the label sits
-	type Dim = { a: Pt; b: Pt; t: Pt; at: Pt; label: string; f: Feature; rot?: boolean };
-	const h = (y: number, x0: number, x1: number, label: string, f: Feature): Dim =>
+	type Dim = { a: Pt; b: Pt; t: Pt; at: Pt; label: string; f: Tag; rot?: boolean };
+	const h = (y: number, x0: number, x1: number, label: string, f: Tag): Dim =>
 		({ a: [x0, y], b: [x1, y], t: [0, 10], at: [(x0 + x1) / 2, y - 12], label, f });
-	const v = (x: number, y0: number, y1: number, label: string, f: Feature): Dim =>
+	const v = (x: number, y0: number, y1: number, label: string, f: Tag): Dim =>
 		({ a: [x, y0], b: [x, y1], t: [10, 0], at: [x - 12, (y0 + y1) / 2], label, f, rot: true });
 	const dims: Dim[] = [
-		h(-100, 0, SIZE, `${SIZE}`, 'size'),
+		h(-100, 0, SIZE, `${SIZE}`, null),
 		h(-50, 226.15, 466.154, '240', 'upper'),
 		v(-100, 0, SPLIT, `${SPLIT}`, 'split'),
 		v(-100, SPLIT, SIZE, `${SIZE - SPLIT}`, 'split'),
-		v(-160, 0, SIZE, `${SIZE}`, 'size'),
+		v(-160, 0, SIZE, `${SIZE}`, null),
 		...STEPS.slice(1).map((x) => h(690, x - 120, x, '120', 'steps')),
 		h(740, 240, SIZE, `${SIZE - 240}`, 'lower')
 	];
@@ -65,12 +68,10 @@
 	const features: { f: Feature; name: string; note: string }[] = [
 		{ f: 'upper', name: 'Upper blade', note: `The tall blade, ${SPLIT} high and 240 across: the top arm of the plus.` },
 		{ f: 'lower', name: 'Lower blade', note: `The foot, ${lower} high and 360 across: the plus’s right arm.` },
-		{ f: 'joint', name: 'Joint', note: `The one point the blades share, at 240, ${SPLIT}, where the plus’s centre was lifted out.` },
 		{ f: 'angle', name: `${Math.round(+deg)}° edges`, note: `Every slanted edge runs at ${deg}°, and the cross lines stand square to them.` },
 		{ f: 'split', name: 'Split', note: `${SPLIT} above, ${lower} below: close to two thirds to one third.` },
-		{ f: 'steps', name: 'Steps of 120', note: `Five steps of 120 span the ${SIZE}: the feet start at 0 and 120, the joint sits on 240, the foot’s corner on 480.` },
-		{ f: 'corners', name: 'Soft corners', note: `Only the two outer corners round off, cut back ${trim} on circles of radius ≈ ${r}.` },
-		{ f: 'size', name: 'Drawing', note: `${SIZE} × ${SIZE} units, the icon touching all four sides.` }
+		{ f: 'steps', name: 'Steps of 120', note: `Five steps of 120 span the ${SIZE}: the feet start at 0 and 120, the blades meet on 240, the foot’s corner lands on 480.` },
+		{ f: 'corners', name: 'Soft corners', note: `Only the two outer corners round off, cut back ${trim} on circles of radius ≈ ${r}.` }
 	];
 	let hovered = $state<Feature | null>(null);
 	let pinned = $state<Feature | null>(null);
@@ -86,7 +87,7 @@
 	}
 	onMount(() => {
 		if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-		timers = [...features.map((x) => x.f), null].map((f, i) => setTimeout(() => (touring = f), 900 + i * 1400));
+		timers = [...features.map((x) => x.f), null].map((f, i) => setTimeout(() => (touring = f), 400 + i * 600));
 		return stopTour;
 	});
 	const current = $derived(features.find((x) => x.f === active));
@@ -94,8 +95,9 @@
 	const pin = (f: Feature) => (pinned = pinned === f ? null : f);
 
 
-	// where it comes from: undo the lean and the icon is an upright + and L on a 120 grid. The upper blade is
-	// the +'s top arm, the foot is its right arm, and the corner square they would share is left out.
+	// where it comes from: undo the lean and the icon is an upright + and L on a 120 grid. The plus already has the
+	// icon's own arms, mirrored: upright arms 240 wide and 392 long, side arms 208 deep and 360 long. The upper blade
+	// is its top arm, the foot its right arm, and the centre block they would share is left out.
 	const lean = 1 / Math.tan(Math.PI / 3); // 30° from upright
 	const sheared = `matrix(1 0 ${-lean} 1 ${SIZE * lean} 0)`; // pivots on the baseline, so the feet stay put
 	const rect = ([u0, y0, u1, y1]: number[]) => `M${u0} ${y0}H${u1}V${y1}H${u0}Z`;
@@ -104,18 +106,15 @@
 		centre: [-120, SPLIT, 120, SIZE],
 		right: [120, SPLIT, 480, SIZE],
 		left: [-480, SPLIT, -120, SIZE],
-		bottom: [-120, SIZE, 120, SIZE + lower]
+		bottom: [-120, SIZE, 120, SIZE + SPLIT]
 	};
 	const plus = Object.values(arm).map(rect);
-	// the plus it starts from: five equal squares of 240 (two steps of 120), centred where the stretched one sits
-	const [cx, cy, q] = [0, (SPLIT + SIZE) / 2 - 20, 120];
-	const square = (dx: number, dy: number) => rect([cx + dx - q, cy + dy - q, cx + dx + q, cy + dy + q]);
-	const evenPlus = [square(0, 0), square(0, -2 * q), square(2 * q, 0), square(-2 * q, 0), square(0, 2 * q)];
 	const parts = [rect(arm.top), rect(arm.right)];
 	// a classic lightning bolt drawn on the icon's own 60° edges
 	const bolt = 'M226.15 0H466.15L346 208H520L224.4 720L300 392H0Z';
-	const upright = '-500 -96 1000 1000';
-	const leaning = '-200 -200 1000 1000';
+	// one scale for every tile: the upright frames fit the whole plus, the leaning ones centre the icon
+	const upright = '-560 -64 1120 1120';
+	const leaning = '-260 -260 1120 1120';
 
 	// the original pencil sketch (src/lib/assets/sketch.webp), shown on request; without the file the button is left out
 	const sketches = import.meta.glob('../assets/sketch.{jpg,jpeg,png,webp,avif}', {
@@ -191,7 +190,7 @@
 			<rect x={box[0]} y={box[1]} width={box[2] - box[0]} height={box[3] - box[1]} fill="url(#bp-major)" />
 
 			{#each lines as { a, b, f }, i (i)}
-				<g data-f={f} class:on={active === f}>
+				<g data-f={f} class:on={f && active === f} class:static={!f}>
 					<line x1={a[0]} y1={a[1]} x2={b[0]} y2={b[1]} class="guide" />
 					<line x1={a[0]} y1={a[1]} x2={b[0]} y2={b[1]} class="hit" />
 				</g>
@@ -206,14 +205,10 @@
 			{#each [['lower', PATHS[0]], ['upper', PATHS[1]]] as [f, d] (f)}
 				<path {d} class="part" data-f={f} class:on={active === f} />
 			{/each}
-			<g data-f="joint" class:on={active === 'joint'}>
-				<circle cx="240" cy={SPLIT} r="6" class="joint" />
-				<circle cx="240" cy={SPLIT} r="22" class="hit-area" />
-			</g>
 
 			<!-- dimensions -->
 			{#each dims as d, i (i)}
-				<g class="dimension" data-f={d.f} class:on={active === d.f}>
+				<g class="dimension" data-f={d.f} class:on={d.f && active === d.f} class:static={!d.f}>
 					<line x1={d.a[0]} y1={d.a[1]} x2={d.b[0]} y2={d.b[1]} />
 					<line x1={d.a[0]} y1={d.a[1]} x2={d.b[0]} y2={d.b[1]} class="hit" />
 					{#each [d.a, d.b] as p, j (j)}
@@ -229,7 +224,6 @@
 			{#each corners as c, i (i)}
 				<text x={c.centre[0] + (i ? 22 : -22)} y={c.centre[1] + (i ? 30 : -18)} text-anchor={i ? 'start' : 'end'} class="bp-label" data-f="corners" class:on={active === 'corners'}>R {r}</text>
 			{/each}
-			<text x="252" y={SPLIT + 26} class="bp-label" data-f="joint" class:on={active === 'joint'}>JOINT 240, {SPLIT}</text>
 
 			<!-- title block -->
 			<g class="title-block" transform="translate(620 600)">
@@ -286,7 +280,7 @@
 			<span class="kicker">Where it comes from</span>
 			<h2 id="origin-title">Plus, L, bolt</h2>
 			<p>
-				The icon started as a pencil sketch of a plus drawn into an L. Stand the blades upright and it is still
+				It begins with the + of C++, the language llama.cpp is written in. The icon started as a pencil sketch of that plus drawn into an L. Stand the blades upright and it is still
 				there: the tall blade is the top arm of the +, the foot is its right arm, and the corner they would share is
 				left out, so the two meet at a single point. A lightning bolt gives it its slant: lean it 30°, soften two corners, and you have the mark.
 			</p>
@@ -300,17 +294,18 @@
 				<form method="dialog"><button class="sketch-close">Close</button></form>
 			</dialog>
 		{/if}
+		<Morph />
 		<div class="stages">
 			{#snippet s1()}
-				{#each evenPlus as d, i (i)}<path {d} class="cell" />{/each}
+				{#each plus as d, i (i)}<path {d} class="cell" />{/each}
 			{/snippet}
-			{@render stage('01', 'Plus', 'Five equal squares, each two steps of 120 across: a centre and four arms.', upright, s1)}
+			{@render stage('01', 'Plus', `A plus with the icon’s own arms: 240 wide upright, ${lower} deep across.`, upright, s1)}
 
 			{#snippet s2()}
 				{#each plus as d, i (i)}<path {d} class="ghost" />{/each}
 				<path d="{rect(arm.top)}{rect(arm.centre)}{rect(arm.right)}" fill="var(--l-shape)" />
 			{/snippet}
-			{@render stage('02', 'L', `Keep the top arm, the centre and the right arm, stretched to the icon’s proportions: a ${SPLIT}-tall stem and a 360-long foot.`, upright, s2)}
+			{@render stage('02', 'L', 'Keep the top arm, the centre and the right arm: an L inside the +.', upright, s2)}
 
 			{#snippet s3()}
 				{#each plus as d, i (i)}<path {d} class="ghost" />{/each}
@@ -521,13 +516,17 @@
 	/* blueprint highlighting: with a part active, everything tagged dims except that part's idea */
 	[data-f] {
 		cursor: pointer;
-		transition: opacity 320ms ease;
+		transition: opacity 200ms ease-out;
 	}
 	[data-f] :is(line, circle, path, text),
 	[data-f]:is(path, text) {
-		transition: stroke 320ms ease, fill 320ms ease, fill-opacity 320ms ease, stroke-width 320ms ease;
+		transition: stroke 200ms ease-out, fill 200ms ease-out, fill-opacity 200ms ease-out, stroke-width 200ms ease-out;
 	}
-	.hero svg.focused [data-f]:not(.on) {
+	.static {
+		transition: opacity 200ms ease-out;
+	}
+	.hero svg.focused [data-f]:not(.on),
+	.hero svg.focused .static {
 		opacity: 0.14;
 	}
 	.hit {
