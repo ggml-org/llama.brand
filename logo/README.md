@@ -7,9 +7,11 @@ svg/        the source artwork
   icon/       the icon, light and dark, 600 × 600
   lockup/     the icon with the Llama and Llama.cpp wordmarks
   cover/      7500 × 2500 covers, light and dark
+  social/     avatars and banners for X, LinkedIn and YouTube, light and dark, at each platform's size
 webp/       every SVG rendered to a lossless WebP, same layout: icons and lockups at 2×, covers at 1×
 png/        the same renders as PNG, for tools that don't take WebP
 scripts/    build_lockups.py, which draws the lockups and covers from the icon and Llama Sans Display;
+            build_social.py, which lays the icon and lockups out as social avatars and banners;
             render_webp.sh, which rebuilds webp/ and png/ from svg/
 showcase/   the icon breakdown page (SvelteKit 3, Svelte 5), built to a single self-contained index.html
 ```
@@ -21,6 +23,20 @@ uvx --with fonttools==4.68.0 --with uharfbuzz python logo/scripts/build_lockups.
 ```
 
 The lockups and covers are generated, not drawn: the icon from `svg/icon/icon-light.svg`, the wordmark, "Llama" or "llama.cpp" (always lowercase), set in Llama Sans Display Bold (`fonts/static/LlamaSansDisplay-Bold.ttf`), kerned with HarfBuzz and outlined, in the brand's ink and light, with .cpp in the accent orange (#D9553B, the design system's art-orange), its capitals centred on the icon. Run it after any change to the icon or the fonts, then render the WebP and PNG files.
+
+## Social profile assets
+
+```bash
+uvx --with fonttools==4.68.0 --with uharfbuzz python logo/scripts/build_social.py
+```
+
+| Platform | Avatar | Banner |
+|----------|--------|--------|
+| X | 400 × 400 | header 1500 × 500 |
+| LinkedIn | 400 × 400 | cover 1584 × 396, page cover 1128 × 191 |
+| YouTube | 800 × 800 | banner 2560 × 1440, logo inside the 1546 × 423 safe area |
+
+Avatars are the icon at 56% of the side, so the circle crop never touches it; banners are the Llama or llama.cpp lockup centred in the platform's safe area. They render at 1×, so the WebP and PNG files have exactly these sizes.
 
 ## Rendering the WebP and PNG files
 
