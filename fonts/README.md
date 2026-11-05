@@ -6,7 +6,7 @@ Llama Sans is a neo-grotesk with an even stroke, round bowls and open, angle-cut
 
 | | Tracking | Kerning | Line spacing | For |
 |---|---|---|---|---|
-| **Llama Sans Display** | −26 | 115%, pair corrections at 100% | 1.15 em | Headlines, large sizes |
+| **Llama Sans Display** | −22 | 115%, pair corrections at 100% | 1.15 em | Headlines, large sizes |
 | **Llama Sans UI** | 0 | 105%, pair corrections at 75%, then matched to SF Pro's text sizes | 1.25 em | Buttons, cards, labels, interface and running text |
 
 Line spacing is built into the fonts, so `line-height: normal` gives each version its intended leading; for prose in UI, set `line-height: 1.5`. In every version the line box is centred on the cap height, so capitals and cap-height icons sit exactly in the middle of a button or chip with equal top and bottom padding. UI's 1.25 em gives whole-pixel lines at 12, 16 and 20 px (15, 20 and 25 px).

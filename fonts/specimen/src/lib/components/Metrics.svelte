@@ -12,7 +12,7 @@
 	<div><dt>Descender</dt><dd>{metrics.dsc}</dd></div>
 	<div><dt>Weight axis</dt><dd>{axis.min}–{axis.max}</dd></div>
 	<div><dt>Stems {styles.map((s) => s.weight).join(' · ')}</dt><dd>{styles.map((s) => s.stem).join(' · ')}</dd></div>
-	<div><dt>Display</dt><dd>tracking −26 · kerning 115% · line 1.15</dd></div>
+	<div><dt>Display</dt><dd>tracking −22 · kerning 115% · line 1.15</dd></div>
 	<div><dt>UI</dt><dd>tracking +3 · kerning after SF Pro · line 1.25, cap-centred</dd></div>
 </dl>
 
