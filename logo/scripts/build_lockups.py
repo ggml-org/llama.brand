@@ -22,10 +22,11 @@ BASELINE, CAP_HEIGHT = 436, 272.6  # the wordmark's capitals span 163.4 to 436, 
 WORD_LEFT = 741.5              # where the first letter starts
 COVER_W, COVER_H, LOCKUP_H = 7500, 2500, 600
 
-# colours: icon, wordmark, ".cpp", and the cover's field
-LIGHT = dict(icon="#111111", word="#111111", cpp="#F65E00", field="#FAFAFA")
-DARK = dict(icon="#FAFAFA", word="#FAFAFA", cpp="#F65E00", field="#111111")
-ALT = dict(icon="#111111", word="#111111", cpp="#FAFAFA", field="#F65E00")
+# colours: icon, wordmark, ".cpp", and the cover's field. The .cpp takes the palette's accent orange (art-orange in
+# the design system, oklch(0.619 0.171 33)), not the old brand orange
+ORANGE = "#D9553B"
+LIGHT = dict(icon="#111111", word="#111111", cpp=ORANGE, field="#FAFAFA")
+DARK = dict(icon="#FAFAFA", word="#FAFAFA", cpp=ORANGE, field="#111111")
 
 
 def icon_paths():
@@ -91,7 +92,7 @@ if __name__ == "__main__":
             write(os.path.join(ROOT, "svg", "lockup", name, f"logo-{name}-{mode}.svg"), svg(width, LOCKUP_H, body))
         _, width = lockup(font, name, LIGHT)
         dx, dy = (COVER_W - width) / 2, (COVER_H - LOCKUP_H) / 2
-        for mode, colours in (("light", LIGHT), ("dark", DARK), ("alt", ALT)):
+        for mode, colours in (("light", LIGHT), ("dark", DARK)):
             body, _ = lockup(font, name, colours, dx, dy)
             field = f'<rect width="{COVER_W}" height="{COVER_H}" fill="{colours["field"]}"/>\n'
             write(os.path.join(ROOT, "svg", "cover", name, f"cover-{name}-{mode}.svg"), svg(COVER_W, COVER_H, field + body))

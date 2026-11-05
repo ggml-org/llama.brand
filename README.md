@@ -37,17 +37,17 @@ fonts/   Llama Sans (Display, UI, Text), its build scripts and its specimen
 
 ### Llama
 
-| Light | Dark | Alt |
-|-------|------|-----|
-| ![Llama Cover Light](./logo/svg/cover/llama/cover-llama-light.svg) | ![Llama Cover Dark](./logo/svg/cover/llama/cover-llama-dark.svg) | ![Llama Cover Alt](./logo/svg/cover/llama/cover-llama-alt.svg) |
+| Light | Dark |
+|-------|------|
+| ![Llama Cover Light](./logo/svg/cover/llama/cover-llama-light.svg) | ![Llama Cover Dark](./logo/svg/cover/llama/cover-llama-dark.svg) |
 
-### Llama.cpp
+### llama.cpp
 
-| Light | Dark | Alt |
-|-------|------|-----|
-| ![Llama.cpp Cover Light](./logo/svg/cover/llama-cpp/cover-llama-cpp-light.svg) | ![Llama.cpp Cover Dark](./logo/svg/cover/llama-cpp/cover-llama-cpp-dark.svg) | ![Llama.cpp Cover Alt](./logo/svg/cover/llama-cpp/cover-llama-cpp-alt.svg) |
+| Light | Dark |
+|-------|------|
+| ![llama.cpp Cover Light](./logo/svg/cover/llama-cpp/cover-llama-cpp-light.svg) | ![llama.cpp Cover Dark](./logo/svg/cover/llama-cpp/cover-llama-cpp-dark.svg) |
 
-Every SVG also comes as a lossless WebP under [`logo/webp/`](./logo/webp), in the same layout. See [`logo/`](./logo) for the showcase that takes the icon apart.
+Every SVG also comes as a lossless WebP under [`logo/webp/`](./logo/webp) and a PNG under [`logo/png/`](./logo/png), in the same layout. See [`logo/`](./logo) for the showcase that takes the icon apart.
 
 ---
 
