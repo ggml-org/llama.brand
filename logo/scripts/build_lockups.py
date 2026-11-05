@@ -34,8 +34,8 @@ FIELD_MARGIN = 0.12
 OPTICAL_LIFT = 1 / 60
 
 # colours: icon, wordmark, ".cpp", and the cover's field. The .cpp takes cinder, the brand's one accent orange
-# (art-cinder in the design system, oklch(0.68 0.168 46))
-CINDER = "#E9712E"
+# (art-cinder in the design system, oklch(0.68 0.18 46))
+CINDER = "#EE6C1E"
 LIGHT = dict(icon="#111111", word="#111111", cpp=CINDER, field="#FAFAFA")
 DARK = dict(icon="#FAFAFA", word="#FAFAFA", cpp=CINDER, field="#111111")
 
