@@ -1,27 +1,25 @@
-"""Builds the Llama and Llama.cpp lockups and covers in logo/svg/ from the current icon and Llama Mono.
+"""Builds the Llama and Llama.cpp lockups and covers in logo/svg/ from the current icon and Llama Sans Display.
 
-The icon comes from svg/icon/icon-light.svg; the wordmark is set in fonts/variable/LlamaMono[wght].ttf at WEIGHT,
-outlined, one 600-unit cell per character, so the logo follows the fonts whenever they change. The layout and the
-colours stay those of the existing files: the icon 520 px tall at the left of a 600 px lockup, the wordmark on a
-baseline at 436 with its l 272.6 px tall, and each cover the lockup centred on a 7500 × 2500 field. Then render the
-WebP and PNG files with render_webp.sh.
+The icon comes from svg/icon/icon-light.svg; the wordmark, "Llama" and "Llama.cpp", is set in
+fonts/static/LlamaSansDisplay-Bold.ttf, shaped with HarfBuzz (so its kerning applies) and outlined, so the logo
+follows the fonts whenever they change. The icon is 520 px tall at the left of a 600 px lockup; the wordmark's cap
+height is 272.6 px on a baseline at 436, centred on the icon, its L starting at 741.5; each cover is the lockup centred
+on a 7500 × 2500 field. Then render the WebP and PNG files with render_webp.sh.
 
-Run:  uvx --with fonttools==4.68.0 python logo/scripts/build_lockups.py
+Run:  uvx --with fonttools==4.68.0 --with uharfbuzz python logo/scripts/build_lockups.py
 """
 import os
 import re
 from fontTools.pens.svgPathPen import SVGPathPen
 from fontTools.pens.transformPen import TransformPen
 from fontTools.ttLib import TTFont
-from fontTools.varLib.instancer import instantiateVariableFont
+import uharfbuzz as hb
 
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
-FONT = os.path.join(ROOT, "..", "fonts", "variable", "LlamaMono[wght].ttf")
-WEIGHT = 530                  # Llama Mono's l stem at 530 matches the wordmark's (about 101 units)
+FONT = os.path.join(ROOT, "..", "fonts", "static", "LlamaSansDisplay-Bold.ttf")
 ICON_SIZE, ICON_TOP = 520, 40  # the icon in a 600 px lockup
-BASELINE, L_HEIGHT = 436, 272.6
-WORD_LEFT = 741.5              # where the first l's foot starts
-GAP = 0                        # cells between the words: llama.cpp is set solid
+BASELINE, CAP_HEIGHT = 436, 272.6  # the wordmark's capitals span 163.4 to 436, centred on the icon
+WORD_LEFT = 741.5              # where the L's stem starts
 COVER_W, COVER_H, LOCKUP_H = 7500, 2500, 600
 
 # colours: icon, wordmark, ".cpp", and the cover's field
@@ -35,32 +33,41 @@ def icon_paths():
     return re.findall(r'<path d="([^"]+)"', svg)
 
 
-def word_path(font, text, x, k):
-    """The outline of `text` in the font, set from x on the baseline at scale k (font units to px)."""
-    gs, cmap = font.getGlyphSet(), font.getBestCmap()
-    pen = SVGPathPen(gs, ntos=lambda v: f"{v:.3f}".rstrip("0").rstrip("."))
-    for ch in text:
-        name = cmap[ord(ch)]
-        gs[name].draw(TransformPen(pen, (k, 0, 0, -k, x, BASELINE)))
-        x += font["hmtx"][name][0] * k
-    return pen.getCommands(), x
+def shaped(text):
+    """HarfBuzz's glyphs and positions for `text` in the font: [(glyph id, x offset, x advance)]."""
+    face = hb.Face(hb.Blob.from_file_path(FONT))
+    buf = hb.Buffer()
+    buf.add_str(text)
+    buf.guess_segment_properties()
+    hb.shape(hb.Font(face), buf, {"kern": True, "liga": True})
+    return [(i.codepoint, i.cluster, p.x_offset, p.x_advance) for i, p in zip(buf.glyph_infos, buf.glyph_positions)]
+
+
+def wordmark(font, text, split, x, k):
+    """Two outlines of `text`, set from x on the baseline at scale k: the characters before `split`, then the rest."""
+    gs, order = font.getGlyphSet(), font.getGlyphOrder()
+    ntos = lambda v: f"{v:.3f}".rstrip("0").rstrip(".")
+    pens = [SVGPathPen(gs, ntos=ntos), SVGPathPen(gs, ntos=ntos)]
+    for gid, cluster, offset, advance in shaped(text):
+        pen = pens[cluster >= split]
+        gs[order[gid]].draw(TransformPen(pen, (k, 0, 0, -k, x + offset * k, BASELINE)))
+        x += advance * k
+    return [p.getCommands() for p in pens], x
 
 
 def lockup(font, name, colours, dx=0, dy=0):
     """The paths of one lockup, offset by (dx, dy), and its width."""
-    cmap = font.getBestCmap()
-    l = font["glyf"][cmap[ord("l")]]
-    k = L_HEIGHT / l.yMax
-    l_left = l.xMin
-    x0 = WORD_LEFT - l_left * k
+    k = CAP_HEIGHT / font["OS/2"].sCapHeight
+    first = shaped("L")[0][0]
+    x0 = WORD_LEFT - font["glyf"][font.getGlyphOrder()[first]].xMin * k
     s = ICON_SIZE / 600
     group = f'<g transform="translate({dx} {dy})">'
     group += "".join(f'<path transform="translate(0 {ICON_TOP}) scale({s:.6f})" d="{d}" fill="{colours["icon"]}"/>'
                      for d in icon_paths())
-    word, x = word_path(font, "llama", x0, k)
+    text = "Llama.cpp" if name == "llama-cpp" else "Llama"
+    (word, cpp), x = wordmark(font, text, 5, x0, k)
     group += f'<path d="{word}" fill="{colours["word"]}"/>'
-    if name == "llama-cpp":
-        cpp, x = word_path(font, ".cpp", x + GAP * 600 * k, k)
+    if cpp:
         group += f'<path d="{cpp}" fill="{colours["cpp"]}"/>'
     return group + "</g>", round(x)
 
@@ -77,7 +84,7 @@ def write(path, text):
 
 
 if __name__ == "__main__":
-    font = instantiateVariableFont(TTFont(FONT), {"wght": WEIGHT})
+    font = TTFont(FONT)
     for name in ("llama", "llama-cpp"):
         for mode, colours in (("light", LIGHT), ("dark", DARK)):
             body, width = lockup(font, name, colours)
