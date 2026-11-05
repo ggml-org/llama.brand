@@ -198,7 +198,7 @@ def stem_of(font):
     return g.xMax - g.xMin
 
 
-def edit_glyph(name, segs_by_master, scales, ref_stem, metrics, rev):
+def edit_glyph(name, segs_by_master, scales, ref_stem, metrics, rev, plain_l=True):
     ref = segs_by_master[0]
     if name == "a":
         ij = bg.find_tailless(ref[0])
@@ -213,7 +213,7 @@ def edit_glyph(name, segs_by_master, scales, ref_stem, metrics, rev):
             for s, sc in zip(segs_by_master, scales):
                 fillet(s[0], oi, A_BOWL_FILLET * sc ** 0.5)       # under the hat
                 fillet(s[1], ii - 1, A_BOWL_FILLET * sc ** 0.5)   # inside the counter
-    if name == "l":
+    if name == "l" and plain_l:
         for s in segs_by_master:
             bg.plain_l(s[0])
     for ci, segs in enumerate(ref):
@@ -366,14 +366,17 @@ def shape_t(segs_by_master, left, right):
     return out
 
 
-def add_icon(font):
-    """Draw the Llama icon in at U+E000: cap-height tall on the baseline, the same in every weight."""
+def add_icon(font, cell=None):
+    """Draw the Llama icon in at U+E000: cap-height tall on the baseline, the same in every weight. With `cell`
+    (a monospace advance), it shrinks to fit the cell with ICON_SIDE either side, centred on half the cap height."""
     from fontTools.svgLib.path import parse_path
     from fontTools.pens.transformPen import TransformPen
     cap = font["OS/2"].sCapHeight
-    k = cap / 600
+    size = min(cap, cell - 2 * ICON_SIDE) if cell else cap
+    k = size / 600
+    top = (cap + size) / 2
     tt = TTGlyphPen(None)
-    pen = TransformPen(Cu2QuPen(tt, max_err=0.5, reverse_direction=True), (k, 0, 0, -k, ICON_SIDE, cap))
+    pen = TransformPen(Cu2QuPen(tt, max_err=0.5, reverse_direction=True), (k, 0, 0, -k, (cell - size) / 2 if cell else ICON_SIDE, top))
     for d in ICON_PATHS:
         parse_path(d, pen)
     g = tt.glyph()
@@ -381,7 +384,7 @@ def add_icon(font):
     font.setGlyphOrder(font.getGlyphOrder() + [name])
     font["glyf"][name] = g
     g.recalcBounds(font["glyf"])
-    font["hmtx"][name] = (round(600 * k) + 2 * ICON_SIDE, g.xMin)
+    font["hmtx"][name] = (cell or round(600 * k) + 2 * ICON_SIDE, g.xMin)
     for t in font["cmap"].tables:
         t.cmap[ICON_CODEPOINT] = name
 
@@ -432,19 +435,24 @@ def fix_lsb(font):
         hmtx[name] = (hmtx[name][0], getattr(g, "xMin", 0) if g.numberOfContours else 0)
 
 
+def pinned_source(path, url, sha256):
+    """Path to a pinned source font, downloading it on first use and checking its SHA-256."""
+    if not os.path.exists(path):
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        print("downloading", os.path.basename(path), "from vercel/geist-font @", GEIST_COMMIT[:7])
+        with urllib.request.urlopen(url) as r:
+            data = r.read()
+        with open(path, "wb") as f:
+            f.write(data)
+    digest = hashlib.sha256(open(path, "rb").read()).hexdigest()
+    if digest != sha256:
+        sys.exit(f"{path} does not match the pinned version (sha256 {digest}); delete it to re-download")
+    return path
+
+
 def geist_source():
     """Path to Geist's variable font, downloading the pinned version on first use."""
-    if not os.path.exists(GEIST_PATH):
-        os.makedirs(os.path.dirname(GEIST_PATH), exist_ok=True)
-        print("downloading Geist[wght].ttf from vercel/geist-font @", GEIST_COMMIT[:7])
-        with urllib.request.urlopen(GEIST_URL) as r:
-            data = r.read()
-        with open(GEIST_PATH, "wb") as f:
-            f.write(data)
-    digest = hashlib.sha256(open(GEIST_PATH, "rb").read()).hexdigest()
-    if digest != GEIST_SHA256:
-        sys.exit(f"{GEIST_PATH} does not match the pinned Geist (sha256 {digest}); delete it to re-download")
-    return GEIST_PATH
+    return pinned_source(GEIST_PATH, GEIST_URL, GEIST_SHA256)
 
 
 def build_masters(var, track, descender=DESCENDER):
@@ -687,8 +695,7 @@ def name_variable(vf, family):
     ps = family.replace(" ", "")
     for nid in (1, 2, 3, 4, 5, 6, 16, 17, 21, 22, 25):
         nt.removeNames(nameID=nid)
-    for nid, s in {0: "Copyright 2024 The Geist Project Authors (https://github.com/vercel/geist-font). "
-                      "Modifications copyright 2026 the Llama Sans authors.",
+    for nid, s in {0: bg.COPYRIGHT,
                    1: family, 2: "Regular", 3: f"0.6;{ps}[wght]", 4: f"{family} Regular",
                    5: "Version 0.600; draft based on Geist", 6: f"{ps}-Regular", 25: ps}.items():
         nt.setName(s, nid, 3, 1, 0x409)

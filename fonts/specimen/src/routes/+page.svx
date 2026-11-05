@@ -12,6 +12,7 @@ title: Llama Sans
 	import InUse from '#lib/components/InUse.svelte';
 	import Waterfall from '#lib/components/Waterfall.svelte';
 	import Setting from '#lib/components/Setting.svelte';
+	import MonoSample from '#lib/components/MonoSample.svelte';
 	import GlyphGrid from '#lib/components/GlyphGrid.svelte';
 	import Notes from '#lib/components/Notes.svelte';
 	import Note from '#lib/components/Note.svelte';
@@ -23,7 +24,7 @@ title: Llama Sans
 
 <Masthead variant={view.variant}>
 
-The sans of the Llama family, with Mono and Serif to follow. A neo-grotesk with an even stroke, round bowls and open, angle-cut terminals, in two variable fonts from {axis.min} to {axis.max} that share their outlines: Display for headlines, UI for interfaces and running text.
+The sans of the Llama family, with Mono below and Serif to follow. A neo-grotesk with an even stroke, round bowls and open, angle-cut terminals, in two variable fonts from {axis.min} to {axis.max} that share their outlines: Display for headlines, UI for interfaces and running text.
 
 </Masthead>
 
@@ -46,6 +47,12 @@ The sans of the Llama family, with Mono and Serif to follow. A neo-grotesk with 
 ## Setting
 
 <Setting weight={view.weight} />
+
+## Llama Mono
+
+The monospaced member of the family, built from Geist Mono with Llama Sans’s changes: the same weights, the tailless a, the narrow t, angle-cut terminals, rounder curves, deeper joins and UI’s descenders. Every glyph keeps its 600-unit cell; the l keeps its serifs, and two t’s join their crossbars across the cells.
+
+<MonoSample weight={view.weight} />
 
 <GlyphGrid weight={nearest(view.weight)} comparing={view.comparing} />
 
