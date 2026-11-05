@@ -5,7 +5,9 @@ Llama Sans Bold at its Display optical size (fonts/variable/LlamaSans[opsz,wght]
 with HarfBuzz (so its kerning applies) and outlined, so the logo
 follows the fonts whenever they change. The icon is 520 px tall at the left of a 600 px lockup; the wordmark's cap
 height is 272.6 px on a baseline at 436, centred on the icon, its first letter starting at 741.5; each cover is the lockup centred
-on a 7500 × 2500 field. Then render the WebP and PNG files with render_webp.sh.
+on a 7500 × 2500 field. The icon and each lockup also come on their background (-bg): the same canvas, the mark
+centred on the light or dark field with an even margin, the icon optically lifted. Then render the WebP and PNG
+files with render_webp.sh.
 
 Run:  uvx --with fonttools==4.68.0 --with uharfbuzz --with skia-pathops python logo/scripts/build_lockups.py
 """
@@ -25,6 +27,11 @@ ICON_SIZE, ICON_TOP = 520, 40  # the icon in a 600 px lockup
 BASELINE, CAP_HEIGHT = 436, 272.6  # the wordmark's capitals span 163.4 to 436, centred on the icon
 WORD_LEFT = 741.5              # where the first letter starts
 COVER_W, COVER_H, LOCKUP_H = 7500, 2500, 600
+# the on-background versions: the same canvas as the transparent file, the mark centred on the field with an even
+# margin of FIELD_MARGIN of the shorter side; the icon sits OPTICAL_LIFT of its height above centre, as in the Llama
+# app icon: its weight is low (the wide bottom bar), so mathematically centred it reads as sitting low
+FIELD_MARGIN = 0.12
+OPTICAL_LIFT = 1 / 60
 
 # colours: icon, wordmark, ".cpp", and the cover's field. The .cpp takes the palette's accent orange (art-orange in
 # the design system, oklch(0.619 0.171 33)), not the old brand orange
@@ -97,6 +104,16 @@ def svg(width, height, body):
             f'xmlns="http://www.w3.org/2000/svg">\n{body}\n</svg>\n')
 
 
+def on_field(body, w, h, colours, lift=0):
+    """A mark drawn on a w × h canvas (body), set on its field: scaled to leave FIELD_MARGIN all round, centred,
+    and raised by lift of its own height."""
+    m = FIELD_MARGIN * min(w, h)
+    s = min((w - 2 * m) / w, (h - 2 * m) / h)
+    x, y = (w - w * s) / 2, (h - h * s) / 2 - lift * h * s
+    return svg(w, h, f'<rect width="{w}" height="{h}" fill="{colours["field"]}"/>\n'
+                     f'<g transform="translate({x:.3f} {y:.3f}) scale({s:.6f})">{body}</g>')
+
+
 def write(path, text):
     os.makedirs(os.path.dirname(path), exist_ok=True)
     open(path, "w").write(text)
@@ -105,10 +122,15 @@ def write(path, text):
 
 if __name__ == "__main__":
     font = load_font()
+    for mode, colours in (("light", LIGHT), ("dark", DARK)):
+        icon = "".join(f'<path d="{d}" fill="{colours["icon"]}"/>' for d in icon_paths())
+        write(os.path.join(ROOT, "svg", "icon", f"icon-{mode}-bg.svg"), on_field(icon, 600, 600, colours, OPTICAL_LIFT))
     for name in ("llama", "llama-cpp"):
         for mode, colours in (("light", LIGHT), ("dark", DARK)):
             body, width = lockup(font, name, colours)
             write(os.path.join(ROOT, "svg", "lockup", name, f"logo-{name}-{mode}.svg"), svg(width, LOCKUP_H, body))
+            write(os.path.join(ROOT, "svg", "lockup", name, f"logo-{name}-{mode}-bg.svg"),
+                  on_field(body, width, LOCKUP_H, colours))
         _, width = lockup(font, name, LIGHT)
         dx, dy = (COVER_W - width) / 2, (COVER_H - LOCKUP_H) / 2
         for mode, colours in (("light", LIGHT), ("dark", DARK)):

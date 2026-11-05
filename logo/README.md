@@ -4,8 +4,8 @@ The Llama icon, the Llama and Llama.cpp lockups and the cover images, plus a sho
 
 ```
 svg/        the source artwork
-  icon/       the icon, light and dark, 600 × 600
-  lockup/     the icon with the Llama and Llama.cpp wordmarks
+  icon/       the icon, light and dark, 600 × 600: transparent, and on its background (-bg)
+  lockup/     the icon with the Llama and Llama.cpp wordmarks: transparent, and on its background (-bg)
   cover/      7500 × 2500 covers, light and dark
   social/     avatars and banners for X, LinkedIn and YouTube, light and dark, at each platform's size
 webp/       every SVG rendered to a lossless WebP, same layout: icons and lockups at 2×, covers at 1×
@@ -22,7 +22,7 @@ showcase/   the icon breakdown page (SvelteKit 3, Svelte 5), built to a single s
 uvx --with fonttools==4.68.0 --with uharfbuzz --with skia-pathops python logo/scripts/build_lockups.py
 ```
 
-The lockups and covers are generated, not drawn: the icon from `svg/icon/icon-light.svg`, the wordmark, "Llama" or "llama.cpp" (always lowercase), set in Llama Sans Bold at its Display optical size (`fonts/variable/LlamaSans[opsz,wght].ttf` at wght 700, opsz 40), kerned with HarfBuzz and outlined, in the brand's ink and light, with .cpp in the accent orange (#D9553B, the design system's art-orange), its capitals centred on the icon. Run it after any change to the icon or the fonts, then render the WebP and PNG files.
+The lockups and covers are generated, not drawn: the icon from `svg/icon/icon-light.svg`, the wordmark, "Llama" or "llama.cpp" (always lowercase), set in Llama Sans Bold at its Display optical size (`fonts/variable/LlamaSans[opsz,wght].ttf` at wght 700, opsz 40), kerned with HarfBuzz and outlined, in the brand's ink and light, with .cpp in the accent orange (#D9553B, the design system's art-orange), its capitals centred on the icon. It also writes each icon and lockup on its background (`-bg`): the same canvas, filled with the light or dark field, the mark centred in an even 12% margin of the shorter side, and the icon lifted 1/60 of its height above centre, as in the Llama app icon and the social avatars. The plain files stay transparent. Run it after any change to the icon or the fonts, then render the WebP and PNG files.
 
 ## Social profile assets
 
