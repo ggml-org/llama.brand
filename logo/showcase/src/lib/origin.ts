@@ -22,17 +22,17 @@ export const steps = [
 	{ name: 'Plus', from: 1.8, to: 2.4, ease: inOutQuint, note: 'Its plus grows the icon’s own arms: 240 wide upright, 208 deep across.' },
 	// the L: what the plus doesn't need fades out while the camera moves to where the bolt will strike (see Morph and camera)
 	{ name: 'L', from: 2.75, to: 3.85, ease: linear, note: 'Keep the top and right arms and leave the centre empty: an L inside the +, stem and foot touching at one point.' },
-	{ name: 'Bolt', from: 4.2, to: 5.5, ease: linear, note: 'Then the idea: a lightning bolt, for speed, which is what llama.cpp is about.' },
+	{ name: 'Bolt', from: 4.2, to: 5.1, ease: linear, note: 'Then the idea: a lightning bolt, for speed, which is what llama.cpp is about.' },
 	// the lean isn't a move: the L snaps to 30° in the bolt's flash (see Morph); this step only carries its caption
-	{ name: 'Lean', from: 5.55, to: 5.57, ease: linear, note: 'In a flash the bolt leans the L 30°: every edge runs at 60°, with the bolt inside.' },
+	{ name: 'Lean', from: 5.15, to: 5.17, ease: linear, note: 'In a flash the bolt leans the L 30°: every edge runs at 60°, with the bolt inside.' },
 	// the grid the lean puts the L on draws out from the icon across the frame, and stays faint until the fill
-	{ name: 'Grid', from: 5.95, to: 6.85, ease: linear, note: 'Every edge now lies on a grid of ideal triangles, 120 a side: the L is built on 60°.' },
+	{ name: 'Grid', from: 5.3, to: 5.9, ease: linear, note: 'Every edge now lies on a grid of ideal triangles, 120 a side: the L is built on 60°.' },
 	// two wheels roll into the outer corners, then the corners round onto them (see Morph)
-	{ name: 'Soften', from: 7.15, to: 8.45, ease: linear, note: 'Two wheels turn into the outer corners, and only those two corners round onto them.' },
-	{ name: 'Fill', from: 8.75, to: 9.25, ease: inOutCubic, note: 'Fill it in: the Llama icon.' },
-	{ name: 'Blueprint', from: 9.55, to: 10.8, ease: linear, note: 'And this is how it is built.' }
+	{ name: 'Soften', from: 6.0, to: 6.9, ease: linear, note: 'Two wheels turn into the outer corners, and only those two corners round onto them.' },
+	{ name: 'Fill', from: 7.0, to: 7.35, ease: inOutCubic, note: 'Fill it in: the Llama icon.' },
+	{ name: 'Blueprint', from: 7.5, to: 8.75, ease: linear, note: 'And this is how it is built.' }
 ];
-export const END = 10.95;
+export const END = 8.9;
 /** A step's index by name, so the code that times things off a step doesn't depend on the order. */
 export const STEP = Object.fromEntries(steps.map((s, i) => [s.name, i])) as Record<string, number>;
 export const BLUEPRINT_STEP = STEP.Blueprint;

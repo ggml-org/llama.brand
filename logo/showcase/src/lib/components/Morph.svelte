@@ -121,7 +121,7 @@
 		const pulse = pulses.find(([until]) => x < until);
 		if (pulse) return pulse[1]; // back as the slanted L in the bolt, flashing
 		if (x < 1) return lerp(1, glow, outCubic((x - SETTLE) / (1 - SETTLE)));
-		return glow * (1 - outCubic(clamp((t - leanEnd - 0.1) / 0.45)));
+		return glow * (1 - outCubic(clamp((t - leanEnd - 0.05) / 0.3)));
 	});
 	const reach = $derived(-20 + 1100 * outCubic(clamp(pBolt / 0.06))); // how far down the strike has got: past the tip (y 784) and its glow
 
@@ -138,7 +138,7 @@
 	// light mode only: the sky goes dark for the strike, like lightning at night, and day comes back as the bolt
 	// fades; meanwhile the L is drawn in the night's light colour (--l-night is 1 in light mode, 0 in dark)
 	const night = $derived(
-		pBolt <= 0 ? 0 : t < leanEnd + 0.5 ? clamp(pBolt / 0.03) : 1 - inOutCubic(clamp((t - leanEnd - 0.5) / 0.45))
+		pBolt <= 0 ? 0 : t < leanEnd + 0.2 ? clamp(pBolt / 0.03) : 1 - inOutCubic(clamp((t - leanEnd - 0.2) / 0.35))
 	);
 	const lAlpha = $derived(
 		pBolt <= 0.04 ? 1 : pBolt < UPRIGHT ? Math.max(0.15, strike) : pBolt < GONE ? 1 : pBolt < DARK ? 1 - (pBolt - GONE) / (DARK - GONE) : pBolt < SNAP ? 0 : pBolt < SETTLE ? Math.max(0.12, strike) : 1
