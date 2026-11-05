@@ -34,7 +34,7 @@
 	--mark: var(--clay);
 	--body: 'Llama Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
 	--code: 'Llama Mono', ui-monospace, 'SF Mono', Menlo, monospace;
-	--mono: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas, monospace;
+	--mono: 'Llama Mono', ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas, monospace;
 }
 @media (prefers-color-scheme: dark) {
 	:root:not([data-theme='light']) {
