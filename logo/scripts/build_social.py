@@ -8,12 +8,9 @@ at 1×, so the WebP and PNG files have exactly those sizes.
 Run:  uvx --with fonttools==4.68.0 --with uharfbuzz --with skia-pathops python logo/scripts/build_social.py
 """
 import os
-from build_lockups import DARK, LIGHT, LOCKUP_H, ROOT, icon_paths, load_font, lockup, svg, write
+from build_lockups import DARK, LIGHT, LOCKUP_H, OPTICAL_LIFT, ROOT, icon_paths, load_font, lockup, svg, write
 
 AVATAR_ICON = 0.56  # the icon's share of the avatar's side, inside the circle crop
-# the icon sits 1/60 of its height above centre, as in the Llama app's icon: its weight is low (the wide bottom bar),
-# so mathematically centred it reads as sitting low; this offset makes it look centred
-OPTICAL_LIFT = 1 / 60
 BANNER_LOCKUP = 0.3  # the lockup's height as a share of the safe area's height, at most
 BANNER_WIDTH = 0.6  # and its width as a share of the safe area's width, at most
 
