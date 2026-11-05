@@ -48,6 +48,7 @@ DESCENDER = UI["descender"]                  # code is running text: UI's descen
 LINE = UI["line"]                            # and UI's line box, centred on the cap height
 WIDEN = {"s": sans.WIDEN["s"]}               # G and S keep Geist Mono's width (see above)
 RECENTRE = {"a", "t", *WIDEN}                # drawings whose width the edits change
+T_SHAPE = dict(left=0.95, right=0.90)    # Mono's t keeps longer arms than Sans's: its crossbar fills the cell
 T_ACCENTED = {"tcaron"}                     # t-based glyphs Geist Mono draws whole rather than as composites
 TT_OVERLAP = sans.TT_OVERLAP                 # how far each joined crossbar runs past its cell edge
 TT_FORMS = {"t.tt1": "right", "t.tt2": "left", "t.tt3": "both"}  # before a t, after one, between two
@@ -142,8 +143,8 @@ def build_masters(var):
         if sans.JOIN_CUT and lower:
             joins = [(ci, j) for ci, segs in enumerate(cubics[0]) if (j := sans.find_joins(segs))]
             joins and sans.cut_joins(cubics, joins, sans.JOIN_CUT)
-        if name == "t" and sans.T_SHAPE:
-            sans.shape_t(cubics, sans.T_SHAPE["left"], sans.T_SHAPE["right"])
+        if name == "t" and T_SHAPE:
+            sans.shape_t(cubics, T_SHAPE["left"], T_SHAPE["right"])
         if name in RECENTRE:  # back to Geist Mono's middle of the drawing, in the same cell
             for s, (l, r) in zip(cubics, before):
                 l2, r2 = ink_x(s)
