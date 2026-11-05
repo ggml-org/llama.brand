@@ -77,7 +77,7 @@ CAP_RAISE = 0    # units added to the cap height (capitals scale up from the bas
 DESCENDER = 140  # how deep lowercase descenders reach (Geist's 150): p, q, j, y, and g's bowl in proportion;
                  # a version can set its own (FAMILIES' descender)
 JOIN_CUT = 15    # how much deeper the notch where a bowl, arm or shoulder leaves a stem cuts into the joint (0 = Geist's)
-T_SHAPE = dict(left=0.95, right=0.90)  # the t's arms, as a share of Geist's: crossbar left, crossbar and foot right (None = Geist's)
+T_SHAPE = dict(left=0.85, right=0.85)  # the t's arms, as a share of Geist's: crossbar left, crossbar and foot right (None = Geist's)
 FIT_ERR = 1.5  # max deviation (font units) when a TrueType spline is refit as one cubic
 
 
