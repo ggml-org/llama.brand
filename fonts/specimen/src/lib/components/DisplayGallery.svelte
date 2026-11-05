@@ -209,7 +209,7 @@
 	}
 	.numerals .outline {
 		color: transparent;
-		-webkit-text-stroke: 0.4cqi var(--clay);
+		-webkit-text-stroke: 0.4cqi var(--cinder);
 	}
 	.numerals .slate {
 		color: var(--slate);
@@ -359,7 +359,7 @@
 		font-size: 4.2cqi;
 	}
 	.s-ink { background: var(--brand-ink); color: var(--brand-light); }
-	.s-clay { background: var(--clay); color: #fff; }
+	.s-clay { background: var(--cinder); color: #fff; }
 	.s-slate { background: var(--slate); color: #fff; }
 	.s-paper { background: var(--brand-light); color: var(--brand-ink); }
 
