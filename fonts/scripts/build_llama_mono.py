@@ -32,7 +32,6 @@ import os
 import sys
 from fontTools.ttLib import TTFont
 from fontTools.varLib.instancer import instantiateVariableFont, OverlapMode
-from fontTools.feaLib.builder import addOpenTypeFeaturesFromString
 import llama_edits as bg
 import build_llama_sans as sans
 
@@ -176,36 +175,8 @@ def build_masters(var):
 
 
 def add_calt(font, fea):
-    """Append the features in `fea` (GSUB only) to the font's own GSUB, in every script and language; lookups for a
-    feature the font already has are added to it."""
-    tmp = TTFont()
-    tmp.setGlyphOrder(font.getGlyphOrder())
-    addOpenTypeFeaturesFromString(tmp, fea, tables=["GSUB"])
-    new, gsub = tmp["GSUB"].table, font["GSUB"].table
-    base = len(gsub.LookupList.Lookup)
-    for lookup in new.LookupList.Lookup:
-        for st in lookup.SubTable:
-            for rec in getattr(st, "SubstLookupRecord", []):
-                rec.LookupListIndex += base
-        gsub.LookupList.Lookup.append(lookup)
-    gsub.LookupList.LookupCount = len(gsub.LookupList.Lookup)
-    records = gsub.FeatureList.FeatureRecord
-    langs = [s.Script.DefaultLangSys for s in gsub.ScriptList.ScriptRecord if s.Script.DefaultLangSys] + \
-            [l.LangSys for s in gsub.ScriptList.ScriptRecord for l in s.Script.LangSysRecord]
-    for fr in new.FeatureList.FeatureRecord:
-        fr.Feature.LookupListIndex = [i + base for i in fr.Feature.LookupListIndex]
-        same = [r for r in records if r.FeatureTag == fr.FeatureTag]
-        if same:  # a feature the font has already: its lookups join it (shapers read one record per tag), run last
-            for r in same:
-                r.Feature.LookupListIndex += fr.Feature.LookupListIndex
-                r.Feature.LookupCount = len(r.Feature.LookupListIndex)
-            continue
-        at = next((i for i, r in enumerate(records) if r.FeatureTag > fr.FeatureTag), len(records))  # tags stay sorted
-        records.insert(at, fr)
-        for ls in langs:
-            ls.FeatureIndex = sorted([i + (i >= at) for i in ls.FeatureIndex] + [at])
-            ls.FeatureCount = len(ls.FeatureIndex)
-    gsub.FeatureList.FeatureCount = len(records)
+    """Append the features in `fea` (GSUB only) to the font's GSUB; see the Sans build's add_features."""
+    sans.add_features(font, fea)
 
 
 SPACER = "LIG"  # the empty cell a ligature puts back for each character it swallowed

@@ -13,7 +13,7 @@ Browsers set the optical size from the font-size on their own (`font-optical-siz
 
 The line box is the same at every size: 1.25 em, centred on the cap height, so capitals and cap-height icons sit exactly in the middle of a button or chip with equal top and bottom padding, with whole-pixel lines at 12, 16 and 20 px (15, 20 and 25 px). Headlines set their own tighter line (`line-height: 1.15`), and prose a looser one (`1.5`).
 
-The font also carries the Llama icon at U+E000, sitting on the baseline and reaching exactly the cap height, so it lines up with capitals in running text.
+The font also carries the Llama icon twice. At U+E000 it sits on the baseline and reaches exactly the cap height, so it lines up with capitals in running text. At U+E001 is its capital form, the icon as the lockups set it: 1.24 times the cap height, centred on the capitals, with a right sidebearing that puts the next letter, after a space, where the lockup puts it (0.56 cap heights at the Display size). Type it before a name for a lockup in text, or let `case` (all-caps settings) swap U+E000 for it.
 
 ## Llama Mono
 
@@ -74,4 +74,4 @@ The scripts work from any folder; they find `fonts/` themselves.
 
 Llama Sans and Llama Mono are derived from [Geist and Geist Mono](https://github.com/vercel/geist-font), © 2024 The Geist Project Authors, and are released under the SIL Open Font License 1.1, like Geist. See [OFL.txt](OFL.txt).
 
-The Llama icon glyph at U+E000 is the ggml-org mark, not part of the OFL grant: it is licensed under CC BY-NC 4.0 with the permissions in [`BRAND-USAGE.md`](../BRAND-USAGE.md), which cover embedding the mark into fonts to refer to Llama.app and Llama.cpp.
+The Llama icon glyphs at U+E000 and U+E001 are the ggml-org mark, not part of the OFL grant: it is licensed under CC BY-NC 4.0 with the permissions in [`BRAND-USAGE.md`](../BRAND-USAGE.md), which cover embedding the mark into fonts to refer to Llama.app and Llama.cpp.

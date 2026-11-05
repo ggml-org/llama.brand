@@ -3,9 +3,10 @@
 The icon comes from svg/icon/icon-light.svg; the wordmark, "Llama" and "llama.cpp" (always lowercase), is set in
 Llama Sans Bold at its Display optical size (fonts/variable/LlamaSans[opsz,wght].ttf at wght 700, opsz 40), shaped
 with HarfBuzz (so its kerning applies) and outlined, so the logo
-follows the fonts whenever they change. The icon is 520 px tall at the left of a 600 px lockup; the wordmark's cap
-height is 272.6 px on a baseline at 436, centred on the icon, its first letter starting at 741.5; each cover is the lockup centred
-on a 7500 × 2500 field. The icon and each lockup also come on their background (-bg): the same canvas, the mark
+follows the fonts whenever they change. The icon is 520 px tall at the left of a 600 px lockup, and the lockup's
+proportion is the font's own capital icon (U+E001): the icon 1.24 times the cap height, centred on the capitals, and
+the first letter as far after it as a space puts it, so the lockup matches the icon typed before the name. Each cover
+is the lockup centred on a 7500 × 2500 field. The icon and each lockup also come on their background (-bg): the same canvas, the mark
 centred on the light or dark field with an even margin, the icon optically lifted. Then render the WebP and PNG
 files with render_webp.sh.
 
@@ -24,8 +25,7 @@ ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
 FONT = os.path.join(ROOT, "..", "fonts", "variable", "LlamaSans[opsz,wght].ttf")
 WORDMARK = {"wght": 700, "opsz": 40}  # Bold, at the Display end of the optical size axis
 ICON_SIZE, ICON_TOP = 520, 40  # the icon in a 600 px lockup
-BASELINE, CAP_HEIGHT = 436, 272.6  # the wordmark's capitals span 163.4 to 436, centred on the icon
-WORD_LEFT = 741.5              # where the first letter starts
+CAPITAL_ICON = "\ue001"  # the font's capital icon: the lockup takes its size and spacing from it
 COVER_W, COVER_H, LOCKUP_H = 7500, 2500, 600
 # the on-background versions: the same canvas as the transparent file, the mark centred on the field with an even
 # margin of FIELD_MARGIN of the shorter side; the icon sits OPTICAL_LIFT of its height above centre, as in the Llama
@@ -70,29 +70,45 @@ def shaped(text):
     return [(i.codepoint, i.cluster, p.x_offset, p.x_advance) for i, p in zip(buf.glyph_infos, buf.glyph_positions)]
 
 
-def wordmark(font, text, split, x, k):
-    """Two outlines of `text`, set from x on the baseline at scale k: the characters before `split`, then the rest."""
+def proportions(font, text):
+    """The lockup's geometry from the font's capital icon: the cap height (px) when the icon is ICON_SIZE tall, the
+    baseline that centres the capitals on the icon, and where the first letter's ink starts, as typed after the icon
+    and a space."""
+    cap = font["OS/2"].sCapHeight
+    glyphs = shaped(CAPITAL_ICON + " " + text[0])
+    order, glyf = font.getGlyphOrder(), font["glyf"]
+    icon, first = glyf[order[glyphs[0][0]]], glyf[order[glyphs[2][0]]]
+    for g in (icon, first):
+        g.recalcBounds(glyf)
+    k = ICON_SIZE / (icon.yMax - icon.yMin)  # px per font unit
+    ink_gap = glyphs[0][3] + glyphs[1][3] + first.xMin - icon.xMax
+    return cap * k, ICON_TOP + ICON_SIZE / 2 + cap * k / 2, ICON_SIZE + ink_gap * k
+
+
+def wordmark(font, text, split, x, k, baseline):
+    """Two outlines of `text`, set from x on `baseline` at scale k: the characters before `split`, then the rest."""
     gs, order = font.getGlyphSet(), font.getGlyphOrder()
     ntos = lambda v: f"{v:.3f}".rstrip("0").rstrip(".")
     pens = [SVGPathPen(gs, ntos=ntos), SVGPathPen(gs, ntos=ntos)]
     for gid, cluster, offset, advance in shaped(text):
         pen = pens[cluster >= split]
-        gs[order[gid]].draw(TransformPen(pen, (k, 0, 0, -k, x + offset * k, BASELINE)))
+        gs[order[gid]].draw(TransformPen(pen, (k, 0, 0, -k, x + offset * k, baseline)))
         x += advance * k
     return [p.getCommands() for p in pens], x
 
 
 def lockup(font, name, colours, dx=0, dy=0):
     """The paths of one lockup, offset by (dx, dy), and its width."""
-    k = CAP_HEIGHT / font["OS/2"].sCapHeight
     text = "llama.cpp" if name == "llama-cpp" else "Llama"  # llama.cpp is always lowercase, Llama capitalised
+    cap_height, baseline, word_left = proportions(font, text)
+    k = cap_height / font["OS/2"].sCapHeight
     first = shaped(text[0])[0][0]
-    x0 = WORD_LEFT - font["glyf"][font.getGlyphOrder()[first]].xMin * k
+    x0 = word_left - font["glyf"][font.getGlyphOrder()[first]].xMin * k
     s = ICON_SIZE / 600
     group = f'<g transform="translate({dx} {dy})">'
     group += "".join(f'<path transform="translate(0 {ICON_TOP}) scale({s:.6f})" d="{d}" fill="{colours["icon"]}"/>'
                      for d in icon_paths())
-    (word, cpp), x = wordmark(font, text, 5, x0, k)
+    (word, cpp), x = wordmark(font, text, 5, x0, k, baseline)
     group += f'<path d="{word}" fill="{colours["word"]}"/>'
     if cpp:
         group += f'<path d="{cpp}" fill="{colours["cpp"]}"/>'
