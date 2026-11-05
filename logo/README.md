@@ -9,9 +9,18 @@ svg/        the source artwork
   cover/      7500 × 2500 covers, light, dark and alt
 webp/       every SVG rendered to a lossless WebP, same layout: icons and lockups at 2×, covers at 1×
 png/        the same renders as PNG, for tools that don't take WebP
-scripts/    render_webp.sh, which rebuilds webp/ and png/ from svg/
+scripts/    build_lockups.py, which draws the lockups and covers from the icon and Llama Mono;
+            render_webp.sh, which rebuilds webp/ and png/ from svg/
 showcase/   the icon breakdown page (SvelteKit 3, Svelte 5), built to a single self-contained index.html
 ```
+
+## Building the lockups and covers
+
+```bash
+uvx --with fonttools==4.68.0 python logo/scripts/build_lockups.py
+```
+
+The lockups and covers are generated, not drawn: the icon from `svg/icon/icon-light.svg`, the wordmark set in Llama Mono (`fonts/variable/LlamaMono[wght].ttf`, weight 530) and outlined, one cell per character, in the brand's ink, light and orange. Run it after any change to the icon or the fonts, then render the WebP and PNG files.
 
 ## Rendering the WebP and PNG files
 
