@@ -36,7 +36,7 @@ uvx --with fonttools==4.68.0 --with uharfbuzz python logo/scripts/build_social.p
 | LinkedIn | 400 × 400 | cover 1584 × 396, page cover 1128 × 191 |
 | YouTube | 800 × 800 | banner 2560 × 1440, logo inside the 1546 × 423 safe area |
 
-Avatars are the icon at 56% of the side, so the circle crop never touches it; banners are the Llama or llama.cpp lockup centred in the platform's safe area. They render at 1×, so the WebP and PNG files have exactly these sizes.
+Avatars are the icon at 56% of the side, so the circle crop never touches it, optically centred: lifted 1/60 of its height above centre, as in the Llama app icon, since its heavy bottom bar makes it read low when centred exactly; banners are the Llama or llama.cpp lockup centred in the platform's safe area. They render at 1×, so the WebP and PNG files have exactly these sizes.
 
 ## Rendering the WebP and PNG files
 
