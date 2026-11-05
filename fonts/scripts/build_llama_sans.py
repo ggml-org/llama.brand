@@ -32,6 +32,7 @@ from fontTools.pens.ttGlyphPen import TTGlyphPen
 from fontTools.pens.cu2quPen import Cu2QuPen
 from fontTools.cu2qu import curves_to_quadratic
 from fontTools.varLib.instancer import instantiateVariableFont, OverlapMode
+from fontTools.feaLib.builder import addOpenTypeFeaturesFromString
 from fontTools.designspaceLib import DesignSpaceDocument, SourceDescriptor, AxisDescriptor, InstanceDescriptor
 from fontTools import varLib
 from fontTools.otlLib.builder import buildStatTable
@@ -77,6 +78,12 @@ ICON_PATHS = [
     "M240 392H0L199.602 46.0254C216.032 17.5463 246.411 3.25756e-05 279.29 0H466.154L240 392Z",
 ]
 ICON_SIDE = 60   # space either side of the icon, font units
+# The capital icon, at U+E001 and through `case`: the icon as the lockups set it, CAPITAL_ICON times the cap height
+# and centred on the capitals, its right sidebearing CAPITAL_ICON_RIGHT so that with a space after it the gap to the
+# next letter is the lockup's (0.56 cap heights at the Display size). U+E000 stays cap-height for running text.
+CAPITAL_ICON = 1.24
+CAPITAL_ICON_CODEPOINT = 0xE001
+CAPITAL_ICON_RIGHT = 126
 CAP_RAISE = 0    # units added to the cap height (capitals scale up from the baseline; accents above them follow)
 DESCENDER = 140  # how deep lowercase descenders reach (Geist's 150): p, q, j, y, and g's bowl in proportion;
                  # a version can set its own (FAMILIES' descender)
@@ -371,13 +378,15 @@ def shape_t(segs_by_master, left, right):
     return out
 
 
-def add_icon(font, cell=None):
+def add_icon(font, cell=None, scale=1, codepoint=ICON_CODEPOINT, right=ICON_SIDE):
     """Draw the Llama icon in at U+E000: cap-height tall on the baseline, the same in every weight. With `cell`
-    (a monospace advance), it shrinks to fit the cell with ICON_SIDE either side, centred on half the cap height."""
+    (a monospace advance), it shrinks to fit the cell with ICON_SIDE either side, centred on half the cap height.
+    With `scale`, it is that many times the cap height, centred on the capitals, at `codepoint`, with `right` units
+    after it (the capital icon)."""
     from fontTools.svgLib.path import parse_path
     from fontTools.pens.transformPen import TransformPen
     cap = font["OS/2"].sCapHeight
-    size = min(cap, cell - 2 * ICON_SIDE) if cell else cap
+    size = min(cap, cell - 2 * ICON_SIDE) if cell else cap * scale
     k = size / 600
     top = (cap + size) / 2
     tt = TTGlyphPen(None)
@@ -385,13 +394,46 @@ def add_icon(font, cell=None):
     for d in ICON_PATHS:
         parse_path(d, pen)
     g = tt.glyph()
-    name = "uniE000"
+    name = f"uni{codepoint:04X}"
     font.setGlyphOrder(font.getGlyphOrder() + [name])
     font["glyf"][name] = g
     g.recalcBounds(font["glyf"])
-    font["hmtx"][name] = (cell or round(600 * k) + 2 * ICON_SIDE, g.xMin)
+    font["hmtx"][name] = (cell or round(size + ICON_SIDE + right), g.xMin)
     for t in font["cmap"].tables:
-        t.cmap[ICON_CODEPOINT] = name
+        t.cmap[codepoint] = name
+
+
+def add_features(font, fea):
+    """Append the features in `fea` (GSUB only) to the font's own GSUB, in every script and language; lookups for a
+    feature the font already has are added to it (shapers read one record per tag), after its own."""
+    tmp = TTFont()
+    tmp.setGlyphOrder(font.getGlyphOrder())
+    addOpenTypeFeaturesFromString(tmp, fea, tables=["GSUB"])
+    new, gsub = tmp["GSUB"].table, font["GSUB"].table
+    base = len(gsub.LookupList.Lookup)
+    for lookup in new.LookupList.Lookup:
+        for st in lookup.SubTable:
+            for rec in getattr(st, "SubstLookupRecord", []):
+                rec.LookupListIndex += base
+        gsub.LookupList.Lookup.append(lookup)
+    gsub.LookupList.LookupCount = len(gsub.LookupList.Lookup)
+    records = gsub.FeatureList.FeatureRecord
+    langs = [s.Script.DefaultLangSys for s in gsub.ScriptList.ScriptRecord if s.Script.DefaultLangSys] + \
+            [l.LangSys for s in gsub.ScriptList.ScriptRecord for l in s.Script.LangSysRecord]
+    for fr in new.FeatureList.FeatureRecord:
+        fr.Feature.LookupListIndex = [i + base for i in fr.Feature.LookupListIndex]
+        same = [r for r in records if r.FeatureTag == fr.FeatureTag]
+        if same:
+            for r in same:
+                r.Feature.LookupListIndex += fr.Feature.LookupListIndex
+                r.Feature.LookupCount = len(r.Feature.LookupListIndex)
+            continue
+        at = next((i for i, r in enumerate(records) if r.FeatureTag > fr.FeatureTag), len(records))  # tags stay sorted
+        records.insert(at, fr)
+        for ls in langs:
+            ls.FeatureIndex = sorted([i + (i >= at) for i in ls.FeatureIndex] + [at])
+            ls.FeatureCount = len(ls.FeatureIndex)
+    gsub.FeatureList.FeatureCount = len(records)
 
 
 def write_compatible(name, segs_by_master, masters):
@@ -491,6 +533,9 @@ def build_masters(var, track, descender=DESCENDER):
         write_compatible(name, cubics, masters)
     for m in masters:
         add_icon(m)
+        add_icon(m, scale=CAPITAL_ICON, codepoint=CAPITAL_ICON_CODEPOINT, right=CAPITAL_ICON_RIGHT)
+        # in all-caps settings (case), the icon takes its capital form
+        add_features(m, "feature case { sub uniE000 by uniE001; } case;")
     for mi, ((w, _), m) in enumerate(zip(MASTERS, masters)):
         glyf = m["glyf"]
         for n in ("a", "u", "l"):
@@ -715,8 +760,40 @@ def axis_weight(w):
     return 400 + (w - 400) * 300 / (TOP_WEIGHT - 400)
 
 
+def build_weight_variable(masters, family):
+    """A variable font over wght alone from the weight masters (Llama Mono, which has no optical size)."""
+    ps = family.replace(" ", "")
+    ds = DesignSpaceDocument()
+    ax = AxisDescriptor()
+    # the masters go where the stretched axis puts them (700's beyond 700), then the axis is cut back to 400–700
+    top = axis_weight(MASTERS[-1][0])
+    ax.tag, ax.name, ax.minimum, ax.default, ax.maximum = "wght", "Weight", 400, 400, top
+    ds.addAxis(ax)
+    for (w, _), m in zip(MASTERS, masters):
+        src = SourceDescriptor()
+        src.font, src.location, src.familyName = m, {"Weight": axis_weight(w)}, family
+        src.styleName = dict(NAMED)[w]
+        ds.addSource(src)
+    for w, style in NAMED:
+        ins = InstanceDescriptor()
+        ins.familyName, ins.styleName, ins.location = family, style, {"Weight": w}
+        ins.postScriptFontName = f"{ps}-{style}"
+        ds.addInstance(ins)
+    vf, _, _ = varLib.build(ds)
+    if top > 700:
+        vf = instantiateVariableFont(vf, {"wght": (400, 400, 700)}, inplace=False)
+    name_variable(vf, family)
+    buildStatTable(vf, [dict(tag="wght", name="Weight", values=[
+        dict(value=w, name=s, flags=0x2 if w == 400 else 0, **({"linkedValue": 700} if w == 400 else {}))
+        for w, s in NAMED])])
+    vf["OS/2"].usWeightClass = 400
+    return vf
+
+
 def build_variable(masters_by_size, family="Llama Sans"):
     """One variable font over wght and opsz from {opsz: masters}; the smallest opsz is the default."""
+    if not isinstance(masters_by_size, dict):  # weight masters alone
+        return build_weight_variable(masters_by_size, family)
     ps = family.replace(" ", "")
     sizes = sorted(masters_by_size)
     ds = DesignSpaceDocument()
@@ -755,8 +832,9 @@ def build_variable(masters_by_size, family="Llama Sans"):
 def cut_statics(vf, family="Llama Sans", out_dir="."):
     ps = family.replace(" ", "")
     for w, style in STATICS:
-        f = instantiateVariableFont(vf, {"wght": w, "opsz": min(SIZES)}, inplace=False, overlap=OverlapMode.REMOVE,
-                                    updateFontNames=False)
+        axes = {a.axisTag for a in vf["fvar"].axes}
+        at = {"wght": w, **({"opsz": min(SIZES)} if "opsz" in axes else {})}  # Sans's statics are cut at UI's size
+        f = instantiateVariableFont(vf, at, inplace=False, overlap=OverlapMode.REMOVE, updateFontNames=False)
         for tag in ("STAT",):
             if tag in f:
                 del f[tag]
