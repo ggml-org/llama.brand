@@ -6,10 +6,10 @@
 <section class="type" aria-label="The icon in Llama Sans">
 	<span class="kicker">In Llama Sans · U+E000</span>
 	<p class="lockup display">{''} {name}</p><!-- the capital icon, U+E001: the lockup's proportion, typed -->
-	<p class="lockup ui"><span class="pill">{''} Open in Llama</span><span class="pill ghost">{''} llama.app</span></p>
+	<p class="lockup ui"><span class="pill">{''} Open in Llama</span><span class="pill ghost">{''} llama.app</span></p>
 	<p class="lockup text">
-		The icon sits on the baseline and reaches exactly the cap height, so it lines up with capitals in a line of
-		text: {''} Llama, {''} LLAMA.CPP.
+		In small text and buttons the icon takes its capital form (U+E001), centred on the capitals, so it holds its own in a line of
+		text: {''} Llama, {''} LLAMA.CPP.
 	</p>
 </section>
 
