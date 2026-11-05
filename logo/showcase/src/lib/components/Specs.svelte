@@ -29,6 +29,6 @@
 	}
 	dd {
 		margin: 0;
-		font: 400 15px / normal 'Llama Sans UI', var(--body);
+		font: 400 15px / normal 'Llama Sans', var(--body);
 	}
 </style>

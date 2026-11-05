@@ -5,13 +5,23 @@
 
 <script lang="ts">
 	import { SIZE, SPLIT, corners, type Pt } from '#lib/logo.ts';
-	import { steps, progress, span, lerp, clamp, outCubic, inOutCubic, GLYPH, S, MID, X, Y, WORD, WX, BECOMES, STEP, LIGHTNING, BLUEPRINT, BLUEPRINT_STEP } from '#lib/origin.ts';
+	import { triangles } from '#lib/blueprint.ts';
+	import { steps, progress, span, lerp, clamp, outCubic, inOutCubic, inOutQuart, GLYPH, S, MID, X, Y, WORD, WX, BECOMES, STEP, LIGHTNING, BLUEPRINT, BLUEPRINT_STEP } from '#lib/origin.ts';
 
 	let { t }: { t: number } = $props();
 
 	const LEAN = 1 / Math.tan(Math.PI / 3); // 30° from upright: the shear that turns upright edges into 60° ones
 
-	const [, , pCpp, pPlus, pL, pOpen, pBolt, , pSoft, pFill] = $derived(steps.slice(0, 10).map((_, i) => progress(t, i)));
+	const [pCpp, pPlus, pBolt, pGrid, pSoft, pFill] = $derived(['C++', 'Plus', 'Bolt', 'Grid', 'Soften', 'Fill'].map((s) => progress(t, STEP[s])));
+
+	// the Grid step: the triangle grid the lean put the L on, across the whole frame, drawn line by line from the
+	// icon outwards (nearest lines first), each over the last two fifths of the step
+	const C: Pt = [SIZE / 2, SIZE / 2];
+	const off = ([a, b]: [Pt, Pt]) => Math.abs((b[0] - a[0]) * (a[1] - C[1]) - (a[0] - C[0]) * (b[1] - a[1])) / Math.hypot(b[0] - a[0], b[1] - a[1]);
+	const GRID = triangles([-900, -500, 1500, 1300]).sort((p, q) => off(p) - off(q));
+	const drawn = (i: number) => clamp((pGrid - (i / GRID.length) * 0.6) / 0.4);
+	// the L step: the parts of the plus the L doesn't need fade out as the camera moves
+	const gone_ = $derived(inOutCubic(clamp(progress(t, STEP.L) / 0.6)));
 	// a line drawing, like the sketches, until the icon is finished; then it fills in, just before the blueprint
 	// the blueprint's outlined parts take over from the solid icon
 	const B0 = steps[BLUEPRINT_STEP].from;
@@ -63,15 +73,8 @@
 		})
 	);
 
-	// the arms that go slide back into the centre; the centre then folds into the point where stem and foot meet
-	const going = $derived.by(() => {
-		const [l, b, c] = [at.left, at.bottom, at.centre];
-		return [
-			{ was: block.left, now: [lerp(l[0], l[2], pL), l[1], l[2], l[3]] as Box, p: pL },
-			{ was: block.bottom, now: [b[0], b[1], b[2], lerp(b[3], b[1], pL)] as Box, p: pL },
-			{ was: block.centre, now: [lerp(c[0], c[2], pOpen), c[1], c[2], lerp(c[3], c[1], pOpen)] as Box, p: pOpen }
-		];
-	});
+	// the parts that go: the left and bottom arms and the centre they share with the L
+	const going = $derived([at.left, at.bottom, at.centre]);
 
 	// the finished blades with their outer corners rounded by s (0 sharp, 1 the brand's own curve)
 	const towards = (a: Pt, b: Pt, s: number): Pt => [a[0] + (b[0] - a[0]) * s, a[1] + (b[1] - a[1]) * s];
@@ -84,24 +87,28 @@
 			? `M0 ${SPLIT}L${e}A${r} ${r} 0 0 1 ${f}L466.154 0L240 ${SPLIT}Z`
 			: `M240 ${SPLIT}L600 ${SPLIT}L${e}A${r} ${r} 0 0 1 ${f}L120 ${SIZE}Z`;
 	}
-	// the strike, in three beats over the Bolt step (x = 0 to 1): the bolt appears over the upright L and the two
-	// flash together a few times, the L in its own colour (the idea); both fade out and the stage is empty a moment;
+	// the strike, in three beats over the Bolt step (x = 0 to 1): the bolt appears over the upright L and strikes
+	// it twice, the L in its own colour (the idea); both fade out and the stage is empty a moment;
 	// then they come back as the slanted L inside the bolt, flashing and glitching, before the bolt fades and the L stays
-	const UPRIGHT = 0.36, GONE = 0.42, DARK = 0.48, SNAP = 0.52, SETTLE = 0.71;
+	const UPRIGHT = 0.24, GONE = 0.28, DARK = 0.34, SNAP = 0.38, SETTLE = 0.57;
 	const leaned = $derived(pBolt >= SNAP ? 1 : 0);
 	const k = $derived(LEAN * leaned);
 
 	// the strike: a lightning bolt fitted to the L races down over it from the top, flares, flickers once and dies
 	// away in yellow, with a glow; the L itself keeps its shape and only catches a little of the light
-	const round = $derived(pSoft); // already eased by the Soften step
+	// the Soften step: a dashed wheel grows into each outer corner, turning; as it slows to a stop the corner rounds
+	// onto it, and it comes to rest with its spoke on the point where the curve meets the flat edge
+	const wheel = $derived(outCubic(clamp(pSoft / 0.3)));
+	const turn = $derived(-200 * (1 - outCubic(pSoft)));
+	const round = $derived(inOutQuart(clamp((pSoft - 0.3) / 0.7)));
 	// the bolt comes first, as the idea: it strikes where the slanted L will be, and the slanted L appears with it;
 	// the two flash together a few times (on, off, on, dim, on), then the bolt settles to a glow and fades once the
 	// L has held there a moment
 	const leanEnd = steps[STEP.Lean].to;
 	const glow = 0.7;
 	// [until, level]: the upright L's flashes, then the slanted L's
-	const uprightPulses: [number, number][] = [[0.08, 1], [0.12, 0.1], [0.17, 1], [0.21, 0.15], [0.26, 1], [0.3, 0.2], [UPRIGHT, 1]];
-	const pulses: [number, number][] = [[0.56, 1], [0.59, 0.08], [0.63, 1], [0.66, 0.3], [SETTLE, 1]];
+	const uprightPulses: [number, number][] = [[0.1, 1], [0.15, 0.1], [UPRIGHT, 1]]; // two strokes, no more
+	const pulses: [number, number][] = [[0.42, 1], [0.45, 0.08], [0.49, 1], [0.52, 0.3], [SETTLE, 1]];
 	const strike = $derived.by(() => {
 		const x = pBolt;
 		if (x <= 0) return 0;
@@ -125,7 +132,7 @@
 		const x = Math.sin(n * 12.9898 + 78.233) * 43758.5453;
 		return x - Math.floor(x);
 	};
-	const glitch = $derived(pBolt >= SNAP && pBolt < 0.8 ? Math.sqrt(1 - (pBolt - SNAP) / (0.8 - SNAP)) : 0); // strong at first, easing off
+	const glitch = $derived(pBolt >= SNAP && pBolt < 0.66 ? Math.sqrt(1 - (pBolt - SNAP) / (0.66 - SNAP)) : 0); // strong at first, easing off
 	// the L's own visibility: the upright one stays under the bolt, then fades out with it; the slanted one blinks
 	// with the flashes (dark between them), then stays
 	// light mode only: the sky goes dark for the strike, like lightning at night, and day comes back as the bolt
@@ -181,15 +188,29 @@
 			</g>
 		{/if}
 		<g style:opacity={blocks}>
-		<g transform="matrix(1 0 {-k} 1 {SIZE * k} 0)">
-			<!-- the arms that go: they retract, and a faint outline of where they were stays until the lean -->
-			{#each going as g, i (i)}
-				<path d={poly(g.was)} class="ghost" style:opacity={0.7 * g.p * (1 - leaned) * lAlpha} />
-				<path d={poly(g.now)} class="fill" style:opacity={1 - g.p ** 6} />
-			{/each}
-		</g>
+		<!-- the parts that go simply fade, under the L's own outline, so the edges it shares with them stay -->
+		{#if gone_ < 1}
+			{#each going as b, i (i)}<path d={poly(b)} class="fill" style:opacity={1 - gone_} />{/each}
+		{/if}
+		{#if pGrid > 0 && pFill < 1}
+			<g class="grid" style:opacity={1 - pFill}>
+				{#each GRID as [a, b], i (i)}
+					<line x1={a[0]} y1={a[1]} x2={b[0]} y2={b[1]} pathLength="1" stroke-dasharray="1" stroke-dashoffset={1 - drawn(i)} />
+				{/each}
+			</g>
+		{/if}
 		<path d={top} class="blade" style:opacity={lAlpha} />
 		<path d={foot} class="blade" style:opacity={lAlpha} />
+		{#if wheel > 0}
+			{#each corners as c, i (i)}
+				{@const [cx, cy] = c.centre}
+				<g class="wheel" style:opacity={wheel} transform="translate({cx} {cy}) rotate({i ? -turn : turn}) scale({0.6 + 0.4 * wheel}) translate({-cx} {-cy})">
+					<circle {cx} {cy} r={c.r} class="rim" />
+					<line x1={cx} y1={cy} x2={c.tangentFlat[0]} y2={c.tangentFlat[1]} class="spoke" />
+					<circle {cx} {cy} r="5" class="hub" />
+				</g>
+			{/each}
+		{/if}
 		{#if jitter?.on}
 			<g class="glitch" style:opacity={glitch}>
 				<g transform={jitter.a} class="orange"><path d={top} /><path d={foot} /></g>
@@ -265,11 +286,28 @@
 		stroke: var(--l-bolt-glow);
 		opacity: 0.8;
 	}
-	.ghost {
+	/* the Grid step's triangles: faint, in the L's own colour (which is light in a light-mode night) */
+	/* in drawing units, not non-scaling, so the draw-on dash (pathLength 1) runs the whole line: about 1px in this frame */
+	.grid line {
+		stroke: var(--l-lit);
+		stroke-opacity: 0.22;
+		stroke-width: 2.6;
+	}
+	/* the Soften step's wheels: dashed, so their turning shows */
+	.wheel .rim,
+	.wheel .spoke {
 		fill: none;
-		stroke: var(--l-line);
+		stroke: var(--l-ink);
+		stroke-opacity: 0.55;
 		stroke-width: 1.5;
 		vector-effect: non-scaling-stroke;
+	}
+	.wheel .rim {
+		stroke-dasharray: 7 5;
+	}
+	.wheel .hub {
+		fill: var(--l-ink);
+		fill-opacity: 0.55;
 	}
 	/* the bolt: a white-hot core in a yellow glow and a blue halo, like real lightning */
 	.halo {

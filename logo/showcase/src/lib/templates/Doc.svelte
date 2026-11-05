@@ -43,13 +43,13 @@
 		color: var(--l-muted);
 	}
 	.logo > :global(h2) {
-		font: 700 clamp(32px, 5vw, 56px) / normal 'Llama Sans Display', var(--body);
+		font: 700 clamp(32px, 5vw, 56px) / 1.15 'Llama Sans', var(--body);
 	}
 	.logo > :global(h2 + p) {
 		max-width: 62ch;
 		margin-top: -30px;
 		color: var(--l-muted);
-		font: 400 17px / 1.5 'Llama Sans UI', var(--body);
+		font: 400 17px / 1.5 'Llama Sans', var(--body);
 	}
 	/* the origin's tiles sit closer under the animation they follow */
 	.logo > :global(.steps) {

@@ -8,7 +8,7 @@
 	import { onMount } from 'svelte';
 	import Morph from './Morph.svelte';
 	import { PATHS, SIZE, SPLIT, corners } from '#lib/logo.ts';
-	import { box, vb, lines, dims, deg, r, features, type Feature } from '#lib/blueprint.ts';
+	import { box, vb, lines, lattice, dims, deg, r, features, type Feature } from '#lib/blueprint.ts';
 	import { steps as originSteps, END, BLUEPRINT, BLUEPRINT_STEP, TILES, camera, span, stepAt } from '#lib/origin.ts';
 
 	let {
@@ -70,6 +70,8 @@
 		const n = TILES.indexOf(originSteps[i].name);
 		return n < 0 ? '' : `${String(n + 1).padStart(2, '0')} `;
 	};
+	// the triangles pencil in one stroke after another, each over the last two fifths of their window
+	const drawn = (i: number) => (done ? 1 : Math.min(1, Math.max(0, (fade.triangles - (i / lattice.length) * 0.6) / 0.4)));
 	const current = $derived(features.find((x) => x.f === active));
 	const featureAt = (e: Event) => ((e.target as Element).closest('[data-f]') as HTMLElement | null)?.dataset.f as Feature | undefined;
 	const pin = (f: Feature) => (pinned = pinned === f ? null : f);
@@ -129,6 +131,13 @@
 		{#each [['lower', PATHS[0]], ['upper', PATHS[1]]] as [f, d] (f)}
 			<path {d} class="part" data-f={f} class:on={active === f} />
 		{/each}
+		</g>
+		<!-- the ideal triangles, lightly pencilled inside the letter shape -->
+		<clipPath id="bp-icon">{#each PATHS as d, i (i)}<path {d} />{/each}</clipPath>
+		<g class="triangles" data-f="triangles" class:on={active === 'triangles'} clip-path="url(#bp-icon)">
+			{#each lattice as [a, b], i (i)}
+				<line x1={a[0]} y1={a[1]} x2={b[0]} y2={b[1]} pathLength="1" stroke-dasharray="1" stroke-dashoffset={1 - drawn(i)} />
+			{/each}
 		</g>
 		<!-- the origin animation, drawn into this same drawing until the blueprint takes over -->
 		{#if !done}<Morph {t} />{/if}
@@ -255,7 +264,7 @@
 		font-size: 11px;
 	}
 	.bp-title {
-		font: 700 20px 'Llama Sans Display', var(--body);
+		font: 700 20px 'Llama Sans', var(--body);
 		letter-spacing: 0;
 		fill: var(--l-ink);
 	}
@@ -274,6 +283,20 @@
 	.hero svg.focused [data-f]:not(.on),
 	.hero svg.focused .static {
 		opacity: 0.14;
+	}
+	/* slight strokes, like pencil inside the shape; not a target of their own, the chip highlights them */
+	.triangles {
+		pointer-events: none;
+	}
+	.triangles line {
+		stroke: var(--l-ink);
+		stroke-opacity: 0.22;
+		stroke-width: 1.1;
+		stroke-linecap: round;
+	}
+	.triangles.on line {
+		stroke-opacity: 0.6;
+		stroke-width: 1.6;
 	}
 	.hit {
 		fill: none;
@@ -407,7 +430,7 @@
 		background: none;
 		box-shadow: inset 0 0 0 1px var(--l-rule);
 		color: var(--l-muted);
-		font: 500 13px / normal 'Llama Sans UI', var(--body);
+		font: 500 13px / normal 'Llama Sans', var(--body);
 		cursor: pointer;
 		transition: background-color 160ms ease, color 160ms ease;
 	}
@@ -426,7 +449,7 @@
 	.caption {
 		margin: 0;
 		min-height: 2.9em;
-		font: 400 14px / 1.45 'Llama Sans UI', var(--body);
+		font: 400 14px / 1.45 'Llama Sans', var(--body);
 		color: var(--l-muted);
 	}
 	.caption strong {
