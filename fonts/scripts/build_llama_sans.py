@@ -49,7 +49,7 @@ TOP_WEIGHT = 640
 # line metrics (typo ascender, descender, line gap; win metrics stay at full height so nothing clips).
 # Every version's line box has its midline at half the cap height (355), so text centres the same way.
 FAMILIES = {
-    "Display": dict(track=-26, kern=1.15, pairs=1.00, fixes="DISPLAY_KERN", line=(930, -220, 0)),  # 1.15 em leading
+    "Display": dict(track=-22, kern=1.15, pairs=1.00, fixes="DISPLAY_KERN", line=(930, -220, 0)),  # 1.15 em leading
     # UI: interfaces and running text, spaced like SF Pro at 14–15 pt. 1.25 em line box whose midline sits exactly at half
     # the cap height ((980 - 270) / 2 = 355 = 710 / 2), so capitals and cap-height icons centre in
     # buttons and chips with even padding; 12/16/20 px give whole-pixel 15/20/25 px lines.
@@ -602,10 +602,12 @@ UI_KERN = [
 # In both versions r·e and r·a close up by hand, r·a the most: the open space under r's arm reads loose before
 # them, and widest before a's low bowl (UI's ('r', 'e', 2) and ('r', 'a', -2) above, Display's here). UI's r·c, r·d,
 # r·o and r·q sit a little closer than SF's too (15 rather than 27), so the slight tracking doesn't open them up.
-# r·y opens a little the other way: r's arm and y's top sat almost touching.
+# r·y opens a little the other way: r's arm and y's top sat almost touching. In Display, t before a tall stem
+# (b, h, k, l) opens up a touch too: the crossbar and the stem read crowded at headline sizes.
 TT_OVERLAP = 1   # t·t: how far the crossbars of a double t overlap, so they read as one bar (tt_join)
 DISPLAY_KERN = [  # the first three: SF at opsz 28
     ("VW", "-", -29), ("Y", ".,", -88), ("Y", "-", -73), ("r", "e", -15), ("r", "a", -21), ("r", "y", 16), ("y", "t", 8),
+    ("t", "bhkl", 10),
 ]
 
 
