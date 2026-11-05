@@ -24,7 +24,7 @@ title: Llama Sans
 
 <Masthead variant={view.variant}>
 
-The sans of the Llama family, with Mono below and Serif to follow. A neo-grotesk with an even stroke, round bowls and open, angle-cut terminals, in two variable fonts from {axis.min} to {axis.max} that share their outlines: Display for headlines, UI for interfaces and running text.
+The sans of the Llama family, with Mono below and Serif to follow. A neo-grotesk with an even stroke, round bowls and open, angle-cut terminals, in one variable font from {axis.min} to {axis.max} with an optical size axis: Display at its large end for headlines, UI at its small end for interfaces and running text.
 
 </Masthead>
 

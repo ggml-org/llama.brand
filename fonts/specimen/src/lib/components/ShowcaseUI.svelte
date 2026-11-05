@@ -6,7 +6,7 @@
 
 	const tabs = ['Overview', 'Glyphs', 'Kerning', 'Export'];
 	let tab = $state('Overview');
-	let name = $state('Llama Sans UI');
+	let name = $state('Llama Sans');
 	const settings = $state([
 		{ label: 'Tabular figures', hint: 'Align numbers in tables', on: true },
 		{ label: 'Case-sensitive forms', hint: 'Raise punctuation between capitals', on: false },

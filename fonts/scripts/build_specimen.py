@@ -1,7 +1,7 @@
 """Exports the data the specimen app (specimen/, SvelteKit) is built from.
 
 Writes specimen/src/lib/data/specimen.json (metrics, weights, versions and every glyph cell's
-outline), copies the variable fonts (Llama Sans, and Llama Mono for its code sample) to specimen/src/lib/fonts/ and writes their @font-face rules
+outline), copies the variable fonts (Llama Sans, one font over wght and opsz, and Llama Mono for its code sample) to specimen/src/lib/fonts/ and writes their @font-face rules
 (fonts.css). Then build the page with:
 
     cd specimen && npm run build        # -> specimen/build/index.html, a single self-contained file
@@ -9,7 +9,7 @@ outline), copies the variable fonts (Llama Sans, and Llama Mono for its code sam
 Run:  python scripts/build_specimen.py
       python scripts/build_specimen.py --prev-fonts=DIR [--fonts=DIR] [--prev-label="Before|After"]
       (--prev-fonts adds a floating Before/After switch comparing every version and the glyph grid with
-       another build laid out like this folder: variable/LlamaSans{Display,UI,Text}[wght].ttf and static/;
+       another build laid out like this folder: variable/LlamaSans[opsz,wght].ttf and static/;
        --fonts takes the "after" build from somewhere other than this folder)
 """
 import json
@@ -23,8 +23,8 @@ from fontTools.pens.boundsPen import BoundsPen
 from fontTools.ttLib import TTFont
 
 APP = "specimen"
-VARIANTS = ["Display", "UI"]                         # versions of Llama Sans the page can switch between
-GRID_VARIANT = "UI"                           # the glyph grid is drawn from this version's statics
+VARIANTS = ["Display", "UI"]                  # the optical sizes the page can switch between (the axis's named ends)
+GRID_VARIANT = "UI"                           # the glyph grid is drawn from the statics, which are cut at UI's size
 STYLES = [(400, "Regular"), (500, "Medium"), (600, "SemiBold"), (700, "Bold")]
 WATERFALL = [(400, "Regular"), (500, "Medium"), (600, "SemiBold"), (700, "Bold")]
 GROUPS = [("Uppercase", "ABCDEFGHIJKLMNOPQRSTUVWXYZ"),
@@ -65,14 +65,14 @@ def differs(a, b, tol=2):
 
 def main():
     fonts = FONTS or "."
-    statics = {w: TTFont(f"{fonts}/static/LlamaSans{GRID_VARIANT}-{s}.ttf") for w, s in STYLES}
+    statics = {w: TTFont(f"{fonts}/static/LlamaSans-{s}.ttf") for w, s in STYLES}
     base = statics[400]
     os2 = base["OS/2"]
     asc, dsc = round(bounds(base, "l")[3]), round(bounds(base, "p")[1])
     top, bot = asc + 60, dsc - 40
     chars = [c for _, s in GROUPS for c in s]
     vw = max(f["hmtx"][f.getBestCmap()[ord(c)]][0] for f in statics.values() for c in chars) + 60
-    prev = {w: TTFont(f"{PREV}/static/LlamaSans{GRID_VARIANT}-{s}.ttf") for w, s in STYLES} if PREV else {}
+    prev = {w: TTFont(f"{PREV}/static/LlamaSans-{s}.ttf") for w, s in STYLES} if PREV else {}
 
     cells = {}
     for w, font in statics.items():
@@ -95,7 +95,7 @@ def main():
     for w, font in statics.items():
         b = bounds(font, "I")
         stems[w] = round(b[2] - b[0])
-    axis = TTFont(f"{fonts}/variable/LlamaSans{GRID_VARIANT}[wght].ttf")["fvar"].axes[0]
+    axis = next(a for a in TTFont(f"{fonts}/variable/LlamaSans[opsz,wght].ttf")["fvar"].axes if a.axisTag == "wght")
 
     fonts_dir = os.path.join(APP, "src", "lib", "fonts")
     os.makedirs(fonts_dir, exist_ok=True)
@@ -103,12 +103,12 @@ def main():
         if old.endswith(".ttf"):
             os.remove(os.path.join(fonts_dir, old))
     faces = []
-    for v in VARIANTS:  # brackets in file names trip up bundlers, so the app gets plain names
-        shutil.copy(f"{fonts}/variable/LlamaSans{v}[wght].ttf", os.path.join(fonts_dir, f"LlamaSans{v}-VF.ttf"))
-        faces.append((f"Llama Sans {v}", f"LlamaSans{v}-VF.ttf"))
-        if PREV:
-            shutil.copy(f"{PREV}/variable/LlamaSans{v}[wght].ttf", os.path.join(fonts_dir, f"LlamaSansPrev{v}-VF.ttf"))
-            faces.append((f"Llama Sans Prev {v}", f"LlamaSansPrev{v}-VF.ttf"))
+    # brackets in file names trip up bundlers, so the app gets plain names
+    shutil.copy(f"{fonts}/variable/LlamaSans[opsz,wght].ttf", os.path.join(fonts_dir, "LlamaSans-VF.ttf"))
+    faces.append(("Llama Sans", "LlamaSans-VF.ttf"))
+    if PREV:
+        shutil.copy(f"{PREV}/variable/LlamaSans[opsz,wght].ttf", os.path.join(fonts_dir, "LlamaSansPrev-VF.ttf"))
+        faces.append(("Llama Sans Prev", "LlamaSansPrev-VF.ttf"))
     if os.path.exists(f"{fonts}/variable/LlamaMono[wght].ttf"):  # Llama Mono, for the code sample
         shutil.copy(f"{fonts}/variable/LlamaMono[wght].ttf", os.path.join(fonts_dir, "LlamaMono-VF.ttf"))
         faces.append(("Llama Mono", "LlamaMono-VF.ttf"))

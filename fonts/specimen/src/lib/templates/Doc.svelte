@@ -1,17 +1,18 @@
 <!--
-	The template every +page.svx uses: the page frame, set in the version and weight the page is showing, with the
+	The template every +page.svx uses: the page frame, set in the version (an optical size, pinned with opsz) and
+	weight the page is showing, with the
 	keyboard shortcuts (V for the next version, B to compare builds). Frontmatter: title (browser tab).
 	Markdown h2s are the section labels; the paragraph right under one is its quiet note.
 -->
 <script lang="ts">
 	import type { Snippet } from 'svelte';
-	import { specimen, fallback } from '#lib/specimen.ts';
+	import { specimen, fallback, opsz } from '#lib/specimen.ts';
 	import { view } from '#lib/view.svelte.ts';
 
 	let { title, children }: { title: string; children: Snippet } = $props();
 
-	// comparing swaps every version for the same version of the earlier build
-	const family = $derived(`"Llama Sans ${view.comparing ? 'Prev ' : ''}${view.variant}", ${fallback}`);
+	// comparing swaps the font for the earlier build's, at the same optical size
+	const family = $derived(`"Llama Sans${view.comparing ? ' Prev' : ''}", ${fallback}`);
 
 	function onkeydown(e: KeyboardEvent) {
 		const t = e.target as HTMLElement;
@@ -29,7 +30,8 @@
 <svelte:head><title>{title}</title></svelte:head>
 <svelte:window {onkeydown} />
 
-<div class="wrap" style:--w={view.weight} style:--display={family}>{@render children()}</div>
+<div class="wrap" style:--w={view.weight} style:--display={family}
+	style:--opsz-pin={`'opsz' ${opsz[view.variant] ?? 16}`}>{@render children()}</div>
 
 <style>
 	.wrap {
@@ -54,6 +56,7 @@
 		color: var(--muted);
 	}
 	.wrap > :global(h2 + p) {
+		--opsz-pin: normal; /* the page's own notes keep the optical size of their font-size */
 		margin-bottom: -38px;
 		font-size: 13px;
 		color: var(--muted);
