@@ -3,8 +3,8 @@
 :root {
 	--page: oklch(0.97 0 0);
 	--ink: #111111;
-	--body: 'Llama Sans UI', system-ui, -apple-system, 'Segoe UI', sans-serif;
-	--mono: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas, monospace;
+	--body: 'Llama Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+	--mono: 'Llama Mono', ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas, monospace;
 }
 @media (prefers-color-scheme: dark) {
 	:root:not([data-theme='light']) {

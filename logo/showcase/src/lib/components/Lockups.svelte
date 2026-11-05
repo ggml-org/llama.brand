@@ -28,7 +28,7 @@
 		margin: 0;
 	}
 	.display {
-		font: 700 clamp(48px, 9vw, 112px) / normal 'Llama Sans Display', var(--body);
+		font: 700 clamp(48px, 9vw, 112px) / 1.15 'Llama Sans', var(--body);
 	}
 	.ui {
 		display: flex;
@@ -42,7 +42,7 @@
 		border-radius: 8px;
 		background: var(--l-ink);
 		color: var(--l-bg);
-		font: 500 15px / normal 'Llama Sans UI', var(--body);
+		font: 500 15px / normal 'Llama Sans', var(--body);
 	}
 	.pill.ghost {
 		background: none;
@@ -51,6 +51,6 @@
 	}
 	.text {
 		max-width: 62ch;
-		font: 400 17px / 1.5 'Llama Sans UI', var(--body);
+		font: 400 17px / 1.5 'Llama Sans', var(--body);
 	}
 </style>

@@ -1,9 +1,9 @@
-<!-- One step of where the icon comes from, as a tile: the name llama.cpp, the plus of its C++, the L inside it, the opened corner, the lean with
+<!-- One step of where the icon comes from, as a tile: the name llama.cpp, the plus of its C++, the L inside it with its centre left empty, the lean with
      the bolt inside it, and the softened corners. The caption is the children. With t (the origin animation's clock), the tile
      stays dimmed until the animation has drawn its step, and a click
      moves the clock to that step (bind:t). -->
 <script lang="ts" module>
-	export const ORIGIN_STEPS = ['name', 'plus', 'l', 'open', 'lean', 'soften'] as const;
+	export const ORIGIN_STEPS = ['name', 'plus', 'l', 'lean', 'soften'] as const;
 	export type OriginStepName = (typeof ORIGIN_STEPS)[number];
 </script>
 
@@ -12,7 +12,7 @@
 	import Figure from './Figure.svelte';
 	import { PATHS, SPLIT, corners } from '#lib/logo.ts';
 	import { LIGHTNING, steps as originSteps, STEP, WORD } from '#lib/origin.ts';
-	import { arm, plus, parts, rect, sheared } from '#lib/blueprint.ts';
+	import { arm, plus, parts, rect, sheared, triangles } from '#lib/blueprint.ts';
 
 	let {
 		step,
@@ -25,7 +25,6 @@
 		name: 'llama.cpp',
 		plus: 'Plus',
 		l: 'L',
-		open: 'Open the corner',
 		lean: 'Lean',
 		soften: 'Soften'
 	};
@@ -37,10 +36,11 @@
 		name: '-200 -2680 4800 4800',
 		plus: upright,
 		l: upright,
-		open: upright,
 		lean: leaning,
 		soften: leaning
 	};
+	// the lean puts every edge on a grid of ideal triangles, drawn faintly across the lean's tile
+	const grid = triangles([-260, -260, 860, 860]);
 	const i = $derived(ORIGIN_STEPS.indexOf(step));
 	// each tile is named after its step of the origin animation
 	// a click shows the step drawn; the tile lights up then too, except the lean's, which lights up with the bolt's
@@ -68,14 +68,22 @@
 		{:else if step === 'plus'}
 			{#each plus as d, j (j)}<path {d} class="cell" />{/each}
 		{:else if step === 'l'}
-			{#each plus as d, j (j)}<path {d} class="ghost" />{/each}
-			<path d="{rect(arm.top)}{rect(arm.centre)}{rect(arm.right)}" fill="var(--l-shape)" />
-		{:else if step === 'open'}
+			<!-- the top and right arms, with the centre they would share left empty and marked: that gap makes it an L -->
 			{#each plus as d, j (j)}<path {d} class="ghost" />{/each}
 			{#each parts as d, j (j)}<path {d} fill="var(--l-shape)" />{/each}
-			<path d={rect(arm.centre)} class="lifted" />
-			<circle cx="120" cy={SPLIT} r="14" class="joint" />
+			<path d={rect(arm.centre)} class="mark" />
+			<circle cx="120" cy={SPLIT} r="14" class="mark-joint" />
 		{:else if step === 'lean'}
+			<!-- the grid fades out towards the tile's edges, so it reads as a field around the L, not a block -->
+			<defs>
+				<radialGradient id="lean-grid-fade"><stop offset="0.35" stop-color="#fff" /><stop offset="1" stop-color="#fff" stop-opacity="0" /></radialGradient>
+				<mask id="lean-grid-mask" maskUnits="userSpaceOnUse" x="-260" y="-260" width="1120" height="1120">
+					<rect x="-260" y="-260" width="1120" height="1120" fill="url(#lean-grid-fade)" />
+				</mask>
+			</defs>
+			<g mask="url(#lean-grid-mask)">
+				{#each grid as [a, b], j (j)}<line x1={a[0]} y1={a[1]} x2={b[0]} y2={b[1]} class="tri" />{/each}
+			</g>
 			{#each parts as d, j (j)}<path {d} class="lifted" />{/each}
 			<path d={LIGHTNING} class="strike" />
 			<g transform={sheared}>{#each parts as d, j (j)}<path {d} class="cell-outline" />{/each}</g>

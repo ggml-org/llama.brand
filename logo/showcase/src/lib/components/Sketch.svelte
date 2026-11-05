@@ -46,12 +46,12 @@
 		display: grid;
 		gap: 6px;
 		justify-items: start;
-		font: 400 14px / 1.5 'Llama Sans UI', var(--body);
+		font: 400 14px / 1.5 'Llama Sans', var(--body);
 		color: var(--l-muted);
 	}
 	.sketch-text strong {
 		color: var(--l-ink);
-		font: 600 15px / normal 'Llama Sans UI', var(--body);
+		font: 600 15px / normal 'Llama Sans', var(--body);
 	}
 	.sketch-open,
 	.sketch-close {
@@ -62,7 +62,7 @@
 		background: none;
 		box-shadow: inset 0 0 0 1px var(--l-ink);
 		color: var(--l-ink);
-		font: 500 15px / normal 'Llama Sans UI', var(--body);
+		font: 500 15px / normal 'Llama Sans', var(--body);
 		cursor: pointer;
 	}
 	.sketch-open:focus-visible,

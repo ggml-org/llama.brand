@@ -64,12 +64,12 @@
 	figcaption {
 		display: grid;
 		gap: 2px;
-		font: 400 14px / 1.5 'Llama Sans UI', var(--body);
+		font: 400 14px / 1.5 'Llama Sans', var(--body);
 		color: var(--l-muted);
 	}
 	strong {
 		color: var(--l-ink);
-		font: 600 15px / normal 'Llama Sans UI', var(--body);
+		font: 600 15px / normal 'Llama Sans', var(--body);
 	}
 	.step {
 		font: 500 11px var(--mono);
@@ -113,6 +113,25 @@
 		stroke-dasharray: 5 5;
 		vector-effect: non-scaling-stroke;
 	}
+	/* the grid of ideal triangles the lean puts the L on */
+	svg :global(.tri) {
+		stroke: var(--l-line);
+		stroke-opacity: 0.45;
+		stroke-width: 1;
+		vector-effect: non-scaling-stroke;
+	}
+	/* the empty centre that makes the + an L, marked in the accent */
+	svg :global(.mark) {
+		fill: var(--l-mark);
+		fill-opacity: 0.12;
+		stroke: var(--l-mark);
+		stroke-width: 2.5;
+		stroke-dasharray: 7 5;
+		vector-effect: non-scaling-stroke;
+	}
+	svg :global(.mark-joint) {
+		fill: var(--l-mark);
+	}
 	svg :global(.strike) {
 		fill: var(--l-bolt-core);
 		stroke: var(--l-bolt-glow);
@@ -140,7 +159,7 @@
 		vector-effect: non-scaling-stroke;
 	}
 	svg :global(.note) {
-		font: 500 30px 'Llama Sans UI', var(--body);
+		font: 500 30px 'Llama Sans', var(--body);
 		fill: var(--l-ink);
 	}
 	svg :global(.note.on-shape) {
