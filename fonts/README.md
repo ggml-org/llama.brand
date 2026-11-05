@@ -22,7 +22,7 @@ Llama Mono is the monospaced member, built from Geist Mono with Llama Sans's cha
 - tt joins its crossbars with contextual alternates (`calt`) instead of kerning: a t before a t runs its bar to the cell's right edge, a t after one to its left edge.
 - The Llama icon at U+E000 fits the cell (480 units) and centres on half the cap height.
 
-Geist Mono's coding ligatures (`->`, `=>`, `!==` …) stay as they are, under `liga`.
+Geist Mono's coding ligatures (`->`, `=>`, `!==` …) stay, under `liga`, but keep one cell per character: Geist Mono swaps a whole sequence for one 600-unit glyph, which pulled the rest of the line left, so each ligature now puts back an empty spacer cell (`LIG`) for every character it replaced.
 
 ## Files
 
