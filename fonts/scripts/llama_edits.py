@@ -18,6 +18,8 @@ ROUND = 0.55     # 0 = Geist's curve tension, 1 = circular
 T_TOP_DROP = 32  # the t's stem top: how far its left corner drops, angling the cut
 T_FOOT_SLIDE = 26  # the t's foot end: how far its bottom corner slides in, angling the cut (0 = upright)
 CIRCLE = 0.5523  # cubic handle ratio of a circular quarter
+COPYRIGHT = ("Copyright 2024 The Geist Project Authors (https://github.com/vercel/geist-font). "
+             "Modifications copyright 2026 the Llama Sans authors.")  # name ID 0; Llama Mono sets its own
 
 
 # ---------- cubic helpers ----------
@@ -320,8 +322,7 @@ def finish(font, style, family="Llama Sans"):
     for nid in (1, 2, 3, 4, 5, 6, 16, 17, 21, 22, 25):
         nt.removeNames(nameID=nid)
     names = {
-        0: "Copyright 2024 The Geist Project Authors (https://github.com/vercel/geist-font). "
-           "Modifications copyright 2026 the Llama Sans authors.",
+        0: COPYRIGHT,
         3: f"0.6;{ps}-{style}", 4: f"{family} {style}",
         5: "Version 0.600; draft based on Geist", 6: f"{ps}-{style}",
     }
