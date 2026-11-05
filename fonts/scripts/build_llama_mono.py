@@ -14,6 +14,10 @@ deeper stem joins. What differs is what a monospace font needs:
   under 30 units of sidebearing. The s, with room to spare, takes Sans's 3%.
 - tt joins through contextual alternates (calt) instead of kerning: a t before another t runs its crossbar to the
   right edge of its cell, a t after one runs it to the left edge, so the bars meet across the cells as in Sans.
+- Coding ligatures (-> => !== …) keep one cell per character. Geist Mono draws each ligature reaching back over the
+  cells before it but substitutes the whole sequence with that one 600-unit glyph, so every ligature pulled the rest
+  of the line a cell or more to the left. Each ligature now puts back an empty spacer cell (LIG) for every character
+  it swallowed, before the ligature glyph, so `->` takes two cells, `!==` three, and columns stay in line.
 - The Llama icon at U+E000 fits the cell (Sans's is cap-height wide, more than a cell) and centres on half the cap
   height, so it lines up with capitals.
 - One version, set like Llama Sans UI: its descenders and its line box centred on the cap height.
@@ -164,13 +168,15 @@ def build_masters(var):
         notdef.coordinates.translate(((CELL - m["hmtx"][".notdef"][0]) // 2, 0))
         m["hmtx"][".notdef"] = (CELL, 0)
         sans.add_icon(m, cell=CELL)
+        add_spacer(m)
         sans.fix_lsb(m)
         sans.set_line_metrics(m, LINE)
     return masters
 
 
 def add_calt(font, fea):
-    """Append the features in `fea` (GSUB only) to the font's own GSUB, in every script and language."""
+    """Append the features in `fea` (GSUB only) to the font's own GSUB, in every script and language; lookups for a
+    feature the font already has are added to it."""
     tmp = TTFont()
     tmp.setGlyphOrder(font.getGlyphOrder())
     addOpenTypeFeaturesFromString(tmp, fea, tables=["GSUB"])
@@ -187,12 +193,44 @@ def add_calt(font, fea):
             [l.LangSys for s in gsub.ScriptList.ScriptRecord for l in s.Script.LangSysRecord]
     for fr in new.FeatureList.FeatureRecord:
         fr.Feature.LookupListIndex = [i + base for i in fr.Feature.LookupListIndex]
+        same = [r for r in records if r.FeatureTag == fr.FeatureTag]
+        if same:  # a feature the font has already: its lookups join it (shapers read one record per tag), run last
+            for r in same:
+                r.Feature.LookupListIndex += fr.Feature.LookupListIndex
+                r.Feature.LookupCount = len(r.Feature.LookupListIndex)
+            continue
         at = next((i for i, r in enumerate(records) if r.FeatureTag > fr.FeatureTag), len(records))  # tags stay sorted
         records.insert(at, fr)
         for ls in langs:
             ls.FeatureIndex = sorted([i + (i >= at) for i in ls.FeatureIndex] + [at])
             ls.FeatureCount = len(ls.FeatureIndex)
     gsub.FeatureList.FeatureCount = len(records)
+
+
+SPACER = "LIG"  # the empty cell a ligature puts back for each character it swallowed
+
+
+def add_spacer(font):
+    """An empty, unencoded glyph one cell wide."""
+    from fontTools.ttLib.tables._g_l_y_f import Glyph
+    font.setGlyphOrder(font.getGlyphOrder() + [SPACER])
+    font["glyf"][SPACER] = Glyph()
+    font["hmtx"][SPACER] = (CELL, 0)
+
+
+def ligature_spacing_fea(font):
+    """A liga lookup run after Geist Mono's own: each ligature glyph becomes spacers plus itself, one cell for every
+    character the ligature replaced. Only the coding ligatures (*.liga), not Geist Mono's accent stacks or №."""
+    sizes = {}
+    for lookup in font["GSUB"].table.LookupList.Lookup:
+        for st in lookup.SubTable:
+            st = getattr(st, "ExtSubTable", st)
+            for ligs in (getattr(st, "ligatures", None) or {}).values():
+                for lig in ligs:
+                    if lig.LigGlyph.endswith(".liga"):
+                        sizes[lig.LigGlyph] = len(lig.Component) + 1
+    rules = "\n".join(f"    sub {g} by {' '.join([SPACER] * (n - 1))} {g};" for g, n in sorted(sizes.items()))
+    return f"lookup liga_cells {{\n{rules}\n}} liga_cells;\nfeature liga {{ lookup liga_cells; }} liga;\n"
 
 
 def check_cells(font):
@@ -213,7 +251,7 @@ if __name__ == "__main__":
     for d in ("variable", "static"):
         os.makedirs(os.path.join(out_dir, d), exist_ok=True)
     vf = sans.build_variable(build_masters(var), FAMILY)
-    add_calt(vf, TT_FEA)
+    add_calt(vf, TT_FEA + ligature_spacing_fea(vf))
     check_cells(vf)
     out = os.path.join(out_dir, "variable", "LlamaMono[wght].ttf")
     vf.save(out)
