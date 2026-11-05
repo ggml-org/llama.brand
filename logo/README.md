@@ -8,11 +8,12 @@ svg/        the source artwork
   lockup/     the icon with the Llama and Llama.cpp wordmarks
   cover/      7500 × 2500 covers, light, dark and alt
 webp/       every SVG rendered to a lossless WebP, same layout: icons and lockups at 2×, covers at 1×
-scripts/    render_webp.sh, which rebuilds webp/ from svg/
+png/        the same renders as PNG, for tools that don't take WebP
+scripts/    render_webp.sh, which rebuilds webp/ and png/ from svg/
 showcase/   the icon breakdown page (SvelteKit 3, Svelte 5), built to a single self-contained index.html
 ```
 
-## Rendering the WebP files
+## Rendering the WebP and PNG files
 
 ```bash
 logo/scripts/render_webp.sh
