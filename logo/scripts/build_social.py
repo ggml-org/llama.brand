@@ -1,6 +1,6 @@
 """Builds the social profile assets in logo/svg/social/: avatars and banners for X, LinkedIn and YouTube.
 
-Avatars are the icon, centred and small enough to survive the platforms' circle crop; banners are the Llama or
+Avatars are the icon, optically centred (lifted a little) and small enough to survive the platforms' circle crop; banners are the Llama or
 llama.cpp lockup (from build_lockups.py) centred inside each platform's safe area, where nothing gets cropped or sits
 under the avatar. Everything comes light and dark, at each platform's recommended size; render_webp.sh renders these
 at 1×, so the WebP and PNG files have exactly those sizes.
@@ -12,6 +12,9 @@ from fontTools.ttLib import TTFont
 from build_lockups import DARK, FONT, LIGHT, LOCKUP_H, ROOT, icon_paths, lockup, svg, write
 
 AVATAR_ICON = 0.56  # the icon's share of the avatar's side, inside the circle crop
+# the icon sits 1/60 of its height above centre, as in the Llama app's icon: its weight is low (the wide bottom bar),
+# so mathematically centred it reads as sitting low; this offset makes it look centred
+OPTICAL_LIFT = 1 / 60
 BANNER_LOCKUP = 0.3  # the lockup's height as a share of the safe area's height, at most
 BANNER_WIDTH = 0.6  # and its width as a share of the safe area's width, at most
 
@@ -25,10 +28,11 @@ PLATFORMS = {
 
 def avatar(size, colours):
     side = size * AVATAR_ICON
-    s, at = side / 600, (size - side) / 2
+    s, x = side / 600, (size - side) / 2
+    y = x - side * OPTICAL_LIFT
     icon = "".join(f'<path d="{d}" fill="{colours["icon"]}"/>' for d in icon_paths())
     return svg(size, size, f'<rect width="{size}" height="{size}" fill="{colours["field"]}"/>\n'
-                           f'<g transform="translate({at:.3f} {at:.3f}) scale({s:.6f})">{icon}</g>')
+                           f'<g transform="translate({x:.3f} {y:.3f}) scale({s:.6f})">{icon}</g>')
 
 
 def banner(font, name, w, h, safe_w, safe_h, colours):
