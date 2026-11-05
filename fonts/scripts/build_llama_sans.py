@@ -55,7 +55,8 @@ FAMILIES = {
     # buttons and chips with even padding; 12/16/20 px give whole-pixel 15/20/25 px lines.
     # Geist's kerning at 105% and the pair corrections at 75%, then UI_KERN brings it to SF Pro's text kerning.
     # Its descenders run deeper than Display's, to `descender` units below the baseline.
-    "UI":      dict(track=0,   kern=1.05, pairs=0.75, fixes="UI_KERN", descender=155, line=(980, -270, 0)),
+    # A slight +6 tracking opens running text a touch at small sizes.
+    "UI":      dict(track=6,   kern=1.05, pairs=0.75, fixes="UI_KERN", descender=155, line=(980, -270, 0)),
 }
 NAMED = [(400, "Regular"), (500, "Medium"), (600, "SemiBold"), (700, "Bold")]
 STATICS = [(400, "Regular"), (500, "Medium"), (600, "SemiBold"), (700, "Bold")]
@@ -595,12 +596,13 @@ UI_KERN = [
     ('F', 'a', -13), ('F', 'A', 50), ('P', 'A', 30), ('A', 'vwy', -5), ('A', 'VW', 52), ('VW', 'A', 52),
     ('A', 'T', 11), ('T', 'A', 11), ('L', 'VW', 100), ('L', 'Y', 75), ('L', 'T', 54), ('L', 'y', 16),
     ('L', Q_CLOSE, -26), ('A', Q_CLOSE, -62), (Q_OPEN, 'A', -62), (Q_CLOSE, 's', -27), (Q_OPEN, 's', -15),
-    ('rvwy', '.,', -8), ('r', 'a', -2), ('r', 'cdoq', 27), ('r', 'e', 12), ('e', 'vwy', 19), ('vwy', 'eo', 7), ('y', 't', 8), ('a', 'vwy', 4),
+    ('rvwy', '.,', -8), ('r', 'a', -2), ('r', 'cdoq', 15), ('r', 'e', 2), ('e', 'vwy', 19), ('vwy', 'eo', 7), ('y', 't', 8), ('a', 'vwy', 4),
     ('o', 'vwxy', 12), ('xk', 'ceo', 28), ('f', 'ceo', 24), ('r', 'vw', 29), ('r', 'y', 37), ('vwy', 'a', 5),
 ]
 # In both versions r·e and r·a close up by hand, r·a the most: the open space under r's arm reads loose before
-# them, and widest before a's low bowl (UI's ('r', 'e', 12) and ('r', 'a', -2) above, Display's here). r·y opens a
-# little the other way: r's arm and y's top sat almost touching.
+# them, and widest before a's low bowl (UI's ('r', 'e', 2) and ('r', 'a', -2) above, Display's here). UI's r·c, r·d,
+# r·o and r·q sit a little closer than SF's too (15 rather than 27), so the slight tracking doesn't open them up.
+# r·y opens a little the other way: r's arm and y's top sat almost touching.
 TT_OVERLAP = 1   # t·t: how far the crossbars of a double t overlap, so they read as one bar (tt_join)
 DISPLAY_KERN = [  # the first three: SF at opsz 28
     ("VW", "-", -29), ("Y", ".,", -88), ("Y", "-", -73), ("r", "e", -15), ("r", "a", -21), ("r", "y", 16), ("y", "t", 8),
