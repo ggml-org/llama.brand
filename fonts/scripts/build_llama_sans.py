@@ -55,8 +55,8 @@ FAMILIES = {
     # buttons and chips with even padding; 12/16/20 px give whole-pixel 15/20/25 px lines.
     # Geist's kerning at 105% and the pair corrections at 75%, then UI_KERN brings it to SF Pro's text kerning.
     # Its descenders run deeper than Display's, to `descender` units below the baseline.
-    # A slight +6 tracking opens running text a touch at small sizes.
-    "UI":      dict(track=6,   kern=1.05, pairs=0.75, fixes="UI_KERN", descender=155, line=(980, -270, 0)),
+    # A slight +3 tracking opens running text a touch at small sizes.
+    "UI":      dict(track=3,   kern=1.05, pairs=0.75, fixes="UI_KERN", descender=155, line=(980, -270, 0)),
 }
 NAMED = [(400, "Regular"), (500, "Medium"), (600, "SemiBold"), (700, "Bold")]
 STATICS = [(400, "Regular"), (500, "Medium"), (600, "SemiBold"), (700, "Bold")]
