@@ -33,11 +33,11 @@ COVER_W, COVER_H, LOCKUP_H = 7500, 2500, 600
 FIELD_MARGIN = 0.12
 OPTICAL_LIFT = 1 / 60
 
-# colours: icon, wordmark, ".cpp", and the cover's field. The .cpp takes the palette's accent orange (art-orange in
-# the design system, oklch(0.619 0.171 33)), not the old brand orange
-ORANGE = "#D9553B"
-LIGHT = dict(icon="#111111", word="#111111", cpp=ORANGE, field="#FAFAFA")
-DARK = dict(icon="#FAFAFA", word="#FAFAFA", cpp=ORANGE, field="#111111")
+# colours: icon, wordmark, ".cpp", and the cover's field. The .cpp takes cinder, the brand's one accent orange
+# (art-cinder in the design system, oklch(0.68 0.168 48))
+CINDER = "#E87227"
+LIGHT = dict(icon="#111111", word="#111111", cpp=CINDER, field="#FAFAFA")
+DARK = dict(icon="#FAFAFA", word="#FAFAFA", cpp=CINDER, field="#111111")
 
 
 def icon_paths():
