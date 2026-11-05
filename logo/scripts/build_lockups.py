@@ -1,9 +1,9 @@
 """Builds the Llama and Llama.cpp lockups and covers in logo/svg/ from the current icon and Llama Sans Display.
 
-The icon comes from svg/icon/icon-light.svg; the wordmark, "Llama" and "Llama.cpp", is set in
+The icon comes from svg/icon/icon-light.svg; the wordmark, "Llama" and "llama.cpp" (always lowercase), is set in
 fonts/static/LlamaSansDisplay-Bold.ttf, shaped with HarfBuzz (so its kerning applies) and outlined, so the logo
 follows the fonts whenever they change. The icon is 520 px tall at the left of a 600 px lockup; the wordmark's cap
-height is 272.6 px on a baseline at 436, centred on the icon, its L starting at 741.5; each cover is the lockup centred
+height is 272.6 px on a baseline at 436, centred on the icon, its first letter starting at 741.5; each cover is the lockup centred
 on a 7500 × 2500 field. Then render the WebP and PNG files with render_webp.sh.
 
 Run:  uvx --with fonttools==4.68.0 --with uharfbuzz python logo/scripts/build_lockups.py
@@ -19,7 +19,7 @@ ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
 FONT = os.path.join(ROOT, "..", "fonts", "static", "LlamaSansDisplay-Bold.ttf")
 ICON_SIZE, ICON_TOP = 520, 40  # the icon in a 600 px lockup
 BASELINE, CAP_HEIGHT = 436, 272.6  # the wordmark's capitals span 163.4 to 436, centred on the icon
-WORD_LEFT = 741.5              # where the L's stem starts
+WORD_LEFT = 741.5              # where the first letter starts
 COVER_W, COVER_H, LOCKUP_H = 7500, 2500, 600
 
 # colours: icon, wordmark, ".cpp", and the cover's field
@@ -58,13 +58,13 @@ def wordmark(font, text, split, x, k):
 def lockup(font, name, colours, dx=0, dy=0):
     """The paths of one lockup, offset by (dx, dy), and its width."""
     k = CAP_HEIGHT / font["OS/2"].sCapHeight
-    first = shaped("L")[0][0]
+    text = "llama.cpp" if name == "llama-cpp" else "Llama"  # llama.cpp is always lowercase, Llama capitalised
+    first = shaped(text[0])[0][0]
     x0 = WORD_LEFT - font["glyf"][font.getGlyphOrder()[first]].xMin * k
     s = ICON_SIZE / 600
     group = f'<g transform="translate({dx} {dy})">'
     group += "".join(f'<path transform="translate(0 {ICON_TOP}) scale({s:.6f})" d="{d}" fill="{colours["icon"]}"/>'
                      for d in icon_paths())
-    text = "Llama.cpp" if name == "llama-cpp" else "Llama"
     (word, cpp), x = wordmark(font, text, 5, x0, k)
     group += f'<path d="{word}" fill="{colours["word"]}"/>'
     if cpp:

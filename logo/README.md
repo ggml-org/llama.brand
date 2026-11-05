@@ -20,7 +20,7 @@ showcase/   the icon breakdown page (SvelteKit 3, Svelte 5), built to a single s
 uvx --with fonttools==4.68.0 --with uharfbuzz python logo/scripts/build_lockups.py
 ```
 
-The lockups and covers are generated, not drawn: the icon from `svg/icon/icon-light.svg`, the wordmark, "Llama" or "Llama.cpp", set in Llama Sans Display Bold (`fonts/static/LlamaSansDisplay-Bold.ttf`), kerned with HarfBuzz and outlined, in the brand's ink, light and orange, its capitals centred on the icon. Run it after any change to the icon or the fonts, then render the WebP and PNG files.
+The lockups and covers are generated, not drawn: the icon from `svg/icon/icon-light.svg`, the wordmark, "Llama" or "llama.cpp" (always lowercase), set in Llama Sans Display Bold (`fonts/static/LlamaSansDisplay-Bold.ttf`), kerned with HarfBuzz and outlined, in the brand's ink, light and orange, its capitals centred on the icon. Run it after any change to the icon or the fonts, then render the WebP and PNG files.
 
 ## Rendering the WebP and PNG files
 
