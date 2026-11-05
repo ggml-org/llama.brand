@@ -13,7 +13,7 @@
 	<div><dt>Weight axis</dt><dd>{axis.min}–{axis.max}</dd></div>
 	<div><dt>Stems {styles.map((s) => s.weight).join(' · ')}</dt><dd>{styles.map((s) => s.stem).join(' · ')}</dd></div>
 	<div><dt>Display</dt><dd>tracking −26 · kerning 115% · line 1.15</dd></div>
-	<div><dt>UI</dt><dd>tracking 0 · kerning after SF Pro · line 1.25, cap-centred</dd></div>
+	<div><dt>UI</dt><dd>tracking +6 · kerning after SF Pro · line 1.25, cap-centred</dd></div>
 </dl>
 
 <style>
