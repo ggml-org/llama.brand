@@ -72,6 +72,7 @@
 
 <style>
 	.bar {
+		--opsz-pin: normal; /* the bar is the page's chrome: it keeps the optical size of its font-size */
 		position: sticky;
 		top: env(safe-area-inset-top, 0px);
 		z-index: 5;

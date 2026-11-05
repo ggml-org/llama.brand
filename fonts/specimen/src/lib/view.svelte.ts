@@ -16,6 +16,6 @@ export const nearest = (weight: number) =>
 	specimen.styles.reduce((a, s) => (Math.abs(s.weight - weight) < Math.abs(a.weight - weight) ? s : a)).weight;
 
 export const variantNotes: Record<string, string> = {
-	UI: 'Controls, small interface text and running text. Turn on line boxes in the bar to see the alignment.',
-	Display: 'Banners, headlines and large type. Switch to UI at the top (or press V).'
+	UI: 'Llama Sans at opsz 16: controls, small interface text and running text. Turn on line boxes in the bar to see the alignment.',
+	Display: 'Llama Sans at opsz 40: banners, headlines and large type. Browsers pick the optical size from font-size; this page pins it. Switch to UI at the top (or press V).'
 };

@@ -40,7 +40,7 @@
 			<figcaption>Figure 1. Display’s outlines, spaced for reading and interfaces.</figcaption>
 		</figure>
 		<p class="footnote">
-			¹ UI and Display share their outlines, but for UI’s deeper descenders; spacing, kerning and line spacing set them apart.
+			¹ UI and Display are the two ends of one font’s optical size axis: the same outlines, with spacing, kerning and descender depth set for each size.
 		</p>
 	</div>
 </article>

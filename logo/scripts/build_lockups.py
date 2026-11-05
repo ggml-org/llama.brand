@@ -1,22 +1,26 @@
-"""Builds the Llama and Llama.cpp lockups and covers in logo/svg/ from the current icon and Llama Sans Display.
+"""Builds the Llama and Llama.cpp lockups and covers in logo/svg/ from the current icon and Llama Sans.
 
 The icon comes from svg/icon/icon-light.svg; the wordmark, "Llama" and "llama.cpp" (always lowercase), is set in
-fonts/static/LlamaSansDisplay-Bold.ttf, shaped with HarfBuzz (so its kerning applies) and outlined, so the logo
+Llama Sans Bold at its Display optical size (fonts/variable/LlamaSans[opsz,wght].ttf at wght 700, opsz 40), shaped
+with HarfBuzz (so its kerning applies) and outlined, so the logo
 follows the fonts whenever they change. The icon is 520 px tall at the left of a 600 px lockup; the wordmark's cap
 height is 272.6 px on a baseline at 436, centred on the icon, its first letter starting at 741.5; each cover is the lockup centred
 on a 7500 × 2500 field. Then render the WebP and PNG files with render_webp.sh.
 
-Run:  uvx --with fonttools==4.68.0 --with uharfbuzz python logo/scripts/build_lockups.py
+Run:  uvx --with fonttools==4.68.0 --with uharfbuzz --with skia-pathops python logo/scripts/build_lockups.py
 """
+import io
 import os
 import re
 from fontTools.pens.svgPathPen import SVGPathPen
 from fontTools.pens.transformPen import TransformPen
 from fontTools.ttLib import TTFont
+from fontTools.varLib.instancer import OverlapMode, instantiateVariableFont
 import uharfbuzz as hb
 
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
-FONT = os.path.join(ROOT, "..", "fonts", "static", "LlamaSansDisplay-Bold.ttf")
+FONT = os.path.join(ROOT, "..", "fonts", "variable", "LlamaSans[opsz,wght].ttf")
+WORDMARK = {"wght": 700, "opsz": 40}  # Bold, at the Display end of the optical size axis
 ICON_SIZE, ICON_TOP = 520, 40  # the icon in a 600 px lockup
 BASELINE, CAP_HEIGHT = 436, 272.6  # the wordmark's capitals span 163.4 to 436, centred on the icon
 WORD_LEFT = 741.5              # where the first letter starts
@@ -34,9 +38,24 @@ def icon_paths():
     return re.findall(r'<path d="([^"]+)"', svg)
 
 
+_font = None
+
+
+def load_font():
+    """The wordmark's font: Llama Sans cut to WORDMARK, as a TTFont, with its bytes kept for HarfBuzz."""
+    global _font
+    if _font is None:
+        font = instantiateVariableFont(TTFont(FONT), WORDMARK, inplace=False, overlap=OverlapMode.REMOVE)
+        buf = io.BytesIO()
+        font.save(buf)
+        _font = TTFont(io.BytesIO(buf.getvalue())), buf.getvalue()
+    return _font[0]
+
+
 def shaped(text):
     """HarfBuzz's glyphs and positions for `text` in the font: [(glyph id, x offset, x advance)]."""
-    face = hb.Face(hb.Blob.from_file_path(FONT))
+    load_font()
+    face = hb.Face(hb.Blob(_font[1]))
     buf = hb.Buffer()
     buf.add_str(text)
     buf.guess_segment_properties()
@@ -85,7 +104,7 @@ def write(path, text):
 
 
 if __name__ == "__main__":
-    font = TTFont(FONT)
+    font = load_font()
     for name in ("llama", "llama-cpp"):
         for mode, colours in (("light", LIGHT), ("dark", DARK)):
             body, width = lockup(font, name, colours)

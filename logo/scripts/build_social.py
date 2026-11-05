@@ -5,11 +5,10 @@ llama.cpp lockup (from build_lockups.py) centred inside each platform's safe are
 under the avatar. Everything comes light and dark, at each platform's recommended size; render_webp.sh renders these
 at 1×, so the WebP and PNG files have exactly those sizes.
 
-Run:  uvx --with fonttools==4.68.0 --with uharfbuzz python logo/scripts/build_social.py
+Run:  uvx --with fonttools==4.68.0 --with uharfbuzz --with skia-pathops python logo/scripts/build_social.py
 """
 import os
-from fontTools.ttLib import TTFont
-from build_lockups import DARK, FONT, LIGHT, LOCKUP_H, ROOT, icon_paths, lockup, svg, write
+from build_lockups import DARK, LIGHT, LOCKUP_H, ROOT, icon_paths, load_font, lockup, svg, write
 
 AVATAR_ICON = 0.56  # the icon's share of the avatar's side, inside the circle crop
 # the icon sits 1/60 of its height above centre, as in the Llama app's icon: its weight is low (the wide bottom bar),
@@ -44,7 +43,7 @@ def banner(font, name, w, h, safe_w, safe_h, colours):
 
 
 if __name__ == "__main__":
-    font = TTFont(FONT)
+    font = load_font()
     for platform, (size, banners) in PLATFORMS.items():
         folder = os.path.join(ROOT, "svg", "social", platform)
         for mode, colours in (("light", LIGHT), ("dark", DARK)):

@@ -43,9 +43,9 @@ GEIST_MONO_PATH = os.path.join("sources", "geist-mono", "GeistMono[wght].ttf")
 
 FAMILY = "Llama Mono"
 CELL = 600                                   # Geist Mono's advance; every spacing glyph gets it
-UI = sans.FAMILIES["UI"]
-DESCENDER = UI["descender"]                  # code is running text: UI's descenders
-LINE = UI["line"]                            # and UI's line box, centred on the cap height
+UI = sans.SIZES[min(sans.SIZES)]             # Llama Sans at its text size (opsz 16)
+DESCENDER = UI["descender"]                  # code is running text: the text size's descenders
+LINE = sans.LINE                             # and Llama Sans's line box, centred on the cap height
 WIDEN = {"s": sans.WIDEN["s"]}               # G and S keep Geist Mono's width (see above)
 RECENTRE = {"a", "t", *WIDEN}                # drawings whose width the edits change
 T_SHAPE = dict(left=0.95, right=0.90)    # Mono's t keeps longer arms than Sans's: its crossbar fills the cell

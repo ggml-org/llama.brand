@@ -4,7 +4,7 @@ Official brand assets for **Llama.app** and **Llama.cpp**: the logo and the Llam
 
 ```
 logo/    the icon, the lockups and the covers as SVG and WebP, plus the logo showcase
-fonts/   Llama Sans (Display, UI, Text), its build scripts and its specimen
+fonts/   Llama Sans (one font over weight and optical size) and Llama Mono, their build scripts and the specimen
 ```
 
 ---
@@ -53,7 +53,7 @@ Every SVG also comes as a lossless WebP under [`logo/webp/`](./logo/webp) and a 
 
 ## Fonts
 
-**Llama Sans** is the sans of the Llama type family, with Mono and Serif to follow: three variable fonts from 400 to 700 with identical outlines, Display for headlines, UI for interfaces and Text for prose. See [`fonts/`](./fonts).
+**Llama Sans** is the sans of the Llama type family, with Mono and Serif to follow: one variable font from 400 to 700 with an optical size axis from 16 to 40, spaced for interfaces (UI) at its small end and for headlines (Display) at its large end, which browsers pick from the font-size. See [`fonts/`](./fonts).
 
 ---
 

@@ -1,4 +1,5 @@
-"""Llama Sans Display and UI variable fonts (wght 400–700), built from Geist's variable font.
+"""Llama Sans, one variable font over weight (wght 400–700) and optical size (opsz 16–40), built from Geist's
+variable font.
 
 Geist (SIL Open Font License 1.1, no Reserved Font Name) supplies three masters: design weights 400
 and 500 are Geist's 400 and 500, and design 700 is Geist at 650. The wght axis shows the design from 400
@@ -11,13 +12,14 @@ Geist's variable font is not stored in this repo: the first build downloads the 
 (GEIST_COMMIT) into sources/geist/ and checks its SHA-256 before using it.
 
 Run:  python scripts/build_llama_sans.py
-      -> variable/LlamaSans{Display,UI}[wght].ttf
-         static/LlamaSans{Display,UI}-{Regular,Medium,SemiBold,Bold}.ttf, cut from them
+      -> variable/LlamaSans[opsz,wght].ttf
+         static/LlamaSans-{Regular,Medium,SemiBold,Bold}.ttf, cut from it at opsz 16
 
-Display and UI share every outline but UI's deeper descenders. Display is for headlines and big sizes
-(tight tracking, stronger kerning, compact line spacing); UI is for interfaces and running text, spaced and kerned
-after SF Pro's text sizes, with a line box centred on the cap height for buttons and cards (prose sets its own
-line-height).
+The optical size axis runs between two settings of the same outlines (SIZES). At opsz 16, "UI", it is for
+interfaces and running text: spaced and kerned after SF Pro's text sizes, with slightly deeper descenders. At opsz
+40, "Display", it is for headlines: tight tracking and stronger kerning. Sizes in between blend, and browsers set
+opsz from font-size on their own (font-optical-sizing: auto). Line spacing can't vary with opsz, so the whole axis
+has UI's line box, centred on the cap height for buttons and cards; headlines and prose set their own line-height.
 """
 import hashlib
 import math
@@ -45,19 +47,21 @@ MASTERS = [(400, 400), (500, 500), (700, 650)]  # (design weight, Geist weight i
 # The axis: design weights 400–TOP_WEIGHT, stretched over wght 400–700, so wght 500, 600 and 700 are the design's
 # 480, 560 and 640 (every 100 on the axis is 80 of the design). The design above TOP_WEIGHT is dropped.
 TOP_WEIGHT = 640
-# Optical variants: tracking (units added to every advance), kerning (scale of Geist's pair kerning),
-# line metrics (typo ascender, descender, line gap; win metrics stay at full height so nothing clips).
-# Every version's line box has its midline at half the cap height (355), so text centres the same way.
-FAMILIES = {
-    "Display": dict(track=-22, kern=1.15, pairs=1.00, fixes="DISPLAY_KERN", line=(930, -220, 0)),  # 1.15 em leading
-    # UI: interfaces and running text, spaced like SF Pro at 14–15 pt. 1.25 em line box whose midline sits exactly at half
-    # the cap height ((980 - 270) / 2 = 355 = 710 / 2), so capitals and cap-height icons centre in
-    # buttons and chips with even padding; 12/16/20 px give whole-pixel 15/20/25 px lines.
-    # Geist's kerning at 105% and the pair corrections at 75%, then UI_KERN brings it to SF Pro's text kerning.
-    # Its descenders run deeper than Display's, to `descender` units below the baseline.
-    # A slight +3 tracking opens running text a touch at small sizes.
-    "UI":      dict(track=3,   kern=1.05, pairs=0.75, fixes="UI_KERN", descender=155, line=(980, -270, 0)),
+# The optical size axis's two ends, by opsz (CSS px): tracking (units added to every advance), kerning (scale of
+# Geist's pair kerning), the pair corrections and their size-specific fixes, and the descender depth.
+SIZES = {
+    # UI: interfaces and running text, spaced like SF Pro at 14–15 pt. Geist's kerning at 105% and the pair
+    # corrections at 75%, then UI_KERN brings it to SF Pro's text kerning. A slight +3 tracking opens running text a
+    # touch at small sizes, and its descenders run deeper, to `descender` units below the baseline.
+    16: dict(name="UI", track=3, kern=1.05, pairs=0.75, fixes="UI_KERN", descender=155),
+    # Display: headlines and big sizes, with tight tracking and stronger kerning.
+    40: dict(name="Display", track=-22, kern=1.15, pairs=1.00, fixes="DISPLAY_KERN"),
 }
+# The line metrics for the whole axis (typo ascender, descender, line gap; win metrics stay at full height so
+# nothing clips): a 1.25 em line box whose midline sits exactly at half the cap height ((980 - 270) / 2 = 355 =
+# 710 / 2), so capitals and cap-height icons centre in buttons and chips with even padding; 12/16/20 px give
+# whole-pixel 15/20/25 px lines. Headlines set a tighter line-height (1.15) in CSS.
+LINE = (980, -270, 0)
 NAMED = [(400, "Regular"), (500, "Medium"), (600, "SemiBold"), (700, "Bold")]
 STATICS = [(400, "Regular"), (500, "Medium"), (600, "SemiBold"), (700, "Bold")]
 A_FOOT = {700: (24, 72, 20)}  # per master: the a's bracketed foot (out, height, lip) — only near Bold
@@ -694,13 +698,13 @@ def set_line_metrics(font, line):
     os2.fsSelection |= 1 << 7  # USE_TYPO_METRICS: browsers and apps use the typo line spacing
 
 
-def name_variable(vf, family):
+def name_variable(vf, family, axes="wght"):
     nt = vf["name"]
     ps = family.replace(" ", "")
     for nid in (1, 2, 3, 4, 5, 6, 16, 17, 21, 22, 25):
         nt.removeNames(nameID=nid)
     for nid, s in {0: bg.COPYRIGHT,
-                   1: family, 2: "Regular", 3: f"0.6;{ps}[wght]", 4: f"{family} Regular",
+                   1: family, 2: "Regular", 3: f"0.6;{ps}[{axes}]", 4: f"{family} Regular",
                    5: "Version 0.600; draft based on Geist", 6: f"{ps}-Regular", 25: ps}.items():
         nt.setName(s, nid, 3, 1, 0x409)
         nt.setName(s, nid, 1, 0, 0)
@@ -711,31 +715,39 @@ def axis_weight(w):
     return 400 + (w - 400) * 300 / (TOP_WEIGHT - 400)
 
 
-def build_variable(masters, family="Llama Sans"):
+def build_variable(masters_by_size, family="Llama Sans"):
+    """One variable font over wght and opsz from {opsz: masters}; the smallest opsz is the default."""
     ps = family.replace(" ", "")
+    sizes = sorted(masters_by_size)
     ds = DesignSpaceDocument()
-    ax = AxisDescriptor()
-    # the masters go where the stretched axis puts them (700's beyond 700), then the axis is cut back to 400–700
+    # the weight masters go where the stretched axis puts them (700's beyond 700), then the axis is cut back to 400–700
     top = axis_weight(MASTERS[-1][0])
-    ax.tag, ax.name, ax.minimum, ax.default, ax.maximum = "wght", "Weight", 400, 400, top
-    ds.addAxis(ax)
-    for (w, _), m in zip(MASTERS, masters):
-        src = SourceDescriptor()
-        src.font, src.location, src.familyName = m, {"Weight": axis_weight(w)}, family
-        src.styleName = dict(NAMED)[w]
-        ds.addSource(src)
+    for tag, name, lo, hi in (("wght", "Weight", 400, top), ("opsz", "Optical size", sizes[0], sizes[-1])):
+        ax = AxisDescriptor()
+        ax.tag, ax.name, ax.minimum, ax.default, ax.maximum = tag, name, lo, lo, hi
+        ds.addAxis(ax)
+    for size in sizes:
+        for (w, _), m in zip(MASTERS, masters_by_size[size]):
+            src = SourceDescriptor()
+            src.font, src.location, src.familyName = m, {"Weight": axis_weight(w), "Optical size": size}, family
+            src.styleName = f"{dict(NAMED)[w]} {SIZES[size]['name']}"
+            ds.addSource(src)
     for w, style in NAMED:
         ins = InstanceDescriptor()
-        ins.familyName, ins.styleName, ins.location = family, style, {"Weight": w}
+        ins.familyName, ins.styleName, ins.location = family, style, {"Weight": w, "Optical size": sizes[0]}
         ins.postScriptFontName = f"{ps}-{style}"
         ds.addInstance(ins)
     vf, _, _ = varLib.build(ds)
     if top > 700:
         vf = instantiateVariableFont(vf, {"wght": (400, 400, 700)}, inplace=False)
-    name_variable(vf, family)
-    buildStatTable(vf, [dict(tag="wght", name="Weight", values=[
-        dict(value=w, name=s, flags=0x2 if w == 400 else 0, **({"linkedValue": 700} if w == 400 else {}))
-        for w, s in NAMED])])
+    name_variable(vf, family, "opsz,wght")
+    buildStatTable(vf, [
+        dict(tag="wght", name="Weight", values=[
+            dict(value=w, name=s, flags=0x2 if w == 400 else 0, **({"linkedValue": 700} if w == 400 else {}))
+            for w, s in NAMED]),
+        dict(tag="opsz", name="Optical size", values=[
+            dict(value=size, name=SIZES[size]["name"], flags=0x2 if size == sizes[0] else 0) for size in sizes]),
+    ])
     vf["OS/2"].usWeightClass = 400
     return vf
 
@@ -743,7 +755,8 @@ def build_variable(masters, family="Llama Sans"):
 def cut_statics(vf, family="Llama Sans", out_dir="."):
     ps = family.replace(" ", "")
     for w, style in STATICS:
-        f = instantiateVariableFont(vf, {"wght": w}, inplace=False, overlap=OverlapMode.REMOVE, updateFontNames=False)
+        f = instantiateVariableFont(vf, {"wght": w, "opsz": min(SIZES)}, inplace=False, overlap=OverlapMode.REMOVE,
+                                    updateFontNames=False)
         for tag in ("STAT",):
             if tag in f:
                 del f[tag]
@@ -769,8 +782,8 @@ if __name__ == "__main__":
     var = TTFont(paths[0] if paths else geist_source())
     for d in ("variable", "static"):
         os.makedirs(os.path.join(out_dir, d), exist_ok=True)
-    for opt, cfg in FAMILIES.items():
-        family = f"Llama Sans {opt}"
+    masters_by_size = {}
+    for size, cfg in SIZES.items():
         masters = build_masters(var, cfg["track"], cfg.get("descender", DESCENDER))
         for m in masters:
             scale_kerning(m, cfg["kern"])
@@ -781,9 +794,10 @@ if __name__ == "__main__":
             tt = tt_join(m)  # the whole t·t spacing; Geist's own t·t kerning is already part of it
             add_kerning(m, [("t", "t", tt - pair_kern(m, "t", "t"))], composites=False)  # ť and ţ keep their room
             join_tt_liga(m, tt)  # and the tt ligature, which liga turns "tt" into, matches it
-            set_line_metrics(m, cfg["line"])
-        vf = build_variable(masters, family)
-        out = os.path.join(out_dir, "variable", f"LlamaSans{opt}[wght].ttf")
-        vf.save(out)
-        print("wrote", out, [(a.axisTag, a.minValue, a.maxValue) for a in vf["fvar"].axes])
-        cut_statics(TTFont(out), family, out_dir)
+            set_line_metrics(m, LINE)
+        masters_by_size[size] = masters
+    vf = build_variable(masters_by_size)
+    out = os.path.join(out_dir, "variable", "LlamaSans[opsz,wght].ttf")
+    vf.save(out)
+    print("wrote", out, [(a.axisTag, a.minValue, a.defaultValue, a.maxValue) for a in vf["fvar"].axes])
+    cut_statics(TTFont(out), "Llama Sans", out_dir)

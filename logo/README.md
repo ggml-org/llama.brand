@@ -10,7 +10,7 @@ svg/        the source artwork
   social/     avatars and banners for X, LinkedIn and YouTube, light and dark, at each platform's size
 webp/       every SVG rendered to a lossless WebP, same layout: icons and lockups at 2×, covers at 1×
 png/        the same renders as PNG, for tools that don't take WebP
-scripts/    build_lockups.py, which draws the lockups and covers from the icon and Llama Sans Display;
+scripts/    build_lockups.py, which draws the lockups and covers from the icon and Llama Sans (Display size);
             build_social.py, which lays the icon and lockups out as social avatars and banners;
             render_webp.sh, which rebuilds webp/ and png/ from svg/
 showcase/   the icon breakdown page (SvelteKit 3, Svelte 5), built to a single self-contained index.html
@@ -19,15 +19,15 @@ showcase/   the icon breakdown page (SvelteKit 3, Svelte 5), built to a single s
 ## Building the lockups and covers
 
 ```bash
-uvx --with fonttools==4.68.0 --with uharfbuzz python logo/scripts/build_lockups.py
+uvx --with fonttools==4.68.0 --with uharfbuzz --with skia-pathops python logo/scripts/build_lockups.py
 ```
 
-The lockups and covers are generated, not drawn: the icon from `svg/icon/icon-light.svg`, the wordmark, "Llama" or "llama.cpp" (always lowercase), set in Llama Sans Display Bold (`fonts/static/LlamaSansDisplay-Bold.ttf`), kerned with HarfBuzz and outlined, in the brand's ink and light, with .cpp in the accent orange (#D9553B, the design system's art-orange), its capitals centred on the icon. Run it after any change to the icon or the fonts, then render the WebP and PNG files.
+The lockups and covers are generated, not drawn: the icon from `svg/icon/icon-light.svg`, the wordmark, "Llama" or "llama.cpp" (always lowercase), set in Llama Sans Bold at its Display optical size (`fonts/variable/LlamaSans[opsz,wght].ttf` at wght 700, opsz 40), kerned with HarfBuzz and outlined, in the brand's ink and light, with .cpp in the accent orange (#D9553B, the design system's art-orange), its capitals centred on the icon. Run it after any change to the icon or the fonts, then render the WebP and PNG files.
 
 ## Social profile assets
 
 ```bash
-uvx --with fonttools==4.68.0 --with uharfbuzz python logo/scripts/build_social.py
+uvx --with fonttools==4.68.0 --with uharfbuzz --with skia-pathops python logo/scripts/build_social.py
 ```
 
 | Platform | Avatar | Banner |
