@@ -22,7 +22,7 @@ Llama Mono is the monospaced member, built from Geist Mono with Llama Sans's cha
 - No tracking or kerning: every character takes one cell.
 - The l keeps its serifs, so l, 1, I and | stay apart in code; G and S keep Geist Mono's width, which already fills the cell.
 - tt joins its crossbars with contextual alternates (`calt`) instead of kerning: a t before a t runs its bar to the cell's right edge, a t after one to its left edge.
-- The Llama icon at U+E000 fits the cell (480 units) and centres on half the cap height. The lockup icon at U+E002 is the one glyph off the cell: Llama Sans's, with the gap of Llama Sans Regular at opsz 16, so llama.cpp's lockup in Llama Mono matches Llama's in Llama Sans.
+- The Llama icon at U+E000 fits the cell (480 units) and centres on half the cap height. The lockup icon at U+E002 is the one glyph off the cell: Llama Sans's, with the gap of Llama Sans Regular at opsz 16, drawn 1/0.9 times as large, so next to the same icon llama.cpp's name sets at 90% of Llama's: Llama Mono's letters are wider and heavier.
 
 Geist Mono's coding ligatures (`->`, `=>`, `!==` …) stay, under `liga`, but keep one cell per character: Geist Mono swaps a whole sequence for one 600-unit glyph, which pulled the rest of the line left, so each ligature now puts back an empty spacer cell (`LIG`) for every character it replaced.
 
