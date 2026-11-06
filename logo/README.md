@@ -52,6 +52,7 @@ uvx --with fonttools==4.68.0 --with uharfbuzz --with skia-pathops python logo/sc
 | Apple | touch icon 180 × 180, iOS 1024 × 1024, macOS 1024 × 1024 |
 | Android | adaptive icon foreground and background 432 × 432 (108 dp at 4×), Play Store 512 × 512, and one monochrome 432 × 432 for themed icons |
 | Windows | app icon 256 × 256, tiles 150 × 150 and 310 × 150 |
+| Web app | the web UI's own five, in its colours (#111111 on white): favicon and dark favicon (transparent, the icon at 96%), round PWA icon, maskable icon 512 × 512, Apple touch icon 180 × 180 |
 
 Full-bleed squares (maskable, touch, iOS, Play Store), which each platform masks to its own shape, carry the icon at 67.2% of the side, as the web UI's maskable and Apple touch icons do, inside the 80% safe circle; the round PWA icon is that at 85%, cut round. The macOS icon sits on Apple's 824 × 824 rounded square (radius 185.4) on the 1024 canvas; the Android foreground keeps the icon inside the 66 dp circle every launcher shows; the Windows app icon is transparent with a 1/16 margin, and the tiles carry it at half their height. Every icon is lifted 1/40 of its height and nudged 1/100 of its width left, as on its background and in the avatars. They render at 1×.
 
