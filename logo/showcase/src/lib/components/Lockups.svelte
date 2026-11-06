@@ -1,11 +1,12 @@
-<!-- The icon as a glyph of Llama Sans (U+E000): a display lockup, two buttons and a line of text. -->
+<!-- The icon as a glyph of Llama Sans: a display lockup (U+E002), two buttons and a line of text (U+E001). -->
 <script lang="ts">
 	let { name = 'llama.cpp' }: { name?: string } = $props();
 </script>
 
 <section class="type" aria-label="The icon in Llama Sans">
-	<span class="kicker">In Llama Sans · U+E000</span>
-	<p class="lockup display">{''} {name}</p><!-- the capital icon, U+E001: the lockup's proportion, typed -->
+	<span class="kicker">In Llama Sans and Llama Mono · U+E002, U+E001</span>
+	<!-- the lockup icon, U+E002: the capital icon with the lockup's gap, typed before the name; llama.cpp in Llama Mono -->
+	<p class="lockup display" class:mono={name === 'llama.cpp'}>{''}{name}</p>
 	<p class="lockup ui"><span class="pill">{''} Open in Llama</span><span class="pill ghost">{''} llama.app</span></p>
 	<p class="lockup text">
 		In small text and buttons the icon takes its capital form (U+E001), centred on the capitals, so it holds its own in a line of
@@ -29,6 +30,9 @@
 	}
 	.display {
 		font: 700 clamp(48px, 9vw, 112px) / 1.15 'Llama Sans', var(--body);
+	}
+	.display.mono {
+		font-family: var(--mono);
 	}
 	.ui {
 		display: flex;

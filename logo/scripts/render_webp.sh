@@ -14,10 +14,9 @@ find svg -name '*.svg' | sort | while read -r src; do
 	png="png/${src#svg/}"
 	png="${png%.svg}.png"
 	mkdir -p "$(dirname "$out")" "$(dirname "$png")"
-	width=$(magick identify -format '%w' "$src")
 	case "$src" in
-		svg/social/*) density=96 ;; # 96 dpi is 1 SVG unit per pixel
-		*) density=$([ "$width" -le 3000 ] && echo 192 || echo 96) ;;
+		svg/social/* | svg/cover/*) density=96 ;; # 96 dpi is 1 SVG unit per pixel
+		*) density=192 ;;
 	esac
 	magick -background none -density "$density" "$src" "$tmp/frame.png"
 	cwebp -quiet -lossless -z 9 -exact "$tmp/frame.png" -o "$out"

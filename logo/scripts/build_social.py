@@ -8,7 +8,7 @@ at 1×, so the WebP and PNG files have exactly those sizes.
 Run:  uvx --with fonttools==4.68.0 --with uharfbuzz --with skia-pathops python logo/scripts/build_social.py
 """
 import os
-from build_lockups import DARK, LIGHT, LOCKUP_H, OPTICAL_LIFT, ROOT, icon_paths, load_font, lockup, svg, write
+from build_lockups import DARK, LIGHT, LOCKUP_H, OPTICAL_LIFT, ROOT, icon_paths, lockup, svg, write
 
 AVATAR_ICON = 0.56  # the icon's share of the avatar's side, inside the circle crop
 BANNER_LOCKUP = 0.3  # the lockup's height as a share of the safe area's height, at most
@@ -31,8 +31,8 @@ def avatar(size, colours):
                            f'<g transform="translate({x:.3f} {y:.3f}) scale({s:.6f})">{icon}</g>')
 
 
-def banner(font, name, w, h, safe_w, safe_h, colours):
-    body, width = lockup(font, name, colours)
+def banner(name, w, h, safe_w, safe_h, colours):
+    body, width = lockup(name, colours)
     s = min(safe_h * BANNER_LOCKUP / LOCKUP_H, safe_w * BANNER_WIDTH / width)
     x, y = (w - width * s) / 2, (h - LOCKUP_H * s) / 2
     return svg(w, h, f'<rect width="{w}" height="{h}" fill="{colours["field"]}"/>\n'
@@ -40,7 +40,6 @@ def banner(font, name, w, h, safe_w, safe_h, colours):
 
 
 if __name__ == "__main__":
-    font = load_font()
     for platform, (size, banners) in PLATFORMS.items():
         folder = os.path.join(ROOT, "svg", "social", platform)
         for mode, colours in (("light", LIGHT), ("dark", DARK)):
@@ -48,4 +47,4 @@ if __name__ == "__main__":
             for kind, w, h, safe_w, safe_h in banners:
                 for name in ("llama", "llama-cpp"):
                     write(os.path.join(folder, f"{platform}-{kind}-{name}-{mode}.svg"),
-                          banner(font, name, w, h, safe_w, safe_h, colours))
+                          banner(name, w, h, safe_w, safe_h, colours))
