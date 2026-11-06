@@ -1,11 +1,11 @@
 # Llama logo
 
-The Llama icon, the Llama and Llama.cpp lockups and the cover images, plus a showcase that takes the icon apart.
+The Llama icon, the Llama and llama.cpp lockups and the cover images, plus a showcase that takes the icon apart.
 
 ```
 svg/        the source artwork
   icon/       the icon, light and dark, 600 × 600: transparent, and on its background (-bg)
-  lockup/     the icon with the Llama and Llama.cpp wordmarks: transparent, and on its background (-bg)
+  lockup/     the icon with the Llama and llama.cpp wordmarks: transparent, and on its background (-bg)
   cover/      7500 × 2500 covers, light and dark
   social/     avatars and banners for X, LinkedIn and YouTube, light and dark, at each platform's size
 webp/       every SVG rendered to a lossless WebP, same layout: icons and lockups at 2×, covers at 1×
