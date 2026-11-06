@@ -18,8 +18,8 @@
 	--brand-ink: #111111;
 	--brand-light: #fafafa;
 	--cinder: oklch(0.68 0.18 46); /* the brand's one accent orange, as in the .cpp of the llama.cpp logotype */
-	--beige: #efe9df;
-	--beige-ink: #2b2620;
+	--sand: #efe9df;
+	--sand-ink: #2b2620;
 	--slate: #3a5878; /* a muted navy, between llama.app's hero blues */
 
 	/* the specimen's roles, mapped onto the design system's semantic tokens */
@@ -200,7 +200,7 @@ body::before {
 	--llama-hero-rule: rgb(255 255 255 / 0.3);
 }
 .c-hero { background: var(--llama-hero); color: var(--llama-hero-ink); }
-.c-beige { background: var(--beige); color: var(--beige-ink); }
+.c-sand { background: var(--sand); color: var(--sand-ink); }
 .c-ink { background: var(--brand-ink); color: var(--brand-light); }
 .c-paper { background: var(--ds-neutral-100); color: var(--brand-ink); }
 .card .mono-label {
