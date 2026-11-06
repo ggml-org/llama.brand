@@ -1,4 +1,5 @@
-"""Builds the app icons in logo/svg/app/: the icon for a PWA, Apple's platforms, Android and Windows.
+"""Builds the app icons in logo/svg/app/: the icon for a PWA, Apple's platforms, Android and Windows, and the web
+UI's own five (logo/svg/app/web: its favicons, PWA, maskable and Apple touch icons, in its colours).
 
 Each is the icon from svg/icon/icon-light.svg, light (the dark ink on the light field) and dark (the reverse), at the
 size and in the shape each platform asks for, optically centred as in the -bg files and the avatars (lifted
@@ -21,6 +22,10 @@ MACOS_BODY, MACOS_RADIUS = 824, 185.4
 ADAPTIVE = 0.52
 WINDOWS_ICON = 0.875  # the Windows app icon: transparent, a 1/16 margin all round, as Fluent's app icons
 WINDOWS_TILE = 0.5  # on the Start and Store tiles, the icon at half the tile's height
+FAVICON = 0.96  # the web UI's favicon: the icon with a 2% margin all round (its PWA_ASSET_GENERATOR.FAVICON_PADDING)
+# the web UI's own colours (its pwa.constants.ts): the icon in ink on white, the dark favicon in light
+WEB = dict(icon="#111111", field="#FFFFFF")
+WEB_DARK = dict(icon="#FAFAFA")
 
 
 def icon(colours, cx, cy, side):
@@ -61,6 +66,16 @@ def tile(w, h, colours):
     return svg(w, h, field(w, h, colours) + icon(colours, w / 2, h / 2, h * WINDOWS_TILE))
 
 
+# the web UI's five, as it ships them (each once, in its own colours): the favicon for light tabs and for dark ones,
+# the round PWA icon, the maskable icon and the Apple touch icon
+WEB_APP = [
+    ("favicon", lambda: transparent(512, WEB, FAVICON)),
+    ("favicon-dark", lambda: transparent(512, WEB_DARK, FAVICON)),
+    ("pwa-512x512", lambda: pwa_round(512, WEB)),
+    ("maskable-icon-512x512", lambda: square(512, WEB)),
+    ("apple-touch-icon-180x180", lambda: square(180, WEB)),
+]
+
 # platform: (file name, builder) for each mode
 APPS = {
     "pwa": [
@@ -91,5 +106,7 @@ if __name__ == "__main__":
         for mode, colours in (("light", LIGHT), ("dark", DARK)):
             for name, build in files:
                 write(os.path.join(folder, f"{name}-{mode}.svg"), build(colours))
+    for name, build in WEB_APP:
+        write(os.path.join(ROOT, "svg", "app", "web", f"{name}.svg"), build())
     # Android 13's themed icons: the icon alone in one colour, which the launcher tints, so it comes once
     write(os.path.join(ROOT, "svg", "app", "android", "android-monochrome-432x432.svg"), transparent(432, LIGHT, ADAPTIVE))
