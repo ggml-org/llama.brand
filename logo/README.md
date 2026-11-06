@@ -10,7 +10,7 @@ svg/        the source artwork
   social/     avatars and banners for X, LinkedIn and YouTube, light and dark, at each platform's size
 webp/       every SVG rendered to a lossless WebP, same layout: icons and lockups at 2×, covers at 1×
 png/        the same renders as PNG, for tools that don't take WebP
-scripts/    build_lockups.py, which draws the lockups and covers from the icon and Llama Sans (Display size);
+scripts/    build_lockups.py, which draws the lockups and covers from the icon, Llama Sans (Display size) and Llama Mono;
             build_social.py, which lays the icon and lockups out as social avatars and banners;
             render_webp.sh, which rebuilds webp/ and png/ from svg/
 showcase/   the icon breakdown page (SvelteKit 3, Svelte 5), built to a single self-contained index.html
@@ -22,7 +22,7 @@ showcase/   the icon breakdown page (SvelteKit 3, Svelte 5), built to a single s
 uvx --with fonttools==4.68.0 --with uharfbuzz --with skia-pathops python logo/scripts/build_lockups.py
 ```
 
-The lockups and covers are generated, not drawn: the icon from `svg/icon/icon-light.svg`, the wordmark, "Llama" or "llama.cpp" (always lowercase), set in Llama Sans Bold at its Display optical size (`fonts/variable/LlamaSans[opsz,wght].ttf` at wght 700, opsz 40), kerned with HarfBuzz and outlined, in the brand's ink and light, with .cpp in cinder, the brand's accent orange (#EE6C1E, the design system's art-cinder), its proportion taken from the font's capital icon (U+E001): the icon 1.24 times the cap height, centred on the capitals, and the first letter as far after it as a space puts it, so a lockup typed in Llama Sans matches the logo files. It also writes each icon and lockup on its background (`-bg`): the same canvas, filled with the light or dark field, the mark centred in an even 12% margin of the shorter side, and the icon lifted 1/60 of its height above centre, as in the Llama app icon and the social avatars. The plain files stay transparent. Run it after any change to the icon or the fonts, then render the WebP and PNG files.
+The lockups and covers are generated, not drawn: the icon from `svg/icon/icon-light.svg`, the wordmark: "Llama" in Llama Sans Bold at its Display optical size (`fonts/variable/LlamaSans[opsz,wght].ttf` at wght 700, opsz 40), "llama.cpp" (always lowercase) in Llama Mono Bold (`fonts/variable/LlamaMono[wght].ttf` at wght 700), kerned with HarfBuzz and outlined, in the brand's ink and light, with .cpp in cinder, the brand's accent orange (#EE6C1E, the design system's art-cinder). The proportion comes from the fonts' lockup icon (U+E002, in both): the icon 1.24 times the cap height, centred on the capitals, and the first letter as far after it as the glyph's built-in gap puts it, so a lockup typed as U+E002 and the name matches the logo files. It also writes each icon and lockup on its background (`-bg`): the same canvas, filled with the light or dark field, the mark centred in an even 12% margin of the shorter side, and the icon lifted 1/60 of its height above centre, as in the Llama app icon and the social avatars. The plain files stay transparent. Run it after any change to the icon or the fonts, then render the WebP and PNG files.
 
 Grounds: the llama.cpp lockup always sits on a neutral ground (the light #FAFAFA, the dark #111111 or the greys), which is why every llama.cpp file here is neutral. Only the Llama lockup goes on colour: the hero's light blue or its navy, from llama.app.
 
