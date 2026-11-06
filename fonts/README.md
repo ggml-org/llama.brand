@@ -13,7 +13,7 @@ Browsers set the optical size from the font-size on their own (`font-optical-siz
 
 The line box is the same at every size: 1.25 em, centred on the cap height, so capitals and cap-height icons sit exactly in the middle of a button or chip with equal top and bottom padding, with whole-pixel lines at 12, 16 and 20 px (15, 20 and 25 px). Headlines set their own tighter line (`line-height: 1.15`), and prose a looser one (`1.5`).
 
-The font also carries the Llama icon twice. U+E001, its capital form, is the one to use: the icon as the lockups set it, 1.24 times the cap height and centred on the capitals, with a right sidebearing that puts the next letter, after a space, where the lockup puts it (0.56 cap heights at the Display size). Use it in small text, buttons and before a name, where a cap-height mark reads smaller than the letters around it; typed before a name, it is the lockup. U+E000 sits on the baseline at exactly the cap height: keep it for headlines, where the icon should sit quietly among large capitals. In all-caps settings, `case` swaps U+E000 for U+E001.
+The font also carries the Llama icon three times. U+E001, its capital form, is the one to use: the icon as the lockups set it, 1.24 times the cap height and centred on the capitals, with a right sidebearing that puts the next letter, after a space, where the lockup puts it (0.56 cap heights at the Display size). Use it in small text, buttons and before a name, where a cap-height mark reads smaller than the letters around it; typed before a name, it is the lockup. U+E000 sits on the baseline at exactly the cap height: keep it for headlines, where the icon should sit quietly among large capitals. In all-caps settings, `case` swaps U+E000 for U+E001. U+E002 is the lockup in one character: U+E001 with the space after it built into its advance, so the gap can't wrap, collapse or take another font's space. Type it straight before the name: `\uE002Llama`, or `\uE002llama.cpp` in Llama Mono, which carries the same glyph.
 
 ## Llama Mono
 
@@ -22,7 +22,7 @@ Llama Mono is the monospaced member, built from Geist Mono with Llama Sans's cha
 - No tracking or kerning: every character takes one cell.
 - The l keeps its serifs, so l, 1, I and | stay apart in code; G and S keep Geist Mono's width, which already fills the cell.
 - tt joins its crossbars with contextual alternates (`calt`) instead of kerning: a t before a t runs its bar to the cell's right edge, a t after one to its left edge.
-- The Llama icon at U+E000 fits the cell (480 units) and centres on half the cap height.
+- The Llama icon at U+E000 fits the cell (480 units) and centres on half the cap height. The lockup icon at U+E002 is the one glyph off the cell: Llama Sans's, with the gap of Llama Sans Regular at opsz 16, so llama.cpp's lockup in Llama Mono matches Llama's in Llama Sans.
 
 Geist Mono's coding ligatures (`->`, `=>`, `!==` …) stay, under `liga`, but keep one cell per character: Geist Mono swaps a whole sequence for one 600-unit glyph, which pulled the rest of the line left, so each ligature now puts back an empty spacer cell (`LIG`) for every character it replaced.
 
@@ -74,4 +74,4 @@ The scripts work from any folder; they find `fonts/` themselves.
 
 Llama Sans and Llama Mono are derived from [Geist and Geist Mono](https://github.com/vercel/geist-font), © 2024 The Geist Project Authors, and are released under the SIL Open Font License 1.1, like Geist. See [OFL.txt](OFL.txt).
 
-The Llama icon glyphs at U+E000 and U+E001 are the ggml-org mark, not part of the OFL grant: it is licensed under CC BY-NC 4.0 with the permissions in [`BRAND-USAGE.md`](../BRAND-USAGE.md), which cover embedding the mark into fonts to refer to Llama.app and Llama.cpp.
+The Llama icon glyphs at U+E000, U+E001 and U+E002 are the ggml-org mark, not part of the OFL grant: it is licensed under CC BY-NC 4.0 with the permissions in [`BRAND-USAGE.md`](../BRAND-USAGE.md), which cover embedding the mark into fonts to refer to Llama.app and Llama.cpp.

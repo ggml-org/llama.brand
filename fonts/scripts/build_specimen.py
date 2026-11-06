@@ -31,7 +31,7 @@ GROUPS = [("Uppercase", "ABCDEFGHIJKLMNOPQRSTUVWXYZ"),
           ("Lowercase", "abcdefghijklmnopqrstuvwxyz"),
           ("Figures", "0123456789"),
           ("Punctuation & symbols", ".,:;!?'\"-–—()[]/&@#%*+=$€"),
-          ("Llama icon · U+E000", "\ue000")]
+          ("Llama icon · U+E000, U+E001, U+E002", "\ue000\ue001\ue002")]
 
 PREV = next((os.path.abspath(a[13:]) for a in sys.argv[1:] if a.startswith("--prev-fonts=")), None)
 FONTS = next((os.path.abspath(a[8:]) for a in sys.argv[1:] if a.startswith("--fonts=")), None)

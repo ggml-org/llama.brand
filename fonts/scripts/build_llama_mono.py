@@ -20,6 +20,8 @@ deeper stem joins. What differs is what a monospace font needs:
   it swallowed, before the ligature glyph, so `->` takes two cells, `!==` three, and columns stay in line.
 - The Llama icon at U+E000 fits the cell (Sans's is cap-height wide, more than a cell) and centres on half the cap
   height, so it lines up with capitals.
+- The lockup icon at U+E002 is the one glyph off the cell: Llama Sans's, the capital icon with the lockup's gap,
+  at Llama Sans's opsz 16 advance, so llama.cpp's lockup in Llama Mono matches Llama in Llama Sans.
 - One version, set like Llama Sans UI: its descenders and its line box centred on the cap height.
 
 Geist Mono is downloaded on first build (GEIST_MONO_URL, pinned to the same Geist commit) into sources/geist-mono/.
@@ -45,6 +47,8 @@ CELL = 600                                   # Geist Mono's advance; every spaci
 UI = sans.SIZES[min(sans.SIZES)]             # Llama Sans at its text size (opsz 16)
 DESCENDER = UI["descender"]                  # code is running text: the text size's descenders
 LINE = sans.LINE                             # and Llama Sans's line box, centred on the cap height
+LOCKUP_SPACE = 235 + UI["track"]             # Llama Sans's space at opsz 16 (Geist's 235, tracked), in U+E002's gap
+LOCKUP_ICON = f"uni{sans.LOCKUP_ICON_CODEPOINT:04X}"
 WIDEN = {"s": sans.WIDEN["s"]}               # G and S keep Geist Mono's width (see above)
 RECENTRE = {"a", "t", *WIDEN}                # drawings whose width the edits change
 T_SHAPE = dict(left=0.95, right=0.90)    # Mono's t keeps longer arms than Sans's: its crossbar fills the cell
@@ -168,6 +172,8 @@ def build_masters(var):
         notdef.coordinates.translate(((CELL - m["hmtx"][".notdef"][0]) // 2, 0))
         m["hmtx"][".notdef"] = (CELL, 0)
         sans.add_icon(m, cell=CELL)
+        sans.add_icon(m, scale=sans.CAPITAL_ICON, codepoint=sans.LOCKUP_ICON_CODEPOINT,
+                      right=sans.CAPITAL_ICON_RIGHT + LOCKUP_SPACE)
         add_spacer(m)
         sans.fix_lsb(m)
         sans.set_line_metrics(m, LINE)
@@ -206,9 +212,9 @@ def ligature_spacing_fea(font):
 
 
 def check_cells(font):
-    """Every glyph is one cell wide, but the zero-width combining marks."""
+    """Every glyph is one cell wide, but the zero-width combining marks and the lockup icon."""
     marks = {g for g, c in font["GDEF"].table.GlyphClassDef.classDefs.items() if c == 3}
-    bad = {g: a for g, (a, _) in font["hmtx"].metrics.items() if a != CELL and not (a == 0 and g in marks)}
+    bad = {g: a for g, (a, _) in font["hmtx"].metrics.items() if a != CELL and not (a == 0 and g in marks) and g != LOCKUP_ICON}
     assert not bad, f"glyphs off the {CELL}-unit cell: {bad}"
 
 
