@@ -8,8 +8,8 @@ Every change from llama_edits.py (angled terminals, rounder curves, the a and l,
 angled r/t/f ends, tighter tracking) is decided once on the 400 master and applied to all
 three, so the masters stay point-compatible and interpolate cleanly.
 
-Geist's variable font is not stored in this repo: the first build downloads the pinned version
-(GEIST_COMMIT) into sources/geist/ and checks its SHA-256 before using it.
+Geist's variable font is committed in sources/geist/, as it was at GEIST_COMMIT, so the build needs no network and
+outlives the upstream repo; the build checks its SHA-256 first (sources/README.md says how to update it).
 
 Run:  python scripts/build_llama_sans.py
       -> variable/LlamaSans[opsz,wght].ttf
@@ -25,7 +25,6 @@ import hashlib
 import math
 import os
 import sys
-import urllib.request
 from fontTools.ttLib import TTFont
 from fontTools.ttLib.tables import ttProgram
 from fontTools.pens.ttGlyphPen import TTGlyphPen
@@ -38,8 +37,7 @@ from fontTools import varLib
 from fontTools.otlLib.builder import buildStatTable
 import llama_edits as bg
 
-GEIST_COMMIT = "a0a06a3d916dcf92fe96f12051a124f89056b36a"  # vercel/geist-font, 2026-04-02
-GEIST_URL = f"https://raw.githubusercontent.com/vercel/geist-font/{GEIST_COMMIT}/fonts/Geist/variable/Geist%5Bwght%5D.ttf"
+GEIST_COMMIT = "a0a06a3d916dcf92fe96f12051a124f89056b36a"  # vercel/geist-font, 2026-04-02: where sources/ came from
 GEIST_SHA256 = "73894e0448cae90a92b6c2f8732b7bb9acb7b94c418bff559dad4a18e1de9659"
 GEIST_PATH = os.path.join("sources", "geist", "Geist[wght].ttf")
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # fonts/, one level above scripts/
@@ -486,24 +484,17 @@ def fix_lsb(font):
         hmtx[name] = (hmtx[name][0], getattr(g, "xMin", 0) if g.numberOfContours else 0)
 
 
-def pinned_source(path, url, sha256):
-    """Path to a pinned source font, downloading it on first use and checking its SHA-256."""
-    if not os.path.exists(path):
-        os.makedirs(os.path.dirname(path), exist_ok=True)
-        print("downloading", os.path.basename(path), "from vercel/geist-font @", GEIST_COMMIT[:7])
-        with urllib.request.urlopen(url) as r:
-            data = r.read()
-        with open(path, "wb") as f:
-            f.write(data)
+def pinned_source(path, sha256):
+    """Path to a committed source font in sources/, after checking it's the pinned version."""
     digest = hashlib.sha256(open(path, "rb").read()).hexdigest()
     if digest != sha256:
-        sys.exit(f"{path} does not match the pinned version (sha256 {digest}); delete it to re-download")
+        sys.exit(f"{path} is not the pinned version (sha256 {digest}); see sources/README.md to update it")
     return path
 
 
 def geist_source():
-    """Path to Geist's variable font, downloading the pinned version on first use."""
-    return pinned_source(GEIST_PATH, GEIST_URL, GEIST_SHA256)
+    """Path to Geist's variable font, the committed and pinned version."""
+    return pinned_source(GEIST_PATH, GEIST_SHA256)
 
 
 def build_masters(var, track, descender=DESCENDER):

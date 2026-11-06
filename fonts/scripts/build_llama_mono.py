@@ -25,7 +25,7 @@ deeper stem joins. What differs is what a monospace font needs:
   smaller than Llama's in Llama Sans, which its wider, heavier letters need.
 - One version, set like Llama Sans UI: its descenders and its line box centred on the cap height.
 
-Geist Mono is downloaded on first build (GEIST_MONO_URL, pinned to the same Geist commit) into sources/geist-mono/.
+Geist Mono is committed in sources/geist-mono/, from the same Geist commit, and checked by its SHA-256.
 
 Run:  python scripts/build_llama_mono.py
       -> variable/LlamaMono[wght].ttf
@@ -38,8 +38,6 @@ from fontTools.varLib.instancer import instantiateVariableFont, OverlapMode
 import llama_edits as bg
 import build_llama_sans as sans
 
-GEIST_MONO_URL = (f"https://raw.githubusercontent.com/vercel/geist-font/{sans.GEIST_COMMIT}"
-                  "/fonts/GeistMono/variable/GeistMono%5Bwght%5D.ttf")
 GEIST_MONO_SHA256 = "87c2aff9723544a9adaea19d92e42a33705c9723624801b6e0224c2206a6af0d"
 GEIST_MONO_PATH = os.path.join("sources", "geist-mono", "GeistMono[wght].ttf")
 
@@ -229,7 +227,7 @@ if __name__ == "__main__":
     out_dir = next((os.path.abspath(a[6:]) for a in args if a.startswith("--out=")), None)
     os.chdir(sans.ROOT)  # every path below is relative to fonts/, wherever this is run from
     out_dir = out_dir or "."
-    var = TTFont(paths[0] if paths else sans.pinned_source(GEIST_MONO_PATH, GEIST_MONO_URL, GEIST_MONO_SHA256))
+    var = TTFont(paths[0] if paths else sans.pinned_source(GEIST_MONO_PATH, GEIST_MONO_SHA256))
     for d in ("variable", "static"):
         os.makedirs(os.path.join(out_dir, d), exist_ok=True)
     vf = sans.build_variable(build_masters(var), FAMILY)
