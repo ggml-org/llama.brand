@@ -43,7 +43,7 @@
 	</article>
 
 	<!-- every step of the weight axis -->
-	<article class="card c-beige weights">
+	<article class="card c-sand weights">
 		<p class="mono-label">One axis · 400 to 700</p>
 		<ol>
 			{#each weights as w (w)}<li style:font-weight={w}><span>{w}</span>Llama Sans</li>{/each}
@@ -60,7 +60,7 @@
 
 	<!-- a wall of small posters -->
 	<article class="card c-ink posters">
-		<div class="tile t-beige"><span class="plus">+</span></div>
+		<div class="tile t-sand"><span class="plus">+</span></div>
 		<div class="tile t-paper"><span class="q">Q4</span><span class="tag">4-bit</span></div>
 		<div class="tile t-paper story"><span>Once</span><span>upon</span><span>a</span><span>token</span></div>
 		<div class="tile t-blue"><span class="big">70B</span><span class="tag">at home</span></div>
@@ -103,7 +103,7 @@
 	</article>
 
 	<!-- a billboard -->
-	<article class="card full c-beige billboard">
+	<article class="card full c-sand billboard">
 		<p class="claim">Run it yourself.</p>
 		<p class="by"><span>llama.cpp</span><span>Inference on your own hardware</span></p>
 	</article>
@@ -232,7 +232,7 @@
 		border-radius: 1.6cqi;
 		padding: 3cqi;
 	}
-	.t-beige { background: var(--beige); color: var(--beige-ink); place-items: center; }
+	.t-sand { background: var(--sand); color: var(--sand-ink); place-items: center; }
 	.t-paper { background: var(--brand-light); color: var(--brand-ink); }
 	.t-blue { background: var(--llama-navy); color: #fff; }
 	.tile .plus {
