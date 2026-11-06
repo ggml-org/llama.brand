@@ -8,7 +8,7 @@ proportion is the font's own lockup icon (U+E002, in both fonts): the icon 1.24 
 capitals, and the first letter as far after it as the glyph's advance puts it, so the lockup matches U+E002 typed
 before the name. Each cover
 is the lockup centred on a 7500 × 2500 field. The icon and each lockup also come on their background (-bg): the same canvas, the mark
-centred on the light or dark field with an even margin, the icon optically lifted. Then render the WebP and PNG
+centred on the light or dark field with an even margin, the icon optically centred (lifted and nudged left). Then render the WebP and PNG
 files with render_webp.sh.
 
 Run:  uvx --with fonttools==4.68.0 --with uharfbuzz --with skia-pathops python logo/scripts/build_lockups.py
@@ -34,10 +34,15 @@ ICON_SIZE, ICON_TOP = 520, 40  # the icon in a 600 px lockup
 LOCKUP_ICON = "\ue002"  # the fonts' lockup icon: the lockup takes its size and spacing from it
 COVER_W, COVER_H, LOCKUP_H = 7500, 2500, 600
 # the on-background versions: the same canvas as the transparent file, the mark centred on the field with an even
-# margin of FIELD_MARGIN of the shorter side; the icon sits OPTICAL_LIFT of its height above centre, as in the Llama
-# app icon: its weight is low (the wide bottom bar), so mathematically centred it reads as sitting low
+# margin of FIELD_MARGIN of the shorter side. The icon sits OPTICAL_LIFT of its height above centre and OPTICAL_NUDGE
+# of its width left of it. Its weight is low (the wide bottom bar), so mathematically centred it reads as sitting low;
+# lifted and nudged so, a circle round it (the avatars' crop, the PWA icon) clears its three pairs of outer points
+# nearly evenly: the rounded corners (the blade's top left, the foot's bottom right), the sharp corners (the blade's
+# top right, the foot's bottom left) and the tips at its middle (the blade's left, the foot's right). No placement
+# evens all three, since the tips are even only without a nudge; this one keeps each pair within 2% of the side
 FIELD_MARGIN = 0.12
-OPTICAL_LIFT = 1 / 60
+OPTICAL_LIFT = 1 / 40
+OPTICAL_NUDGE = 1 / 100
 
 # colours: icon, wordmark, ".cpp", and the cover's field. The .cpp takes cinder, the brand's one accent orange
 # (art-cinder in the design system, oklch(0.68 0.18 46))
@@ -128,12 +133,12 @@ def svg(width, height, body):
             f'xmlns="http://www.w3.org/2000/svg">\n{body}\n</svg>\n')
 
 
-def on_field(body, w, h, colours, lift=0):
+def on_field(body, w, h, colours, lift=0, nudge=0):
     """A mark drawn on a w × h canvas (body), set on its field: scaled to leave FIELD_MARGIN all round, centred,
-    and raised by lift of its own height."""
+    raised by lift of its own height and moved left by nudge of its width."""
     m = FIELD_MARGIN * min(w, h)
     s = min((w - 2 * m) / w, (h - 2 * m) / h)
-    x, y = (w - w * s) / 2, (h - h * s) / 2 - lift * h * s
+    x, y = (w - w * s) / 2 - nudge * w * s, (h - h * s) / 2 - lift * h * s
     return svg(w, h, f'<rect width="{w}" height="{h}" fill="{colours["field"]}"/>\n'
                      f'<g transform="translate({x:.3f} {y:.3f}) scale({s:.6f})">{body}</g>')
 
@@ -147,7 +152,7 @@ def write(path, text):
 if __name__ == "__main__":
     for mode, colours in (("light", LIGHT), ("dark", DARK)):
         icon = "".join(f'<path d="{d}" fill="{colours["icon"]}"/>' for d in icon_paths())
-        write(os.path.join(ROOT, "svg", "icon", f"icon-{mode}-bg.svg"), on_field(icon, 600, 600, colours, OPTICAL_LIFT))
+        write(os.path.join(ROOT, "svg", "icon", f"icon-{mode}-bg.svg"), on_field(icon, 600, 600, colours, OPTICAL_LIFT, OPTICAL_NUDGE))
     for name in ("llama", "llama-cpp"):
         for mode, colours in (("light", LIGHT), ("dark", DARK)):
             body, width = lockup(name, colours)
