@@ -1,5 +1,5 @@
 {
-	"name": "llama.brand",
+	"name": "llama-brand",
 	"version": "0.1.0",
 	"description": "Official brand assets for Llama.app and Llama.cpp",
 	"private": true,
