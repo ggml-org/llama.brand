@@ -1,6 +1,11 @@
 # llama.brand
 
-Official brand assets for **Llama.app** and **Llama.cpp**.
+Official brand assets for **Llama.app** and **llama.cpp**: the logo and the Llama type family.
+
+```
+logo/    the icon, the lockups and the covers as SVG and WebP, plus the logo showcase
+fonts/   Llama Sans (one font over weight and optical size) and Llama Mono, their build scripts and the specimen
+```
 
 ---
 
@@ -10,13 +15,13 @@ Official brand assets for **Llama.app** and **Llama.cpp**.
 
 | Light | Dark |
 |-------|------|
-| ![Llama Light](../master/logo/llama/logo-llama-light.svg) | ![Llama Dark](../master/logo/llama/logo-llama-dark.svg) |
+| ![Llama Light](./logo/svg/lockup/llama/logo-llama-light.svg) | ![Llama Dark](./logo/svg/lockup/llama/logo-llama-dark.svg) |
 
-### Llama.cpp
+### llama.cpp
 
 | Light | Dark |
 |-------|------|
-| ![Llama.cpp Light](../master/logo/llama-cpp/logo-llama-cpp-light.svg) | ![Llama.cpp Dark](../master/logo/llama-cpp/logo-llama-cpp-dark.svg) |
+| ![llama.cpp Light](./logo/svg/lockup/llama-cpp/logo-llama-cpp-light.svg) | ![llama.cpp Dark](./logo/svg/lockup/llama-cpp/logo-llama-cpp-dark.svg) |
 
 ---
 
@@ -24,7 +29,7 @@ Official brand assets for **Llama.app** and **Llama.cpp**.
 
 | Light | Dark |
 |-------|------|
-| ![Icon Light](../master/icon/icon-light.svg) | ![Icon Dark](../master/icon/icon-dark.svg) |
+| ![Icon Light](./logo/svg/icon/icon-light.svg) | ![Icon Dark](./logo/svg/icon/icon-dark.svg) |
 
 ---
 
@@ -32,20 +37,30 @@ Official brand assets for **Llama.app** and **Llama.cpp**.
 
 ### Llama
 
-| Light | Dark | Alt |
-|-------|------|-----|
-| ![Llama Cover Light](../master/cover/llama/cover-llama-light.svg) | ![Llama Cover Dark](../master/cover/llama/cover-llama-dark.svg) | ![Llama Cover Alt](../master/cover/llama/cover-llama-alt.svg) |
+| Light | Dark |
+|-------|------|
+| ![Llama Cover Light](./logo/svg/cover/llama/cover-llama-light.svg) | ![Llama Cover Dark](./logo/svg/cover/llama/cover-llama-dark.svg) |
 
-### Llama.cpp
+### llama.cpp
 
-| Light | Dark | Alt |
-|-------|------|-----|
-| ![Llama.cpp Cover Light](../master/cover/llama-cpp/cover-llama-cpp-light.svg) | ![Llama.cpp Cover Dark](../master/cover/llama-cpp/cover-llama-cpp-dark.svg) | ![Llama.cpp Cover Alt](../master/cover/llama-cpp/cover-llama-cpp-alt.svg) |
+| Light | Dark |
+|-------|------|
+| ![llama.cpp Cover Light](./logo/svg/cover/llama-cpp/cover-llama-cpp-light.svg) | ![llama.cpp Cover Dark](./logo/svg/cover/llama-cpp/cover-llama-cpp-dark.svg) |
+
+Every SVG also comes as a lossless WebP under [`logo/webp/`](./logo/webp) and a PNG under [`logo/png/`](./logo/png), in the same layout. See [`logo/`](./logo) for the showcase that takes the icon apart.
+
+---
+
+## Fonts
+
+**Llama Sans** is the sans of the Llama type family, with Mono and Serif to follow: one variable font from 400 to 700 with an optical size axis from 16 to 40, spaced for interfaces (UI) at its small end and for headlines (Display) at its large end, which browsers pick from the font-size. See [`fonts/`](./fonts).
 
 ---
 
 ## License
 
-Assets are licensed under CC BY-NC 4.0, see [`LICENSE`](./LICENSE).
+The logo assets are licensed under CC BY-NC 4.0, see [`LICENSE`](./LICENSE).
 
 Distributions, packagers, and anyone referring to the project should read [`BRAND-USAGE.md`](./BRAND-USAGE.md), which grants the permissions that use needs.
+
+The fonts are released under the SIL Open Font License 1.1, see [`fonts/OFL.txt`](./fonts/OFL.txt). The Llama icon they carry at U+E000, U+E001 and U+E002 stays under the logo licence above.

@@ -1,2 +1,5 @@
 
 .DS_Store
+
+# rendered videos stay local
+logo/video/

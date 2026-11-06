@@ -1,0 +1,211 @@
+/* A type designer's proof sheet: header with vertical metrics, live settings, interface samples,
+   the glyph grid drawn on its guides, a tester, then the design notes. */
+/* Colours follow the llama.cpp web UI's design tokens (tools/ui, "Matte Glass"): its neutral surfaces, text and
+   lines, with a light value and a dark twin. Beyond them, only the brand's own colours: the orange of the
+   Llama.cpp lockup for marks, and llama.app's blue for guides. */
+:root {
+	/* design-system primitives used here */
+	--ds-neutral-0: oklch(1 0 0);
+	--ds-neutral-50: oklch(0.985 0 0);
+	--ds-neutral-100: oklch(0.97 0 0);
+	--ds-neutral-150: oklch(0.95 0 0);
+	--ds-neutral-200: oklch(0.922 0 0);
+	--ds-neutral-400: oklch(0.708 0 0);
+	--ds-neutral-500: oklch(0.556 0 0);
+	--ds-neutral-900: oklch(0.205 0 0);
+	--ds-neutral-925: oklch(0.16 0 0);
+	--ds-neutral-950: oklch(0.145 0 0);
+	--brand-ink: #111111;
+	--brand-light: #fafafa;
+	--cinder: oklch(0.68 0.18 46); /* the brand's one accent orange, as in the .cpp of the llama.cpp logotype */
+	--sand: #efe9df;
+	--sand-ink: #2b2620;
+	--slate: #3a5878; /* a muted navy, between llama.app's hero blues */
+
+	/* the specimen's roles, mapped onto the design system's semantic tokens */
+	--paper: var(--ds-neutral-0); /* surface-page */
+	--sheet: var(--ds-neutral-100); /* surface-muted */
+	--ink: var(--ds-neutral-950); /* fg-default */
+	--muted: var(--ds-neutral-500); /* fg-muted */
+	--rule: var(--ds-neutral-200); /* line-field */
+	--guide: oklch(0.56 0.07 250); /* a muted blue for guides and focus rings */
+	--guide-soft: oklch(0.56 0.07 250 / 0.28);
+	--mark: var(--cinder);
+	--body: 'Llama Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+	--code: 'Llama Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+	--mono: 'Llama Mono', ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+	:root:not([data-theme='light']) {
+		--paper: var(--ds-neutral-925); /* surface-page-dark */
+		--sheet: var(--ds-neutral-900); /* surface-raised-dark */
+		--ink: var(--ds-neutral-50); /* fg-default-dark */
+		--muted: var(--ds-neutral-400); /* fg-muted-dark */
+		--rule: oklch(1 0 0 / 0.12); /* line-control-dark */
+		--guide: oklch(0.72 0.06 250);
+		--guide-soft: oklch(0.72 0.06 250 / 0.3);
+		color-scheme: dark;
+	}
+}
+:root[data-theme='dark'] {
+	--paper: var(--ds-neutral-925);
+	--sheet: var(--ds-neutral-900);
+	--ink: var(--ds-neutral-50);
+	--muted: var(--ds-neutral-400);
+	--rule: oklch(1 0 0 / 0.12);
+	--guide: oklch(0.72 0.06 250);
+	--guide-soft: oklch(0.72 0.06 250 / 0.3);
+	color-scheme: dark;
+}
+
+/* the optical size the page pins (--opsz-pin, e.g. 'opsz' 40, for the version it shows) reaches every element: the
+   font shorthand resets font-variation-settings, so the pin can't simply inherit. Unset, the browser picks opsz from
+   font-size */
+*:not(svg, svg *) {
+	font-variation-settings: var(--opsz-pin, normal) !important;
+}
+
+body {
+	margin: 0;
+	background: var(--paper);
+	color: var(--ink);
+	font: 16px/1.55 var(--body);
+}
+body::before {
+	content: '';
+	position: fixed;
+	inset: 0 0 auto;
+	height: env(safe-area-inset-top, 0px);
+	z-index: 10;
+	background: var(--paper);
+}
+
+.label {
+	font: 500 11px/1.4 var(--mono);
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: var(--muted);
+}
+
+/* segmented control: weights, versions, compare */
+.segmented {
+	display: flex;
+	border: 1px solid var(--rule);
+	border-radius: 8px; /* the design system's control radius */
+	overflow: hidden;
+}
+.segmented label input {
+	position: absolute;
+	opacity: 0;
+	pointer-events: none;
+}
+.segmented label span {
+	display: block;
+	padding: 6px 12px;
+	font: 400 13px var(--mono);
+	color: var(--muted);
+	cursor: pointer;
+}
+.segmented label span em {
+	font-style: normal;
+	opacity: 0.65;
+}
+.segmented label + label span {
+	border-left: 1px solid var(--rule);
+}
+.segmented label input:checked + span {
+	background: var(--ink);
+	color: var(--paper);
+}
+.segmented label input:focus-visible + span {
+	outline: 2px solid var(--guide);
+	outline-offset: -2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	* {
+		transition: none !important;
+	}
+}
+
+/* showcase galleries: cards in a dense grid, each in its own fixed palette so it reads the same in both themes.
+   Cards are size containers, so a card's type can scale with the card (cqi) and keep its composition */
+.gallery {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
+	grid-auto-flow: dense;
+	gap: 16px;
+}
+.card {
+	position: relative;
+	container-type: inline-size;
+	min-width: 0;
+	aspect-ratio: 4 / 3;
+	overflow: hidden;
+	border-radius: 14px;
+	box-shadow: inset 0 0 0 1px rgb(128 128 128 / 0.18); /* a faint edge, so ink and paper cards hold their shape on either page */
+}
+.card.wide {
+	grid-column: span 2;
+	aspect-ratio: 8 / 3;
+}
+.card.free {
+	aspect-ratio: auto;
+}
+.card.full {
+	grid-column: 1 / -1;
+	aspect-ratio: 3 / 1;
+}
+@media (max-width: 700px) {
+	.card.wide,
+	.card.full {
+		grid-column: auto;
+		aspect-ratio: 4 / 3;
+	}
+}
+.card h3,
+.card h4,
+.card p,
+.card ol,
+.card ul,
+.card dl,
+.card dd,
+.card figure,
+.card table {
+	margin: 0;
+}
+/* the hero gradient from llama.app, in its light and dark versions, with the site's blues */
+:root {
+	--llama-hero: radial-gradient(ellipse at 15% 10%, #dcecfb 0%, transparent 55%),
+		radial-gradient(ellipse at 90% 95%, #e8f2fc 0%, transparent 50%),
+		linear-gradient(160deg, #c4ddf6 0%, #d0e4f7 55%, #dfecf9 100%);
+	--llama-hero-ink: #0f1f33;
+	--llama-hero-rule: rgb(15 31 51 / 0.25);
+	--llama-navy: radial-gradient(ellipse at 15% 10%, #22385c 0%, transparent 55%),
+		radial-gradient(ellipse at 90% 95%, #1e3752 0%, transparent 50%),
+		linear-gradient(160deg, #152238 0%, #172a42 55%, #1a3049 100%);
+	--llama-blue: #2b7fff;
+	--llama-sky: #38bdf8;
+}
+@media (prefers-color-scheme: dark) {
+	:root:not([data-theme='light']) {
+		--llama-hero: var(--llama-navy);
+		--llama-hero-ink: #ffffff;
+		--llama-hero-rule: rgb(255 255 255 / 0.3);
+	}
+}
+:root[data-theme='dark'] {
+	--llama-hero: var(--llama-navy);
+	--llama-hero-ink: #ffffff;
+	--llama-hero-rule: rgb(255 255 255 / 0.3);
+}
+.c-hero { background: var(--llama-hero); color: var(--llama-hero-ink); }
+.c-sand { background: var(--sand); color: var(--sand-ink); }
+.c-ink { background: var(--brand-ink); color: var(--brand-light); }
+.c-paper { background: var(--ds-neutral-100); color: var(--brand-ink); }
+.card .mono-label {
+	font: 500 11px var(--mono);
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	opacity: 0.7;
+}
