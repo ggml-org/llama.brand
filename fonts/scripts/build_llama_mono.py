@@ -21,7 +21,8 @@ deeper stem joins. What differs is what a monospace font needs:
 - The Llama icon at U+E000 fits the cell (Sans's is cap-height wide, more than a cell) and centres on half the cap
   height, so it lines up with capitals.
 - The lockup icon at U+E002 is the one glyph off the cell: Llama Sans's, the capital icon with the lockup's gap,
-  at Llama Sans's opsz 16 advance, so llama.cpp's lockup in Llama Mono matches Llama in Llama Sans.
+  drawn 1 / LOCKUP_TEXT (0.9) times as large, so next to the same icon llama.cpp's name in Llama Mono sets a little
+  smaller than Llama's in Llama Sans, which its wider, heavier letters need.
 - One version, set like Llama Sans UI: its descenders and its line box centred on the cap height.
 
 Geist Mono is downloaded on first build (GEIST_MONO_URL, pinned to the same Geist commit) into sources/geist-mono/.
@@ -49,6 +50,9 @@ DESCENDER = UI["descender"]                  # code is running text: the text si
 LINE = sans.LINE                             # and Llama Sans's line box, centred on the cap height
 LOCKUP_SPACE = 235 + UI["track"]             # Llama Sans's space at opsz 16 (Geist's 235, tracked), in U+E002's gap
 LOCKUP_ICON = f"uni{sans.LOCKUP_ICON_CODEPOINT:04X}"
+# Llama Mono's letters are wider and heavier than Llama Sans's, so in llama.cpp's lockup the name sets at LOCKUP_TEXT
+# of the size Llama's does next to the same icon: U+E002 is drawn, gap and all, 1 / LOCKUP_TEXT times Llama Sans's
+LOCKUP_TEXT = 0.9
 WIDEN = {"s": sans.WIDEN["s"]}               # G and S keep Geist Mono's width (see above)
 RECENTRE = {"a", "t", *WIDEN}                # drawings whose width the edits change
 T_SHAPE = dict(left=0.95, right=0.90)    # Mono's t keeps longer arms than Sans's: its crossbar fills the cell
@@ -172,8 +176,8 @@ def build_masters(var):
         notdef.coordinates.translate(((CELL - m["hmtx"][".notdef"][0]) // 2, 0))
         m["hmtx"][".notdef"] = (CELL, 0)
         sans.add_icon(m, cell=CELL)
-        sans.add_icon(m, scale=sans.CAPITAL_ICON, codepoint=sans.LOCKUP_ICON_CODEPOINT,
-                      right=sans.CAPITAL_ICON_RIGHT + LOCKUP_SPACE)
+        sans.add_icon(m, scale=sans.CAPITAL_ICON / LOCKUP_TEXT, codepoint=sans.LOCKUP_ICON_CODEPOINT,
+                      right=(sans.CAPITAL_ICON_RIGHT + LOCKUP_SPACE) / LOCKUP_TEXT)
         add_spacer(m)
         sans.fix_lsb(m)
         sans.set_line_metrics(m, LINE)
