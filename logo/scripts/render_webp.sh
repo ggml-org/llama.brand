@@ -1,6 +1,6 @@
 #!/bin/sh
 # Renders every SVG in logo/svg/ to a lossless WebP in logo/webp/ and a PNG in logo/png/, keeping the folder layout.
-# Icons and lockups render at 2x their SVG size; the covers, already 7500 wide, and the social assets, drawn at the
+# Icons and lockups render at 2x their SVG size; the covers, already 7500 wide, and the social and app icons, drawn at the
 # platforms' exact sizes, at 1x.
 # Needs ImageMagick (magick) and libwebp (cwebp): brew install imagemagick webp
 set -eu
@@ -15,7 +15,7 @@ find svg -name '*.svg' | sort | while read -r src; do
 	png="${png%.svg}.png"
 	mkdir -p "$(dirname "$out")" "$(dirname "$png")"
 	case "$src" in
-		svg/social/* | svg/cover/*) density=96 ;; # 96 dpi is 1 SVG unit per pixel
+		svg/social/* | svg/cover/* | svg/app/*) density=96 ;; # 96 dpi is 1 SVG unit per pixel
 		*) density=192 ;;
 	esac
 	magick -background none -density "$density" "$src" "$tmp/frame.png"
