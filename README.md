@@ -1,6 +1,6 @@
 # llama.brand
 
-Official brand assets for **Llama.app** and **Llama.cpp**: the logo and the Llama type family.
+Official brand assets for **Llama.app** and **llama.cpp**: the logo and the Llama type family.
 
 ```
 logo/    the icon, the lockups and the covers as SVG and WebP, plus the logo showcase
@@ -17,11 +17,11 @@ fonts/   Llama Sans (one font over weight and optical size) and Llama Mono, thei
 |-------|------|
 | ![Llama Light](./logo/svg/lockup/llama/logo-llama-light.svg) | ![Llama Dark](./logo/svg/lockup/llama/logo-llama-dark.svg) |
 
-### Llama.cpp
+### llama.cpp
 
 | Light | Dark |
 |-------|------|
-| ![Llama.cpp Light](./logo/svg/lockup/llama-cpp/logo-llama-cpp-light.svg) | ![Llama.cpp Dark](./logo/svg/lockup/llama-cpp/logo-llama-cpp-dark.svg) |
+| ![llama.cpp Light](./logo/svg/lockup/llama-cpp/logo-llama-cpp-light.svg) | ![llama.cpp Dark](./logo/svg/lockup/llama-cpp/logo-llama-cpp-dark.svg) |
 
 ---
 
