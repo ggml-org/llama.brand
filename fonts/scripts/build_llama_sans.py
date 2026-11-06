@@ -84,6 +84,10 @@ ICON_SIDE = 60   # space either side of the icon, font units
 CAPITAL_ICON = 1.24
 CAPITAL_ICON_CODEPOINT = 0xE001
 CAPITAL_ICON_RIGHT = 126
+# The lockup icon, at U+E002: the capital icon with the lockup's gap built in, its advance that of U+E001 and a
+# space, so a lockup is one character and the name (in Llama Sans or Llama Mono) with no space to wrap, collapse
+# or take the wrong font's width. Llama Mono's has the gap of Llama Sans Regular at opsz 16.
+LOCKUP_ICON_CODEPOINT = 0xE002
 CAP_RAISE = 0    # units added to the cap height (capitals scale up from the baseline; accents above them follow)
 DESCENDER = 140  # how deep lowercase descenders reach (Geist's 150): p, q, j, y, and g's bowl in proportion;
                  # a version can set its own (FAMILIES' descender)
@@ -534,6 +538,9 @@ def build_masters(var, track, descender=DESCENDER):
     for m in masters:
         add_icon(m)
         add_icon(m, scale=CAPITAL_ICON, codepoint=CAPITAL_ICON_CODEPOINT, right=CAPITAL_ICON_RIGHT)
+        # tracking is added to every advance below, once to this glyph but twice to U+E001 and a space
+        add_icon(m, scale=CAPITAL_ICON, codepoint=LOCKUP_ICON_CODEPOINT,
+                 right=CAPITAL_ICON_RIGHT + m["hmtx"]["space"][0] + track)
         # in all-caps settings (case), the icon takes its capital form
         add_features(m, "feature case { sub uniE000 by uniE001; } case;")
     for mi, ((w, _), m) in enumerate(zip(MASTERS, masters)):
