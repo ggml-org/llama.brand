@@ -68,7 +68,7 @@ A_BOWL_DROP = 5               # units the a's bowl top rises where it meets the 
 A_BOWL_FILLET = 0             # radius rounding the corners where the bowl top meets the stem (0 = sharp)
 ROUND_BY_GLYPH = {"G": 1.0, "S": 1.0, "s": 1.0}   # curve easing toward circular (default bg.ROUND = 0.55)
 WIDEN = {"G": 1.05, "S": 1.07, "s": 1.03}         # horizontal stretch of the drawing, sidebearings kept
-# The Llama icon (ggml-org/llama.brand, icon/icon-light.svg, 600 x 600), drawn into the font at U+E000.
+# The Llama icon (ggml-org/llama-brand, icon/icon-light.svg, 600 x 600), drawn into the font at U+E000.
 # The brand assets are CC BY-NC 4.0: the font may only ship with this glyph once ggml-org allows it.
 ICON_CODEPOINT = 0xE000
 ICON_PATHS = [
