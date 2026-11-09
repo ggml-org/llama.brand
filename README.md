@@ -1,4 +1,4 @@
-# llama.brand
+# llama-brand
 
 Official brand assets for **Llama.app** and **llama.cpp**: the logo, the Llama type family, and the colours and core CSS that everything the brand makes is built on.
 

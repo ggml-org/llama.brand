@@ -6,7 +6,7 @@
 	"license": "CC-BY-NC-4.0",
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/ggml-org/llama.brand.git"
+		"url": "git+https://github.com/ggml-org/llama-brand.git"
 	},
 	"files": [
 		"css/*.css",
