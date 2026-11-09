@@ -1,0 +1,53 @@
+/*
+ * The brand's colours, for everything it makes: the logo, posts and posters, boards, swag and the site.
+ * The llama.cpp web UI's design system starts from these same values and adds what only the interface needs:
+ * status colours, translucent whites and blacks, and its type and length scales. The names here match the
+ * design system's, so it can take them from this file unchanged.
+ */
+:root {
+	/* ink and light: the logo on a light and on a dark ground, and a piece's text and field */
+	--brand-ink: #111111;
+	--brand-light: #fafafa;
+
+	/* neutral greys, Tailwind's neutral scale plus four in-between steps; paper is neutral-50 */
+	--neutral-0: oklch(1 0 0);
+	--neutral-25: oklch(0.988 0 0);
+	--neutral-50: oklch(0.985 0 0);
+	--neutral-100: oklch(0.97 0 0);
+	--neutral-150: oklch(0.95 0 0);
+	--neutral-200: oklch(0.922 0 0);
+	--neutral-300: oklch(0.87 0 0);
+	--neutral-400: oklch(0.708 0 0);
+	--neutral-500: oklch(0.556 0 0);
+	--neutral-600: oklch(0.439 0 0);
+	--neutral-700: oklch(0.371 0 0);
+	--neutral-750: oklch(0.29 0 0);
+	--neutral-800: oklch(0.269 0 0);
+	--neutral-900: oklch(0.205 0 0);
+	--neutral-925: oklch(0.16 0 0);
+	--neutral-950: oklch(0.145 0 0);
+
+	/* sand, a warm neutral for communications; sand-900 is the ink on it. The interface itself stays on the greys */
+	--sand-50: oklch(0.965 0.01 80);
+	--sand-100: oklch(0.936 0.015 81);
+	--sand-200: oklch(0.89 0.02 80);
+	--sand-400: oklch(0.72 0.025 76);
+	--sand-900: oklch(0.272 0.013 72);
+
+	/* the day sky and the night sky, from llama.app's light and dark hero, and cinder, the one accent orange: the .cpp
+	   of the llama.cpp logotype (#ee6c1e). For shapes, figures and accents, never for status */
+	--art-day-sky: oklch(0.78 0.075 245);
+	--art-night-sky: oklch(0.33 0.07 256);
+	--art-cinder: oklch(0.68 0.18 46);
+	--art-cinder-light: oklch(0.85 0.065 46);
+
+	/* the skies as grounds: the day sky deeper blue at the top and light at the horizon; the night sky darkest at the
+	   top, lifting a little towards the horizon with a faint glow there, in steps small enough to read as one blue */
+	--gradient-day-sky:
+		radial-gradient(ellipse at 15% 10%, #dcecfb 0%, transparent 55%),
+		radial-gradient(ellipse at 90% 95%, #e8f2fc 0%, transparent 50%),
+		linear-gradient(160deg, #c4ddf6 0%, #d0e4f7 55%, #dfecf9 100%);
+	--gradient-night-sky:
+		radial-gradient(ellipse 120% 60% at 50% 115%, rgb(46 70 104 / 0.35) 0%, transparent 70%),
+		linear-gradient(180deg, #0f1a2b 0%, #13213a 55%, #182a45 100%);
+}
