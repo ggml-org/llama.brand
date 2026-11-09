@@ -86,7 +86,7 @@ Every SVG also comes as a lossless WebP under [`logo/webp/`](./logo/webp) and a 
 
 **Llama Mono** is its monospaced sibling, for code, commands and numbers in columns: every character in one cell, its coding ligatures included.
 
-Both carry the Llama icon as glyphs: U+E000 for headlines, U+E001 for small text and buttons, and U+E002, the lockup in one character, typed straight before the name. Both are under the SIL Open Font License 1.1. See [`fonts/`](./fonts) for the details, the builds and the specimen.
+Both carry the Llama icon as glyphs: U+E000 for headlines, and U+E002, the lockup in one character, typed straight before the name. Llama Sans also has U+E001, the icon at 1.24 times the cap height, for small text and buttons; Llama Mono has no U+E001. Both are under the SIL Open Font License 1.1. See [`fonts/`](./fonts) for the details, the builds and the specimen.
 
 ---
 
