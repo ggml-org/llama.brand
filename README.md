@@ -1,11 +1,26 @@
 # llama-brand
 
-Official brand assets for **Llama.app** and **llama.cpp**: the logo, the Llama type family, and the colours and core CSS that everything the brand makes is built on.
+Official brand assets for **Llama.app** and **llama.cpp**: the logo, the Llama type family, and the colours and core CSS that everything the brand makes is built on, from the web UI to posts, posters and swag.
 
 ```
-logo/    the icon, the lockups and the covers as SVG and WebP, plus the logo showcase
-fonts/   Llama Sans (one font over weight and optical size) and Llama Mono, their build scripts and the specimen
-css/     the brand's colours, its font faces, and communications' grounds and type scale
+logo/     the icon, the lockups, the covers, app icons and social profiles as SVG, WebP and PNG, plus the logo showcase
+fonts/    Llama Sans and Llama Mono, their build scripts and the specimen
+css/      the colours, the font faces, and communications' grounds and type scale
+readme/   this README's artwork, built from the fonts and the colours
+```
+
+Install it from GitHub and import files by path:
+
+```bash
+npm i github:ggml-org/llama-brand
+```
+
+```css
+@import 'llama-brand/css/brand.css';
+```
+
+```js
+import logo from 'llama-brand/logo/svg/lockup/llama/logo-llama-light.svg';
 ```
 
 ---
@@ -24,55 +39,77 @@ css/     the brand's colours, its font faces, and communications' grounds and ty
 |-------|------|
 | ![llama.cpp Light](./logo/svg/lockup/llama-cpp/logo-llama-cpp-light.svg) | ![llama.cpp Dark](./logo/svg/lockup/llama-cpp/logo-llama-cpp-dark.svg) |
 
----
+"Llama" is set in Llama Sans Bold and "llama.cpp" in Llama Mono Bold, always lowercase, with `.cpp` in cinder. The llama.cpp lockup always sits on a neutral ground; only the Llama lockup goes on colour.
 
-## Icons
+### Icon
 
 | Light | Dark |
 |-------|------|
 | ![Icon Light](./logo/svg/icon/icon-light.svg) | ![Icon Dark](./logo/svg/icon/icon-dark.svg) |
 
----
+Every icon and lockup also comes on its background (`-bg`), with the icon optically centred.
 
-## Cover Images
-
-### Llama
+### Covers
 
 | Light | Dark |
 |-------|------|
 | ![Llama Cover Light](./logo/svg/cover/llama/cover-llama-light.svg) | ![Llama Cover Dark](./logo/svg/cover/llama/cover-llama-dark.svg) |
-
-### llama.cpp
-
-| Light | Dark |
-|-------|------|
 | ![llama.cpp Cover Light](./logo/svg/cover/llama-cpp/cover-llama-cpp-light.svg) | ![llama.cpp Cover Dark](./logo/svg/cover/llama-cpp/cover-llama-cpp-dark.svg) |
 
-Every SVG also comes as a lossless WebP under [`logo/webp/`](./logo/webp) and a PNG under [`logo/png/`](./logo/png), in the same layout. See [`logo/`](./logo) for the showcase that takes the icon apart.
+### App icons and social profiles
+
+| | Light | Dark |
+|---|---|---|
+| macOS | <img src="./logo/svg/app/apple/macos-1024x1024-light.svg" width="96" alt="macOS app icon, light"> | <img src="./logo/svg/app/apple/macos-1024x1024-dark.svg" width="96" alt="macOS app icon, dark"> |
+| X avatar | <img src="./logo/svg/social/x/x-avatar-light.svg" width="96" alt="X avatar, light"> | <img src="./logo/svg/social/x/x-avatar-dark.svg" width="96" alt="X avatar, dark"> |
+
+- **App icons** ([`logo/svg/app/`](./logo/svg/app)): iOS and macOS, Android (adaptive, monochrome and Play), Windows (app icon and tiles), a PWA (regular and maskable) and the web UI's favicons, light and dark.
+- **Social profiles** ([`logo/svg/social/`](./logo/svg/social)): avatars and banners for X, LinkedIn and YouTube, at each platform's size and inside its safe area.
+
+Every SVG also comes as a lossless WebP under [`logo/webp/`](./logo/webp) and a PNG under [`logo/png/`](./logo/png), in the same layout. See [`logo/`](./logo) for how the files are built and for the showcase that takes the icon apart.
 
 ---
 
 ## Fonts
 
-**Llama Sans** is the sans of the Llama type family, with Mono and Serif to follow: one variable font from 400 to 700 with an optical size axis from 16 to 40, spaced for interfaces (UI) at its small end and for headlines (Display) at its large end, which browsers pick from the font-size. See [`fonts/`](./fonts).
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./readme/llama-sans-dark.svg">
+  <img alt="Llama Sans: Simple by default, powerful on request, in Regular, Medium, SemiBold and Bold" src="./readme/llama-sans-light.svg" width="800">
+</picture>
+
+**Llama Sans** is one variable font from 400 to 700, with an optical size axis from 16 to 40: spaced for interfaces (UI) at its small end and for headlines (Display) at its large end, which browsers pick from the font-size.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./readme/llama-mono-dark.svg">
+  <img alt="Llama Mono: llama.cpp, a llama-server command and code with ligatures" src="./readme/llama-mono-light.svg" width="800">
+</picture>
+
+**Llama Mono** is its monospaced sibling, for code, commands and numbers in columns: every character in one cell, its coding ligatures included.
+
+Both carry the Llama icon as glyphs: U+E000 for headlines, U+E001 for small text and buttons, and U+E002, the lockup in one character, typed straight before the name. Both are under the SIL Open Font License 1.1. See [`fonts/`](./fonts) for the details, the builds and the specimen.
 
 ---
 
 ## Colours
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./readme/colours-dark.svg">
+  <img alt="The brand's colours: ink, light, sand, cinder and the day and night skies" src="./readme/colours-light.svg" width="800">
+</picture>
+
 Grounds stay neutral as a rule: the logo's ink and light, paper and sand. Cinder is the one accent: the `.cpp` of the llama.cpp logotype, and a mark on a detail. The colours are for shapes, figures and accents, never for status.
 
-| Name | Token | Value |
-|---|---|---|
-| Ink | `--brand-ink` | `#111111` |
-| Light | `--brand-light` | `#fafafa` |
-| Sand 50 | `--sand-50` | `#f7f3ec` |
-| Sand 100 | `--sand-100` | `#efe9df` |
-| Sand ink | `--sand-900` | `#2b2620` |
-| Cinder | `--art-cinder` | `#ee6c1e` |
-| Cinder light | `--art-cinder-light` | `#f3c1ab` |
-| Day sky | `--art-day-sky` | `#8fbde5` |
-| Night sky | `--art-night-sky` | `#1b3659` |
+| | Name | Token | Value |
+|---|---|---|---|
+| <img src="./readme/swatches/brand-ink.svg" width="20" height="20" alt=""> | Ink | `--brand-ink` | `#111111` |
+| <img src="./readme/swatches/brand-light.svg" width="20" height="20" alt=""> | Light | `--brand-light` | `#fafafa` |
+| <img src="./readme/swatches/sand-50.svg" width="20" height="20" alt=""> | Sand 50 | `--sand-50` | `#f7f3ec` |
+| <img src="./readme/swatches/sand-100.svg" width="20" height="20" alt=""> | Sand 100 | `--sand-100` | `#efe9df` |
+| <img src="./readme/swatches/sand-900.svg" width="20" height="20" alt=""> | Sand ink | `--sand-900` | `#2b2620` |
+| <img src="./readme/swatches/art-cinder.svg" width="20" height="20" alt=""> | Cinder | `--art-cinder` | `#ee6c1e` |
+| <img src="./readme/swatches/art-cinder-light.svg" width="20" height="20" alt=""> | Cinder light | `--art-cinder-light` | `#f3c1ab` |
+| <img src="./readme/swatches/art-day-sky.svg" width="20" height="20" alt=""> | Day sky | `--art-day-sky` | `#8fbde5` |
+| <img src="./readme/swatches/art-night-sky.svg" width="20" height="20" alt=""> | Night sky | `--art-night-sky` | `#1b3659` |
 
 The day sky and the night sky also come as gradient grounds (`--gradient-day-sky`, `--gradient-night-sky`), from llama.app's light and dark hero. The greys are Tailwind's neutral scale plus four in-between steps (`--neutral-0` to `--neutral-950`). [`css/colors.css`](./css/colors.css) has every value, in OKLCH.
 
@@ -85,10 +122,6 @@ css/brand.css            everything below, in one import
 css/colors.css           the colours above, as custom properties on :root
 css/fonts.css            @font-face for Llama Sans and Llama Mono, and --font-sans and --font-mono
 css/communications.css   the grounds and the type scale for posts, posters, boards and other visual assets
-```
-
-```css
-@import 'llama-brand/css/brand.css';
 ```
 
 Communications measure everything in `--u`, a 24th of the format's short side (45px on a 1080 × 1080 post), which the layout sets. A piece takes `.ground` and one of `.ground-light`, `.ground-dark`, `.ground-sand`, `.ground-day` or `.ground-night`, which set its background and inks (`--p-ink`, `--p-muted`, `--p-line` and the rest). Its text takes the type scale: `.t-label`, `.t-body`, `.t-lede`, `.t-headline`, `.t-display`, `.t-figure` and `.t-mono`.
