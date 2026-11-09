@@ -1,0 +1,154 @@
+/*
+ * Communications' grounds and type scale, for posts, posters, boards and other visual assets. Reads colors.css and
+ * fonts.css.
+ *
+ * Everything is measured in the unit --u, a 24th of the format's short side (45px on a 1080 × 1080 post), which the
+ * layout sets on the piece. A headline then takes the same share of a square post as of a billboard.
+ *
+ * A ground sets a piece's background and inks as variables, which every element on it reads:
+ *   --p-bg        the background, a colour or a gradient
+ *   --p-base      a flat colour of the ground, for shapes that hide what is behind them
+ *   --p-ink       text and marks
+ *   --p-muted     secondary text
+ *   --p-line      hairlines and borders
+ *   --p-card      a card raised off the ground
+ *   --p-inset     a well sunk into it
+ *   --p-solid     a solid fill, and --p-solid-ink, the text on it
+ *   --p-link      links and highlights
+ */
+.ground {
+	--sans: 'Llama Sans', var(--font-sans, system-ui, sans-serif);
+	--mono: 'Llama Mono', var(--font-mono, ui-monospace, monospace);
+	background: var(--p-bg);
+	color: var(--p-ink);
+	font: 400 calc(var(--u) * 0.62) / 1.4 var(--sans);
+	/* figures, meta lines and repo ids keep their columns */
+	font-variant-numeric: tabular-nums;
+	/* the text stack's rhythm: a label to its headline, a headline to its lede, and the lede to what follows it
+	   (a command, chips, a caption). Separate runs of text stay at least 2u apart */
+	--stack-label: calc(var(--u) * 0.6);
+	--stack: calc(var(--u) * 1.2);
+	--stack-after: calc(var(--u) * 1.6);
+}
+
+.ground-light {
+	--p-base: var(--brand-light);
+	--p-bg: var(--brand-light);
+	--p-ink: var(--brand-ink);
+	--p-muted: rgb(17 17 17 / 0.62);
+	--p-line: rgb(17 17 17 / 0.1);
+	--p-card: var(--neutral-0);
+	--p-inset: var(--neutral-100);
+	--p-solid: var(--brand-ink);
+	--p-solid-ink: var(--brand-light);
+	--p-link: var(--art-night-sky);
+}
+
+.ground-dark {
+	--p-base: var(--brand-ink);
+	--p-bg: var(--brand-ink);
+	--p-ink: var(--brand-light);
+	--p-muted: rgb(250 250 250 / 0.62);
+	--p-line: rgb(250 250 250 / 0.13);
+	--p-card: rgb(250 250 250 / 0.04);
+	--p-inset: rgb(250 250 250 / 0.06);
+	--p-solid: var(--brand-light);
+	--p-solid-ink: var(--brand-ink);
+	--p-link: var(--art-day-sky);
+}
+
+.ground-sand {
+	--p-base: var(--sand-50);
+	--p-bg: var(--sand-50);
+	--p-ink: var(--sand-900);
+	--p-muted: color-mix(in oklab, var(--sand-900) 66%, transparent);
+	--p-line: color-mix(in oklab, var(--sand-900) 12%, transparent);
+	--p-card: var(--sand-100);
+	--p-inset: var(--sand-200);
+	--p-solid: var(--sand-900);
+	--p-solid-ink: var(--sand-50);
+	--p-link: var(--art-night-sky);
+}
+
+.ground-day {
+	--p-base: #d0e4f7;
+	--p-bg: var(--gradient-day-sky);
+	--p-ink: var(--brand-ink);
+	--p-muted: rgb(17 17 17 / 0.62);
+	--p-line: rgb(17 17 17 / 0.1);
+	--p-card: rgb(255 255 255 / 0.9);
+	--p-inset: rgb(17 17 17 / 0.05);
+	--p-solid: var(--brand-ink);
+	--p-solid-ink: var(--brand-light);
+	--p-link: var(--art-night-sky);
+}
+
+.ground-night {
+	--p-base: #13213a;
+	--p-bg: var(--gradient-night-sky);
+	--p-ink: var(--brand-light);
+	--p-muted: rgb(250 250 250 / 0.66);
+	--p-line: rgb(250 250 250 / 0.14);
+	--p-card: rgb(17 26 42 / 0.82);
+	--p-inset: rgb(250 250 250 / 0.07);
+	--p-solid: var(--brand-light);
+	--p-solid-ink: var(--brand-ink);
+	--p-link: var(--art-day-sky);
+}
+
+/* the type scale, at a low specificity so a layout sets its own margins */
+:where(.ground) :where(.t-label) {
+	margin: 0;
+	color: var(--p-muted);
+	font: 500 calc(var(--u) * 0.54) / 1 var(--mono);
+	letter-spacing: 0.12em;
+	text-transform: uppercase;
+}
+
+:where(.ground) :where(.t-body) {
+	margin: 0;
+	font-size: calc(var(--u) * 0.62);
+	line-height: 1.4;
+	text-wrap: pretty;
+}
+
+/* a lede keeps to about 40 characters a line, so it doesn't run up to what stands beside it */
+:where(.ground) :where(.t-lede) {
+	max-width: calc(var(--u) * 17);
+	margin: 0;
+	color: var(--p-muted);
+	font-size: calc(var(--u) * 0.84);
+	line-height: 1.3;
+	text-wrap: pretty;
+}
+
+:where(.ground) :where(.t-headline, .t-display, .t-figure) {
+	margin: 0;
+	font-family: var(--sans);
+	font-weight: 700;
+	white-space: pre-line;
+	text-wrap: balance;
+}
+
+:where(.ground) :where(.t-headline) {
+	font-size: calc(var(--u) * 2);
+	line-height: 0.98;
+	letter-spacing: -0.02em;
+}
+
+:where(.ground) :where(.t-display) {
+	font-size: calc(var(--u) * 3.2);
+	line-height: 0.92;
+	letter-spacing: -0.035em;
+}
+
+:where(.ground) :where(.t-figure) {
+	font-size: calc(var(--u) * 5);
+	line-height: 0.85;
+	letter-spacing: -0.04em;
+}
+
+:where(.ground) :where(.t-mono) {
+	margin: 0;
+	font: 400 calc(var(--u) * 0.58) / 1.2 var(--mono);
+}
