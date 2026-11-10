@@ -10,6 +10,8 @@ title: Llama Sans
 	import Controls from '#lib/components/Controls.svelte';
 	import Tester from '#lib/components/Tester.svelte';
 	import InUse from '#lib/components/InUse.svelte';
+	import SmallSizes from '#lib/components/SmallSizes.svelte';
+	import KerningProof from '#lib/components/KerningProof.svelte';
 	import Waterfall from '#lib/components/Waterfall.svelte';
 	import Setting from '#lib/components/Setting.svelte';
 	import MonoSample from '#lib/components/MonoSample.svelte';
@@ -24,7 +26,7 @@ title: Llama Sans
 
 <Masthead variant={view.variant}>
 
-The sans of the Llama family, with Mono below and Serif to follow. A neo-grotesk with an even stroke, round bowls and open, angle-cut terminals, in one variable font from {axis.min} to {axis.max} with an optical size axis: Display at its large end for headlines, UI at its small end for interfaces and running text.
+The sans of the Llama family, with Mono below and Serif to follow. A neo-grotesk with an even stroke, round bowls and open, angle-cut terminals, in one variable font from {axis.min} to {axis.max} with an optical size axis: Display at its large end for headlines, UI at 16 for interfaces and running text.
 
 </Masthead>
 
@@ -39,6 +41,18 @@ The sans of the Llama family, with Mono below and Serif to follow. A neo-grotesk
 {variantNotes[view.variant]}
 
 <InUse variant={view.variant} {glyphCount} guides={view.guides} />
+
+## Small sizes
+
+Under 16 px the optical size axis sets the letters further apart, more the smaller the text, so they stay separate on a coarse pixel grid. Each line takes its optical size from its font-size, as a browser does.
+
+<SmallSizes comparing={view.comparing} />
+
+## Kerning
+
+The pairs that go wrong first, in headlines and short sentences. Click a line to edit it.
+
+<KerningProof />
 
 ## Weights
 

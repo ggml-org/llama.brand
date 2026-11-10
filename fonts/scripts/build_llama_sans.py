@@ -662,6 +662,16 @@ DISPLAY_KERN = [  # the first three: SF at opsz 28
     ("t", "bhkl", 10),
 ]
 
+    # pairs that read uneven in words (Kafka, quartz, Sphinx, LATVIA, fjord, 1741), evened out by eye
+    ("T", "V", 34), ("T", "Y", 36), ("T", "W", 16), ("V", "T", 22), ("Y", "T", 36), ("W", "T", 6),  # arms that met
+    ("L", "AÆ", 32),                                                              # L's foot under A's
+    ("K", "Y", 22), ("K", "T", 10), ("K", "V", 8), ("Y", "O", 8), ("O", "Y", 8),   # K's arm, then a top; Y by O
+    ("K", "a", 14), ("k", "a", 8),                                                # the leg's tip, then a's low bowl
+    ("a", "f", -38), ("q", "u", -16),                                             # stems that sat apart
+    ("f", "bhk", 16), ("f", "j", 10),                                             # f's bar, then a stem
+    ("r", "tf", 20),                                                              # r's arm, then a crossbar
+    ("nmhi", "x", 28), ("y", "x", 30),                                            # x after a stem, and after y
+    ("7", "4", -20),
 
 def add_kerning(font, groups, scale=1.0, composites=True):
     """Add pair kerning (values times scale) in its own lookup, appended to every 'kern' feature. With composites,
@@ -688,6 +698,7 @@ def add_kerning(font, groups, scale=1.0, composites=True):
                 pairs[(a, b)] = (rec, None)
     gpos = font["GPOS"].table
     lookup = buildLookup(buildPairPosGlyphs(pairs, font.getReverseGlyphMap()))
+    ("o", "w", 8), ("w", "ceo", 8), ("r", "vw", 14),  # w between rounds, and v, w after r's arm, a touch more open
     gpos.LookupList.Lookup.append(lookup)
     gpos.LookupList.LookupCount = len(gpos.LookupList.Lookup)
     idx = gpos.LookupList.LookupCount - 1
