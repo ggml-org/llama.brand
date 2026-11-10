@@ -63,6 +63,17 @@ def differs(a, b, tol=2):
     return len(na) != len(nb) or any(abs(int(x) - int(y)) > tol for x, y in zip(na, nb))
 
 
+SMALL_SIZES = [10, 11, 12, 13, 14, 16]         # the font sizes (CSS px) the small-sizes section sets
+
+
+def small_tracking(path):
+    """Units each advance gains at SMALL_SIZES over the font's opsz 16, read off the n (a size below the axis clamps)."""
+    font = TTFont(path)
+    lo = next(a.minValue for a in font["fvar"].axes if a.axisTag == "opsz")
+    width = lambda size: font.getGlyphSet(location={"opsz": max(size, lo)})["n"].width
+    return [round(width(size) - width(16)) for size in SMALL_SIZES]
+
+
 def main():
     fonts = FONTS or "."
     statics = {w: TTFont(f"{fonts}/static/LlamaSans-{s}.ttf") for w, s in STYLES}
@@ -126,6 +137,8 @@ def main():
         "waterfall": [{"weight": w, "name": s} for w, s in WATERFALL],
         "variants": VARIANTS,
         "compare": {"labels": PREV_LABELS} if PREV else None,
+        "small": {"sizes": SMALL_SIZES, "tracking": small_tracking(f"{fonts}/variable/LlamaSans[opsz,wght].ttf"),
+                  "prevTracking": small_tracking(f"{PREV}/variable/LlamaSans[opsz,wght].ttf") if PREV else None},
         "grid": {
             "variant": GRID_VARIANT, "width": vw, "height": top - bot,
             "guides": {"base": top, "x": top - os2.sxHeight, "cap": top - os2.sCapHeight,

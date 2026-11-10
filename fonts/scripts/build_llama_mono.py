@@ -43,7 +43,7 @@ GEIST_MONO_PATH = os.path.join("sources", "geist-mono", "GeistMono[wght].ttf")
 
 FAMILY = "Llama Mono"
 CELL = 600                                   # Geist Mono's advance; every spacing glyph gets it
-UI = sans.SIZES[min(sans.SIZES)]             # Llama Sans at its text size (opsz 16)
+UI = sans.SIZES[sans.DEFAULT_SIZE]           # Llama Sans at its text size (opsz 16)
 DESCENDER = UI["descender"]                  # code is running text: the text size's descenders
 LINE = sans.LINE                             # and Llama Sans's line box, centred on the cap height
 LOCKUP_SPACE = 235 + UI["track"]             # Llama Sans's space at opsz 16 (Geist's 235, tracked), in U+E002's gap

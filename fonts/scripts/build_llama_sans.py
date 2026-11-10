@@ -1,4 +1,4 @@
-"""Llama Sans, one variable font over weight (wght 400–700) and optical size (opsz 16–40), built from Geist's
+"""Llama Sans, one variable font over weight (wght 400–700) and optical size (opsz 10–40), built from Geist's
 variable font.
 
 Geist (SIL Open Font License 1.1, no Reserved Font Name) supplies three masters: design weights 400
@@ -15,9 +15,10 @@ Run:  python scripts/build_llama_sans.py
       -> variable/LlamaSans[opsz,wght].ttf
          static/LlamaSans-{Regular,Medium,SemiBold,Bold}.ttf, cut from it at opsz 16
 
-The optical size axis runs between two settings of the same outlines (SIZES). At opsz 16, "UI", it is for
+The optical size axis runs over three settings of the same outlines (SIZES). At opsz 16, "UI", it is for
 interfaces and running text: spaced and kerned after SF Pro's text sizes, with slightly deeper descenders. At opsz
-40, "Display", it is for headlines: tight tracking and stronger kerning. Sizes in between blend, and browsers set
+40, "Display", it is for headlines: tight tracking and stronger kerning. At opsz 10, "Small", it is UI set further
+apart, for text under 16 px on screens. Sizes in between blend, and browsers set
 opsz from font-size on their own (font-optical-sizing: auto). Line spacing can't vary with opsz, so the whole axis
 has UI's line box, centred on the cap height for buttons and cards; headlines and prose set their own line-height.
 """
@@ -46,9 +47,12 @@ MASTERS = [(400, 400), (500, 500), (700, 650)]  # (design weight, Geist weight i
 # The axis: design weights 400–TOP_WEIGHT, stretched over wght 400–700, so wght 500, 600 and 700 are the design's
 # 480, 560 and 640 (every 100 on the axis is 80 of the design). The design above TOP_WEIGHT is dropped.
 TOP_WEIGHT = 640
-# The optical size axis's two ends, by opsz (CSS px): tracking (units added to every advance), kerning (scale of
+# The optical size axis's named sizes, by opsz (CSS px): tracking (units added to every advance), kerning (scale of
 # Geist's pair kerning), the pair corrections and their size-specific fixes, and the descender depth.
 SIZES = {
+    # Small: text under 16 px on screens. UI's kerning with the letters set further apart, more the smaller the text,
+    # so they stay separate on a coarse pixel grid: tracking grows evenly from UI's at 16 px to this at 10 px.
+    10: dict(name="Small", track=27, kern=1.05, pairs=0.75, fixes="UI_KERN", descender=155),
     # UI: interfaces and running text, spaced like SF Pro at 14–15 pt. Geist's kerning at 105% and the pair
     # corrections at 75%, then UI_KERN brings it to SF Pro's text kerning. A slight +3 tracking opens running text a
     # touch at small sizes, and its descenders run deeper, to `descender` units below the baseline.
@@ -61,6 +65,7 @@ SIZES = {
 # 710 / 2), so capitals and cap-height icons centre in buttons and chips with even padding; 12/16/20 px give
 # whole-pixel 15/20/25 px lines. Headlines set a tighter line-height (1.15) in CSS.
 LINE = (980, -270, 0)
+DEFAULT_SIZE = 16  # the axis's default, and where the statics (and Llama Mono's borrowed settings) are taken: UI
 NAMED = [(400, "Regular"), (500, "Medium"), (600, "SemiBold"), (700, "Bold")]
 STATICS = [(400, "Regular"), (500, "Medium"), (600, "SemiBold"), (700, "Bold")]
 A_FOOT = {700: (24, 72, 20)}  # per master: the a's bracketed foot (out, height, lip) — only near Bold
@@ -789,7 +794,7 @@ def build_weight_variable(masters, family):
 
 
 def build_variable(masters_by_size, family="Llama Sans"):
-    """One variable font over wght and opsz from {opsz: masters}; the smallest opsz is the default."""
+    """One variable font over wght and opsz from {opsz: masters}; DEFAULT_SIZE is the default."""
     if not isinstance(masters_by_size, dict):  # weight masters alone
         return build_weight_variable(masters_by_size, family)
     ps = family.replace(" ", "")
@@ -797,9 +802,10 @@ def build_variable(masters_by_size, family="Llama Sans"):
     ds = DesignSpaceDocument()
     # the weight masters go where the stretched axis puts them (700's beyond 700), then the axis is cut back to 400–700
     top = axis_weight(MASTERS[-1][0])
-    for tag, name, lo, hi in (("wght", "Weight", 400, top), ("opsz", "Optical size", sizes[0], sizes[-1])):
+    for tag, name, lo, default, hi in (("wght", "Weight", 400, 400, top),
+                                       ("opsz", "Optical size", sizes[0], DEFAULT_SIZE, sizes[-1])):
         ax = AxisDescriptor()
-        ax.tag, ax.name, ax.minimum, ax.default, ax.maximum = tag, name, lo, lo, hi
+        ax.tag, ax.name, ax.minimum, ax.default, ax.maximum = tag, name, lo, default, hi
         ds.addAxis(ax)
     for size in sizes:
         for (w, _), m in zip(MASTERS, masters_by_size[size]):
@@ -809,7 +815,7 @@ def build_variable(masters_by_size, family="Llama Sans"):
             ds.addSource(src)
     for w, style in NAMED:
         ins = InstanceDescriptor()
-        ins.familyName, ins.styleName, ins.location = family, style, {"Weight": w, "Optical size": sizes[0]}
+        ins.familyName, ins.styleName, ins.location = family, style, {"Weight": w, "Optical size": DEFAULT_SIZE}
         ins.postScriptFontName = f"{ps}-{style}"
         ds.addInstance(ins)
     vf, _, _ = varLib.build(ds)
@@ -821,7 +827,7 @@ def build_variable(masters_by_size, family="Llama Sans"):
             dict(value=w, name=s, flags=0x2 if w == 400 else 0, **({"linkedValue": 700} if w == 400 else {}))
             for w, s in NAMED]),
         dict(tag="opsz", name="Optical size", values=[
-            dict(value=size, name=SIZES[size]["name"], flags=0x2 if size == sizes[0] else 0) for size in sizes]),
+            dict(value=size, name=SIZES[size]["name"], flags=0x2 if size == DEFAULT_SIZE else 0) for size in sizes]),
     ])
     vf["OS/2"].usWeightClass = 400
     return vf
@@ -831,7 +837,7 @@ def cut_statics(vf, family="Llama Sans", out_dir="."):
     ps = family.replace(" ", "")
     for w, style in STATICS:
         axes = {a.axisTag for a in vf["fvar"].axes}
-        at = {"wght": w, **({"opsz": min(SIZES)} if "opsz" in axes else {})}  # Sans's statics are cut at UI's size
+        at = {"wght": w, **({"opsz": DEFAULT_SIZE} if "opsz" in axes else {})}  # Sans's statics are cut at UI's size
         f = instantiateVariableFont(vf, at, inplace=False, overlap=OverlapMode.REMOVE, updateFontNames=False)
         for tag in ("STAT",):
             if tag in f:

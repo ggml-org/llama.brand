@@ -14,6 +14,7 @@
 	<div><dt>Stems {styles.map((s) => s.weight).join(' · ')}</dt><dd>{styles.map((s) => s.stem).join(' · ')}</dd></div>
 	<div><dt>Display</dt><dd>opsz 40 · tracking −22 · kerning 115% · set at line-height 1.15</dd></div>
 	<div><dt>UI</dt><dd>opsz 16 · tracking +3 · kerning after SF Pro · line 1.25, cap-centred</dd></div>
+	<div><dt>Small</dt><dd>opsz 10 · tracking +27 · UI’s kerning · 4 units looser for every px under 16</dd></div>
 </dl>
 
 <style>
@@ -31,7 +32,6 @@
 	}
 	dt {
 		font: 500 11px var(--mono);
-		letter-spacing: 0.08em;
 		text-transform: uppercase;
 		color: var(--muted);
 	}
