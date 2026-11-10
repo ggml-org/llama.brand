@@ -1,5 +1,6 @@
-"""Builds the README's artwork in readme/: a specimen card for Llama Sans and one for Llama Mono, a palette card, and a
-swatch per colour for the README's colour table, each card in a light and a dark version.
+"""Builds the README's artwork in readme/: a specimen card for Llama Sans and one for Llama Mono, a palette card, the
+lockups' construction and sizes, a swatch per colour for the README's colour table, each card in a light and a dark
+version, and the Llama lockup's banners on the day sky and the night sky.
 
 Text is shaped with HarfBuzz from the fonts in fonts/variable/ and outlined, as the logo's lockups are, so GitHub
 shows the real typefaces without loading a font. Every colour, the skies' gradients included, is read from
@@ -202,6 +203,29 @@ def mono_card(g):
     return card(W, H, g, body)
 
 
+def _stops(parts):
+    return "".join(f'<stop offset="{o:g}" stop-color="{c}"/>' for o, c in parts)
+
+
+def _glow(id_, hex_, alpha, cx, cy, r):
+    return (f'<radialGradient id="{id_}" cx="{cx}" cy="{cy}" r="{r}">'
+            f'<stop offset="0" stop-color="{hex_}" stop-opacity="{alpha:g}"/>'
+            f'<stop offset="1" stop-color="{hex_}" stop-opacity="0"/></radialGradient>')
+
+
+# the two skies as gradients with ids day, day-glow, night and night-glow; the glows sit where css/colors.css puts
+# them: the day's at the top left, the night's below the horizon
+_day_glow, _day_alpha, _day_stops = sky("gradient-day-sky")
+_night_glow, _night_alpha, _night_stops = sky("gradient-night-sky")
+SKY_DEFS = (
+    '<defs>'
+    f'<linearGradient id="day" x1="0.3" y1="0" x2="0.7" y2="1">{_stops(_day_stops)}</linearGradient>'
+    f'{_glow("day-glow", _day_glow, _day_alpha, 0.15, 0.1, 0.6)}'
+    f'<linearGradient id="night" x1="0" y1="0" x2="0" y2="1">{_stops(_night_stops)}</linearGradient>'
+    f'{_glow("night-glow", _night_glow, _night_alpha, 0.5, 1.15, 0.7)}'
+    '</defs>')
+
+
 def palette_card(g):
     W, H, M = 1600, 640, 96
     label, name_font = font(MONO, wght=400), font(SANS, wght=600, opsz=16)
@@ -224,24 +248,7 @@ def palette_card(g):
     # the two skies as grounds, after llama.app's hero
     y = top + tile * 1.4 + 112
     half = (W - 2 * M - gap) / 2
-    def stops(parts):
-        return "".join(f'<stop offset="{o:g}" stop-color="{c}"/>' for o, c in parts)
-
-    def glow(id_, hex_, alpha, cx, cy, r):
-        return (f'<radialGradient id="{id_}" cx="{cx}" cy="{cy}" r="{r}">'
-                f'<stop offset="0" stop-color="{hex_}" stop-opacity="{alpha:g}"/>'
-                f'<stop offset="1" stop-color="{hex_}" stop-opacity="0"/></radialGradient>')
-
-    # the glows sit where css/colors.css puts them: the day's at the top left, the night's below the horizon
-    day_glow, day_alpha, day_stops = sky("gradient-day-sky")
-    night_glow, night_alpha, night_stops = sky("gradient-night-sky")
-    body.append(
-        '<defs>'
-        f'<linearGradient id="day" x1="0.3" y1="0" x2="0.7" y2="1">{stops(day_stops)}</linearGradient>'
-        f'{glow("day-glow", day_glow, day_alpha, 0.15, 0.1, 0.6)}'
-        f'<linearGradient id="night" x1="0" y1="0" x2="0" y2="1">{stops(night_stops)}</linearGradient>'
-        f'{glow("night-glow", night_glow, night_alpha, 0.5, 1.15, 0.7)}'
-        '</defs>')
+    body.append(SKY_DEFS)
     for i, (name, ink) in enumerate((("day", INK), ("night", LIGHT))):
         x = M + i * (half + gap)
         for fill in (name, f"{name}-glow"):
@@ -249,6 +256,112 @@ def palette_card(g):
         t, _ = text(label, f"--gradient-{name}-sky", x + 24, y + 40, 20, ink)
         body.append(t)
     return card(W, H, g, body)
+
+
+LOCKUPS = os.path.join(HERE, "..", "logo", "svg", "lockup")
+
+
+def lockup_art(path, ink=None):
+    """A lockup file's drawing, in its own units (600 high), with its ink swapped for `ink`; .cpp keeps its cinder."""
+    raw = open(os.path.join(LOCKUPS, path)).read()
+    art = re.sub(r"^.*?<svg[^>]*>", "", raw, flags=re.S).rsplit("</svg>", 1)[0]
+    return art.replace("#111111", ink) if ink else art
+
+
+def text_end(f, s, x, y, size, fill, tracking=0):
+    """`s` set as text() does, but ending at x."""
+    _, w = text(f, s, 0, 0, size, fill, tracking)
+    return text(f, s, x - w, y, size, fill, tracking)[0]
+
+
+# measured from the lockup files, as Brand › Logo › Lockup draws them: the icon is 520 high from y 40, the name starts
+# after the gap U+E002 builds in, and the clear space all round is half the icon
+ICON_TOP, ICON_SIDE, CLEAR = 40, 520, 260
+LOCKUP_PARTS = [
+    dict(name="Llama", file="llama/logo-llama-light.svg", face="Llama Sans", line="cap height", top=90.2, base=509.8,
+         start=754.6, end=2317),
+    dict(name="llama.cpp", file="llama-cpp/logo-llama-cpp-light.svg", face="Llama Mono", line="ascenders",
+         top=111.2, base=488.8, start=763, end=3584.2),
+]
+
+
+def construction_card(g):
+    W, M = 1600, 96
+    label = font(MONO, wght=500)
+    guide, grid, mark = rgba(g["ink"], 0.3), rgba(g["ink"], 0.05), rgba(CINDER, 0.16)
+    # one scale for both, so their icons match: llama.cpp, the wider, fills the width with its clear space
+    s = (W - 2 * M) / (LOCKUP_PARTS[1]["end"] + 2 * CLEAR)
+    stroke = f'fill="none" stroke-width="1.5" vector-effect="non-scaling-stroke"'
+    body = []
+    t, _ = text(label, "HOW THEY ARE BUILT", M, M + 20, 24, g["muted"], tracking=0.08)
+    body.append(t)
+    y0 = M + 80
+    for l in LOCKUP_PARTS:
+        ox, oy = M + CLEAR * s, y0 + (CLEAR - ICON_TOP) * s
+        X, Y = (lambda v: ox + v * s), (lambda v: oy + v * s)
+        left, right = -CLEAR, l["end"] + CLEAR
+        body.append(
+            f'<g transform="translate({ox:.2f} {oy:.2f}) scale({s:.5f})">'
+            # the clear space, half the icon all round, and one unit of it in the corner
+            f'<rect x="{left}" y="{ICON_TOP - CLEAR}" width="{right - left}" height="{ICON_SIDE + 2 * CLEAR}" '
+            f'{stroke} stroke="{guide}" stroke-dasharray="6 6"/>'
+            f'<rect x="{left}" y="{ICON_TOP - CLEAR}" width="{CLEAR}" height="{CLEAR}" fill="{mark}"/>'
+            f'<rect x="0" y="{ICON_TOP}" width="{l["end"]}" height="{ICON_SIDE}" fill="{grid}"/>'
+            # the gap U+E002 builds in, and the icon's box
+            f'<rect x="{ICON_SIDE}" y="{ICON_TOP}" width="{l["start"] - ICON_SIDE}" height="{ICON_SIDE}" fill="{mark}"/>'
+            f'<rect x="0" y="{ICON_TOP}" width="{ICON_SIDE}" height="{ICON_SIDE}" {stroke} stroke="{guide}"/>'
+            # the line the icon centres on, the middle, and the baseline in cinder
+            f'<path d="M{left} {l["top"]}H{right}" {stroke} stroke="{guide}"/>'
+            f'<path d="M{left} 300H{right}" {stroke} stroke="{guide}" stroke-dasharray="2 4"/>'
+            f'<path d="M{left} {l["base"]}H{right}" {stroke} stroke="{CINDER}"/>'
+            f'{lockup_art(l["file"], g["ink"])}</g>')
+        body.append(text(label, "½ icon", X(left) + 10, Y(ICON_TOP - CLEAR) + 32, 22, g["muted"])[0])
+        body.append(text(label, "gap", X(ICON_SIDE) + 8, Y(ICON_TOP + ICON_SIDE) + 34, 22, g["muted"])[0])
+        body.append(text_end(label, l["line"], X(right) - 12, Y(l["top"]) - 10, 22, g["muted"]))
+        body.append(text_end(label, "baseline", X(right) - 12, Y(l["base"]) + 32, 22, g["muted"]))
+        y = y0 + (ICON_SIDE + 2 * CLEAR) * s + 48
+        t, w = text(font(SANS, wght=600, opsz=16), l["name"], M, y, 28, g["ink"])
+        body.append(t)
+        body.append(text(label, f'{l["face"]} Bold · U+E002, then the name · centred on the {l["line"]}', M + w + 20,
+                         y, 22, g["muted"])[0])
+        y0 = y + 72
+    return card(W, y0 - 72 + M, g, body)
+
+
+def sizes_card(g):
+    """Both lockups typed with U+E002 at 64, 32, 16 and 12 px, drawn at twice that, as the README shows the card at
+    half its width; llama.cpp at 90% of Llama's size, so the icons match."""
+    W, M = 1600, 72
+    label = font(MONO, wght=500)
+    sizes = (64, 32, 16, 12)
+    sans = lambda size: font(SANS, wght=700, opsz=max(10, min(36, size)))
+    bold = font(MONO, wght=700)
+    col1 = M + 96
+    col2 = col1 + text(sans(64), "Llama", 0, 0, 128, g["ink"])[1] + 56
+    body = []
+    t, _ = text(label, "SIZES", M, M + 20, 24, g["muted"], tracking=0.08)
+    body.append(t)
+    y = M + 60
+    for size in sizes:
+        y += size * 2 * 1.05 + 40
+        body.append(text(label, f"{size} px", M, y, 22, g["muted"])[0])
+        body.append(text(sans(size), "Llama", col1, y, size * 2, g["ink"])[0])
+        t, w = text(bold, "llama", col2, y, size * 2 * 0.9, g["ink"])
+        body.append(t)
+        t, w2 = text(bold, ".cpp", col2 + w, y, size * 2 * 0.9, CINDER)
+        body.append(t)
+        fits(col2 + w + w2 - M, W - 2 * M, f"{size} px")
+    return card(W, y + M, g, body)
+
+
+def sky_banner(name):
+    """The Llama lockup centred on the day or the night sky, at the covers' 3:1 and their lockup size."""
+    W, H, s = 1500, 500, 0.2
+    file, w = {"day": ("llama/logo-llama-light.svg", 2342), "night": ("llama/logo-llama-dark.svg", 2342)}[name]
+    return (f'<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{H}" viewBox="0 0 {W} {H}">{SKY_DEFS}'
+            f'<rect width="{W}" height="{H}" fill="url(#{name})"/><rect width="{W}" height="{H}" fill="url(#{name}-glow)"/>'
+            f'<g transform="translate({(W - w * s) / 2:.1f} {(H - 600 * s) / 2:.1f}) scale({s})">{lockup_art(file)}</g>'
+            f'</svg>\n')
 
 
 def swatch(hex_):
@@ -268,5 +381,9 @@ for tone, g in GROUNDS.items():
     write(f"llama-sans-{tone}.svg", sans_card(g))
     write(f"llama-mono-{tone}.svg", mono_card(g))
     write(f"colours-{tone}.svg", palette_card(g))
+    write(f"lockup-construction-{tone}.svg", construction_card(g))
+    write(f"lockup-sizes-{tone}.svg", sizes_card(g))
+for name in ("day", "night"):
+    write(f"banner-llama-{name}-sky.svg", sky_banner(name))
 for _, token, hex_ in COLOURS:
     write(f"swatches/{token}.svg", swatch(hex_))

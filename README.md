@@ -41,6 +41,24 @@ import logo from 'llama-brand/logo/svg/lockup/llama/logo-llama-light.svg';
 
 "Llama" is set in Llama Sans Bold and "llama.cpp" in Llama Mono Bold, always lowercase, with `.cpp` in cinder. The llama.cpp lockup always sits on a neutral ground; only the Llama lockup goes on colour.
 
+### How the lockups are built
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./readme/lockup-construction-dark.svg">
+  <img alt="The Llama and llama.cpp lockups over their guides: the icon's box, the gap after it, the cap height or ascenders the icon centres on, the baseline, and the clear space of half the icon all round" src="./readme/lockup-construction-light.svg" width="800">
+</picture>
+
+The icon is 1.24 times Llama's cap height and centred on its capitals; in llama.cpp it is centred on the ascenders. The gap after the icon is part of the lockup glyph, U+E002, so it never needs measuring. Keep half the icon's height clear all round, with nothing else inside it.
+
+### Sizes
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./readme/lockup-sizes-dark.svg">
+  <img alt="Both lockups at 64, 32, 16 and 12 px" src="./readme/lockup-sizes-light.svg" width="800">
+</picture>
+
+Typed, a lockup is U+E002 straight before the name, with no space, in Bold. Set llama.cpp at 90% of Llama's size and the two icons match. 12 px is the smallest either is set at; below that, use the icon alone.
+
 ### Icon
 
 | Light | Dark |
@@ -55,6 +73,9 @@ Every icon and lockup also comes on its background (`-bg`), with the icon optica
 |-------|------|
 | ![Llama Cover Light](./logo/svg/cover/llama/cover-llama-light.svg) | ![Llama Cover Dark](./logo/svg/cover/llama/cover-llama-dark.svg) |
 | ![llama.cpp Cover Light](./logo/svg/cover/llama-cpp/cover-llama-cpp-light.svg) | ![llama.cpp Cover Dark](./logo/svg/cover/llama-cpp/cover-llama-cpp-dark.svg) |
+| ![Llama on the day sky](./readme/banner-llama-day-sky.svg) | ![Llama on the night sky](./readme/banner-llama-night-sky.svg) |
+
+A cover is 3:1 with the lockup centred, as on a README banner or a profile header. llama.cpp's stays on white or ink; Llama's also goes on the day sky and the night sky, llama.app's light and dark hero.
 
 ### App icons and social profiles
 
