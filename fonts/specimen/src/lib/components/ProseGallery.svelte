@@ -122,7 +122,6 @@
 		padding-top: 6px;
 		border-top: 1px solid var(--llama-hero-rule);
 		font: 700 24cqi / 0.95 var(--display);
-		letter-spacing: -0.01em;
 	}
 
 	/* data */

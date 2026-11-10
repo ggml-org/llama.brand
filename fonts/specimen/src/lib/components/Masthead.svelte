@@ -31,7 +31,6 @@
 	h1 {
 		margin: 0;
 		font: var(--w, 700) clamp(56px, 12vw, 148px) / 0.9 var(--display);
-		letter-spacing: -0.01em;
 		text-wrap: balance;
 	}
 	h1 .version {

@@ -40,7 +40,7 @@
 			<figcaption>Figure 1. Display’s outlines, spaced for reading and interfaces.</figcaption>
 		</figure>
 		<p class="footnote">
-			¹ UI and Display are the two ends of one font’s optical size axis: the same outlines, with spacing, kerning and descender depth set for each size.
+			¹ UI and Display are two sizes on one font’s optical size axis: the same outlines, with spacing, kerning and descender depth set for each size.
 		</p>
 	</div>
 </article>
@@ -73,7 +73,6 @@
 	.kicker {
 		font: 500 13px / normal var(--display);
 		color: var(--muted);
-		letter-spacing: 0.02em;
 	}
 	.title {
 		font: 600 clamp(28px, 4vw, 40px) / normal var(--display);
