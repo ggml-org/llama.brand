@@ -77,7 +77,7 @@ Every SVG also comes as a lossless WebP under [`logo/webp/`](./logo/webp) and a 
   <img alt="Llama Sans: Simple by default, powerful on request, in Regular, Medium, SemiBold and Bold" src="./readme/llama-sans-light.svg" width="800">
 </picture>
 
-**Llama Sans** is one variable font from 400 to 700, with an optical size axis from 16 to 40: spaced for interfaces (UI) at its small end and for headlines (Display) at its large end, which browsers pick from the font-size.
+**Llama Sans** is one variable font from 400 to 700, with an optical size axis from 10 to 36: spaced for interfaces (UI) at 16, tighter for headlines (Display) at its large end and looser for small text under 16, which browsers pick from the font-size.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="./readme/llama-mono-dark.svg">

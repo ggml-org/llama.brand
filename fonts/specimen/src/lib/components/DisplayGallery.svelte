@@ -205,7 +205,6 @@
 	.numerals .n {
 		font: 700 23cqi / 0.86 var(--display);
 		font-variant-numeric: tabular-nums;
-		letter-spacing: -0.01em;
 	}
 	.numerals .outline {
 		color: transparent;
@@ -247,7 +246,6 @@
 		top: 3cqi;
 		left: 3cqi;
 		font: 500 2.2cqi var(--mono);
-		letter-spacing: 0.06em;
 		text-transform: uppercase;
 	}
 	.tile.story {
@@ -315,12 +313,10 @@
 	}
 	.cover .masthead {
 		font: 700 27cqi / 0.8 var(--display);
-		letter-spacing: -0.02em;
 	}
 	.cover .issue {
 		margin-top: 2cqi;
 		font: 500 2.4cqi var(--mono);
-		letter-spacing: 0.08em;
 		text-transform: uppercase;
 		opacity: 0.75;
 	}
@@ -377,7 +373,6 @@
 	}
 	.glyphs .guide-label {
 		font: 500 9px var(--mono);
-		letter-spacing: 0.08em;
 		text-transform: uppercase;
 		fill: var(--ds-neutral-500);
 	}
@@ -394,7 +389,6 @@
 	}
 	.billboard .claim {
 		font: 700 12cqi / 0.92 var(--display);
-		letter-spacing: -0.01em;
 	}
 	.billboard .by {
 		display: flex;

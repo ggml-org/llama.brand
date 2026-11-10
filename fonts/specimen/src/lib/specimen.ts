@@ -17,6 +17,8 @@ export interface Specimen {
 	waterfall: { weight: number; name: string }[];
 	variants: string[];
 	compare: { labels: string[] } | null;
+	/** the small-sizes section: its font sizes, and the units each advance gains there over opsz 16 */
+	small: { sizes: number[]; tracking: number[]; prevTracking: number[] | null };
 	grid: {
 		variant: string;
 		width: number;
@@ -29,7 +31,7 @@ export interface Specimen {
 
 export const specimen = raw as unknown as Specimen;
 
-/** each version's place on the optical size axis: Llama Sans is one font, and UI and Display are its two ends */
-export const opsz: Record<string, number> = { Display: 40, UI: 16 };
+/** each version's place on the optical size axis: Llama Sans is one font, and UI and Display are two of its named sizes (Small, at 10, has no version: text under 16 px takes it on its own) */
+export const opsz: Record<string, number> = { Display: 36, UI: 16 };
 
 export const fallback = '"Helvetica Neue", Arial, sans-serif';

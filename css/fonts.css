@@ -1,8 +1,8 @@
 /*
  * Llama Sans and Llama Mono (SIL OFL 1.1, see fonts/OFL.txt), and the stacks to set them in.
- * Llama Sans is one variable font over weight (400–700) and optical size (16–40): the browser picks the optical size
- * from the font-size, so text up to 16px gets the UI spacing, 40px and up the tighter Display spacing, with a blend
- * in between. Llama Mono keeps every character in one cell, its coding ligatures included.
+ * Llama Sans is one variable font over weight (400–700) and optical size (10–36): the browser picks the optical size
+ * from the font-size, so 16px text gets the UI spacing, 36px and up the tighter Display spacing, and text under 16px
+ * a looser one, with a blend in between. Llama Mono keeps every character in one cell, its coding ligatures included.
  */
 @font-face {
 	font-family: 'Llama Sans';

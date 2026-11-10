@@ -43,7 +43,7 @@ GEIST_MONO_PATH = os.path.join("sources", "geist-mono", "GeistMono[wght].ttf")
 
 FAMILY = "Llama Mono"
 CELL = 600                                   # Geist Mono's advance; every spacing glyph gets it
-UI = sans.SIZES[min(sans.SIZES)]             # Llama Sans at its text size (opsz 16)
+UI = sans.SIZES[sans.DEFAULT_SIZE]           # Llama Sans at its text size (opsz 16)
 DESCENDER = UI["descender"]                  # code is running text: the text size's descenders
 LINE = sans.LINE                             # and Llama Sans's line box, centred on the cap height
 LOCKUP_SPACE = 235 + UI["track"]             # Llama Sans's space at opsz 16 (Geist's 235, tracked), in U+E002's gap
@@ -230,7 +230,9 @@ if __name__ == "__main__":
     var = TTFont(paths[0] if paths else sans.pinned_source(GEIST_MONO_PATH, GEIST_MONO_SHA256))
     for d in ("variable", "static"):
         os.makedirs(os.path.join(out_dir, d), exist_ok=True)
-    vf = sans.build_variable(build_masters(var), FAMILY)
+    masters = build_masters(var)
+    sans.merge_composites(masters)
+    vf = sans.build_variable(masters, FAMILY)
     add_calt(vf, TT_FEA + ligature_spacing_fea(vf))
     check_cells(vf)
     out = os.path.join(out_dir, "variable", "LlamaMono[wght].ttf")

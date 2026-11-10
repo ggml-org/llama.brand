@@ -51,7 +51,6 @@
 	.wrap > :global(h2) {
 		margin-bottom: -44px;
 		font: 500 11px/1.4 var(--mono);
-		letter-spacing: 0.08em;
 		text-transform: uppercase;
 		color: var(--muted);
 	}

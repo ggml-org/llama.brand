@@ -1,4 +1,4 @@
-"""Llama Sans, one variable font over weight (wght 400–700) and optical size (opsz 16–40), built from Geist's
+"""Llama Sans, one variable font over weight (wght 400–700) and optical size (opsz 10–36), built from Geist's
 variable font.
 
 Geist (SIL Open Font License 1.1, no Reserved Font Name) supplies three masters: design weights 400
@@ -15,9 +15,10 @@ Run:  python scripts/build_llama_sans.py
       -> variable/LlamaSans[opsz,wght].ttf
          static/LlamaSans-{Regular,Medium,SemiBold,Bold}.ttf, cut from it at opsz 16
 
-The optical size axis runs between two settings of the same outlines (SIZES). At opsz 16, "UI", it is for
+The optical size axis runs over three settings of the same outlines (SIZES). At opsz 16, "UI", it is for
 interfaces and running text: spaced and kerned after SF Pro's text sizes, with slightly deeper descenders. At opsz
-40, "Display", it is for headlines: tight tracking and stronger kerning. Sizes in between blend, and browsers set
+36, "Display", it is for headlines: tight tracking and stronger kerning. At opsz 10, "Small", it is UI set further
+apart, for text under 16 px on screens. Sizes in between blend, and browsers set
 opsz from font-size on their own (font-optical-sizing: auto). Line spacing can't vary with opsz, so the whole axis
 has UI's line box, centred on the cap height for buttons and cards; headlines and prose set their own line-height.
 """
@@ -46,21 +47,25 @@ MASTERS = [(400, 400), (500, 500), (700, 650)]  # (design weight, Geist weight i
 # The axis: design weights 400–TOP_WEIGHT, stretched over wght 400–700, so wght 500, 600 and 700 are the design's
 # 480, 560 and 640 (every 100 on the axis is 80 of the design). The design above TOP_WEIGHT is dropped.
 TOP_WEIGHT = 640
-# The optical size axis's two ends, by opsz (CSS px): tracking (units added to every advance), kerning (scale of
+# The optical size axis's named sizes, by opsz (CSS px): tracking (units added to every advance), kerning (scale of
 # Geist's pair kerning), the pair corrections and their size-specific fixes, and the descender depth.
 SIZES = {
+    # Small: text under 16 px on screens. UI's kerning with the letters set further apart, more the smaller the text,
+    # so they stay separate on a coarse pixel grid: tracking grows evenly from UI's at 16 px to this at 10 px.
+    10: dict(name="Small", track=27, kern=1.05, pairs=0.75, fixes="UI_KERN", descender=155),
     # UI: interfaces and running text, spaced like SF Pro at 14–15 pt. Geist's kerning at 105% and the pair
     # corrections at 75%, then UI_KERN brings it to SF Pro's text kerning. A slight +3 tracking opens running text a
     # touch at small sizes, and its descenders run deeper, to `descender` units below the baseline.
     16: dict(name="UI", track=3, kern=1.05, pairs=0.75, fixes="UI_KERN", descender=155),
     # Display: headlines and big sizes, with tight tracking and stronger kerning.
-    40: dict(name="Display", track=-22, kern=1.15, pairs=1.00, fixes="DISPLAY_KERN"),
+    36: dict(name="Display", track=-22, kern=1.15, pairs=1.00, fixes="DISPLAY_KERN"),
 }
 # The line metrics for the whole axis (typo ascender, descender, line gap; win metrics stay at full height so
 # nothing clips): a 1.25 em line box whose midline sits exactly at half the cap height ((980 - 270) / 2 = 355 =
 # 710 / 2), so capitals and cap-height icons centre in buttons and chips with even padding; 12/16/20 px give
 # whole-pixel 15/20/25 px lines. Headlines set a tighter line-height (1.15) in CSS.
 LINE = (980, -270, 0)
+DEFAULT_SIZE = 16  # the axis's default, and where the statics (and Llama Mono's borrowed settings) are taken: UI
 NAMED = [(400, "Regular"), (500, "Medium"), (600, "SemiBold"), (700, "Bold")]
 STATICS = [(400, "Regular"), (500, "Medium"), (600, "SemiBold"), (700, "Bold")]
 A_FOOT = {700: (24, 72, 20)}  # per master: the a's bracketed foot (out, height, lip) — only near Bold
@@ -392,7 +397,7 @@ def add_icon(font, cell=None, scale=1, codepoint=ICON_CODEPOINT, right=ICON_SIDE
     k = size / 600
     top = (cap + size) / 2
     tt = TTGlyphPen(None)
-    pen = TransformPen(Cu2QuPen(tt, max_err=0.5, reverse_direction=True), (k, 0, 0, -k, (cell - size) / 2 if cell else ICON_SIDE, top))
+    pen = TransformPen(Cu2QuPen(tt, max_err=0.5), (k, 0, 0, -k, (cell - size) / 2 if cell else ICON_SIDE, top))
     for d in ICON_PATHS:
         parse_path(d, pen)
     g = tt.glyph()
@@ -438,8 +443,16 @@ def add_features(font, fea):
     gsub.FeatureList.FeatureCount = len(records)
 
 
+KEEP_OVERLAPS = set()  # glyphs whose overlaps stay: the named sizes didn't merge them alike (filled in by the build)
+UNITED = {}            # per glyph, the merged outline's structure in each build_masters call (None: not merged)
+
+
 def write_compatible(name, segs_by_master, masters):
-    """Back to TrueType quadratics, converting each cubic in all masters at once so point counts match."""
+    """Back to TrueType quadratics, converting each cubic in all masters at once so point counts match. Overlapping
+    contours are merged into one outline first (bg.unite), so outlined text (text-stroke) shows no inner lines."""
+    united = None if name in KEEP_OVERLAPS else bg.unite(segs_by_master)
+    UNITED[name] = UNITED.get(name, []) + [united and [[kind for kind, _ in c] for c in united[0]]]
+    segs_by_master = united or segs_by_master
     pens = [TTGlyphPen(None) for _ in masters]
     for ci in range(len(segs_by_master[0])):
         for pen, s in zip(pens, segs_by_master):
@@ -460,9 +473,29 @@ def write_compatible(name, segs_by_master, masters):
         g = pen.glyph()
         g.program = ttProgram.Program()
         g.program.fromBytecode(b"")
-        if g.numberOfContours > 0:
-            g.flags[0] |= 0x40  # OVERLAP_SIMPLE: masters keep Geist's overlapping contours
+        if g.numberOfContours > 0 and not united:
+            g.flags[0] |= 0x40  # OVERLAP_SIMPLE: this glyph keeps Geist's overlapping contours
         m["glyf"][name] = g
+
+
+def merge_composites(masters):
+    """Composites whose parts overlap (ogoneks, cedillas, slashes and bars, the ff and tt ligatures) redrawn as one
+    merged outline, in all the masters at once. The rest stay composites. Returns the names it redrew."""
+    done = []
+    for name in masters[0].getGlyphOrder():
+        if not all(m["glyf"][name].isComposite() for m in masters):
+            continue
+        quads = [read_contours(m["glyf"][name], m["glyf"]) for m in masters]
+        try:
+            plans = {(ci, si): plan_spline(*pts) for ci, segs in enumerate(quads[0])
+                     for si, (kind, pts) in enumerate(segs) if kind == "Q"}
+            cubics = [to_cubic(q, plans) for q in quads]
+        except ZeroDivisionError:  # a part with a curve of no length: leave it a composite
+            continue
+        if bg.unite(cubics):
+            write_compatible(name, cubics, masters)
+            done.append(name)
+    return done
 
 
 def strip_hinting(font):
@@ -629,6 +662,16 @@ PAIR_KERN = [
     ("HIMN", "nmrp", -20),                                                        # straight capitals, then n
     ("HIMN", "K", -16),
     ("OQD", "HIMNBEFLPR", -20),                                                   # round capitals, then stems
+    # pairs that read uneven in words (Kafka, quartz, Sphinx, LATVIA, fjord, 1741), evened out by eye
+    ("T", "V", 34), ("T", "Y", 36), ("T", "W", 16), ("V", "T", 22), ("Y", "T", 36), ("W", "T", 6),  # arms that met
+    ("L", "AÆ", 32),                                                              # L's foot under A's
+    ("K", "Y", 22), ("K", "T", 10), ("K", "V", 8), ("Y", "O", 8), ("O", "Y", 8),   # K's arm, then a top; Y by O
+    ("K", "a", 14), ("k", "a", 8),                                                # the leg's tip, then a's low bowl
+    ("a", "f", -38), ("q", "u", -16),                                             # stems that sat apart
+    ("f", "bhk", 16), ("f", "j", 10),                                             # f's bar, then a stem
+    ("r", "tf", 20),                                                              # r's arm, then a crossbar
+    ("nmhi", "x", 28), ("y", "x", 30),                                            # x after a stem, and after y
+    ("7", "4", -20),
 ]
 
 # Kerning measured against SF Pro (macOS's SFNS.ttf, at 400) and fixed in here, so the build doesn't need it: for each
@@ -655,6 +698,7 @@ TT_OVERLAP = 1   # t·t: how far the crossbars of a double t overlap, so they re
 DISPLAY_KERN = [  # the first three: SF at opsz 28
     ("VW", "-", -29), ("Y", ".,", -88), ("Y", "-", -73), ("r", "e", -15), ("r", "a", -21), ("r", "y", 16), ("y", "t", 8),
     ("t", "bhkl", 10),
+    ("o", "w", 8), ("w", "ceo", 8), ("r", "vw", 14),  # w between rounds, and v, w after r's arm, a touch more open
 ]
 
 
@@ -748,9 +792,10 @@ def name_variable(vf, family, axes="wght"):
         nt.removeNames(nameID=nid)
     for nid, s in {0: bg.COPYRIGHT,
                    1: family, 2: "Regular", 3: f"0.6;{ps}[{axes}]", 4: f"{family} Regular",
-                   5: "Version 0.600; draft based on Geist", 6: f"{ps}-Regular", 25: ps}.items():
+                   5: f"Version {bg.VERSION}; draft based on Geist", 6: f"{ps}-Regular", 25: ps}.items():
         nt.setName(s, nid, 3, 1, 0x409)
         nt.setName(s, nid, 1, 0, 0)
+    bg.stamp(vf)
 
 
 def axis_weight(w):
@@ -789,7 +834,7 @@ def build_weight_variable(masters, family):
 
 
 def build_variable(masters_by_size, family="Llama Sans"):
-    """One variable font over wght and opsz from {opsz: masters}; the smallest opsz is the default."""
+    """One variable font over wght and opsz from {opsz: masters}; DEFAULT_SIZE is the default."""
     if not isinstance(masters_by_size, dict):  # weight masters alone
         return build_weight_variable(masters_by_size, family)
     ps = family.replace(" ", "")
@@ -797,9 +842,10 @@ def build_variable(masters_by_size, family="Llama Sans"):
     ds = DesignSpaceDocument()
     # the weight masters go where the stretched axis puts them (700's beyond 700), then the axis is cut back to 400–700
     top = axis_weight(MASTERS[-1][0])
-    for tag, name, lo, hi in (("wght", "Weight", 400, top), ("opsz", "Optical size", sizes[0], sizes[-1])):
+    for tag, name, lo, default, hi in (("wght", "Weight", 400, 400, top),
+                                       ("opsz", "Optical size", sizes[0], DEFAULT_SIZE, sizes[-1])):
         ax = AxisDescriptor()
-        ax.tag, ax.name, ax.minimum, ax.default, ax.maximum = tag, name, lo, lo, hi
+        ax.tag, ax.name, ax.minimum, ax.default, ax.maximum = tag, name, lo, default, hi
         ds.addAxis(ax)
     for size in sizes:
         for (w, _), m in zip(MASTERS, masters_by_size[size]):
@@ -809,7 +855,7 @@ def build_variable(masters_by_size, family="Llama Sans"):
             ds.addSource(src)
     for w, style in NAMED:
         ins = InstanceDescriptor()
-        ins.familyName, ins.styleName, ins.location = family, style, {"Weight": w, "Optical size": sizes[0]}
+        ins.familyName, ins.styleName, ins.location = family, style, {"Weight": w, "Optical size": DEFAULT_SIZE}
         ins.postScriptFontName = f"{ps}-{style}"
         ds.addInstance(ins)
     vf, _, _ = varLib.build(ds)
@@ -821,7 +867,8 @@ def build_variable(masters_by_size, family="Llama Sans"):
             dict(value=w, name=s, flags=0x2 if w == 400 else 0, **({"linkedValue": 700} if w == 400 else {}))
             for w, s in NAMED]),
         dict(tag="opsz", name="Optical size", values=[
-            dict(value=size, name=SIZES[size]["name"], flags=0x2 if size == sizes[0] else 0) for size in sizes]),
+            # named by size, as Google Fonts' axis registry has optical sizes (Small, UI and Display are our names)
+            dict(value=size, name=f"{size}pt", flags=0x2 if size == DEFAULT_SIZE else 0) for size in sizes]),
     ])
     vf["OS/2"].usWeightClass = 400
     return vf
@@ -831,7 +878,7 @@ def cut_statics(vf, family="Llama Sans", out_dir="."):
     ps = family.replace(" ", "")
     for w, style in STATICS:
         axes = {a.axisTag for a in vf["fvar"].axes}
-        at = {"wght": w, **({"opsz": min(SIZES)} if "opsz" in axes else {})}  # Sans's statics are cut at UI's size
+        at = {"wght": w, **({"opsz": DEFAULT_SIZE} if "opsz" in axes else {})}  # Sans's statics are cut at UI's size
         f = instantiateVariableFont(vf, at, inplace=False, overlap=OverlapMode.REMOVE, updateFontNames=False)
         for tag in ("STAT",):
             if tag in f:
@@ -858,20 +905,30 @@ if __name__ == "__main__":
     var = TTFont(paths[0] if paths else geist_source())
     for d in ("variable", "static"):
         os.makedirs(os.path.join(out_dir, d), exist_ok=True)
-    masters_by_size = {}
-    for size, cfg in SIZES.items():
-        masters = build_masters(var, cfg["track"], cfg.get("descender", DESCENDER))
-        for m in masters:
-            scale_kerning(m, cfg["kern"])
-            if cfg.get("pairs"):
-                add_kerning(m, PAIR_KERN, cfg["pairs"])
-            if cfg.get("fixes"):
-                add_kerning(m, globals()[cfg["fixes"]])
-            tt = tt_join(m)  # the whole t·t spacing; Geist's own t·t kerning is already part of it
-            add_kerning(m, [("t", "t", tt - pair_kern(m, "t", "t"))], composites=False)  # ť and ţ keep their room
-            join_tt_liga(m, tt)  # and the tt ligature, which liga turns "tt" into, matches it
-            set_line_metrics(m, LINE)
-        masters_by_size[size] = masters
+    while True:
+        masters_by_size = {}
+        UNITED.clear()
+        for size, cfg in SIZES.items():
+            masters = build_masters(var, cfg["track"], cfg.get("descender", DESCENDER))
+            for m in masters:
+                scale_kerning(m, cfg["kern"])
+                if cfg.get("pairs"):
+                    add_kerning(m, PAIR_KERN, cfg["pairs"])
+                if cfg.get("fixes"):
+                    add_kerning(m, globals()[cfg["fixes"]])
+                tt = tt_join(m)  # the whole t·t spacing; Geist's own t·t kerning is already part of it
+                add_kerning(m, [("t", "t", tt - pair_kern(m, "t", "t"))], composites=False)  # ť and ţ keep their room
+                join_tt_liga(m, tt)  # and the tt ligature, which liga turns "tt" into, matches it
+                set_line_metrics(m, LINE)
+            masters_by_size[size] = masters
+        # a glyph's overlaps merge in every named size alike, or (built again) in none
+        uneven = {name for name, runs in UNITED.items() if any(r != runs[0] for r in runs)}
+        if not uneven:
+            break
+        KEEP_OVERLAPS.update(uneven)
+    merged = sorted(name for name, runs in UNITED.items() if runs[0])
+    merged += merge_composites([m for masters in masters_by_size.values() for m in masters])
+    print(f"merged the overlaps of {len(merged)} glyphs" + (f"; kept {sorted(KEEP_OVERLAPS)}" if KEEP_OVERLAPS else ""))
     vf = build_variable(masters_by_size)
     out = os.path.join(out_dir, "variable", "LlamaSans[opsz,wght].ttf")
     vf.save(out)

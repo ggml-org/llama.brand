@@ -62,7 +62,6 @@
 	}
 	.kicker {
 		font: 500 13px var(--mono);
-		letter-spacing: 0.08em;
 		text-transform: uppercase;
 		opacity: 0.7;
 	}
@@ -84,7 +83,6 @@
 	}
 	.eyebrow {
 		font: 500 13px var(--mono);
-		letter-spacing: 0.08em;
 		text-transform: uppercase;
 		color: var(--muted);
 		margin-bottom: 6px;
@@ -164,7 +162,6 @@
 	.poster-meta {
 		margin-top: 10px;
 		font: 500 13px var(--mono);
-		letter-spacing: 0.06em;
 		text-transform: uppercase;
 	}
 </style>
