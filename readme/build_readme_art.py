@@ -147,13 +147,13 @@ def sans_card(g):
     body = []
     t, _ = text(label, "LLAMA SANS", M, M + 20, 24, g["muted"], tracking=0.08)
     body.append(t)
-    t, w = text(font(SANS, wght=700, opsz=40), "Simple by default,", M, 268, 112, g["ink"])
+    t, w = text(font(SANS, wght=700, opsz=36), "Simple by default,", M, 268, 112, g["ink"])
     fits(w, W - 2 * M, "headline")
     body.append(t)
-    t, w = text(font(SANS, wght=700, opsz=40), "powerful on request.", M, 388, 112, g["ink"])
+    t, w = text(font(SANS, wght=700, opsz=36), "powerful on request.", M, 388, 112, g["ink"])
     fits(w, W - 2 * M, "headline")
     body.append(t)
-    t, _ = text(font(SANS, wght=400, opsz=24), "One variable font, from 400 to 700, with an optical size from 10 to 40.",
+    t, _ = text(font(SANS, wght=400, opsz=24), "One variable font, from 400 to 700, with an optical size from 10 to 36.",
                 M, 470, 34, g["muted"])
     body.append(t)
     # the four weights, at the UI end
@@ -169,7 +169,7 @@ def sans_card(g):
         fits(w, W - 2 * M, line)
         body.append(t)
     # the icon glyph, top right, at the headline's cap height
-    t, w = text(font(SANS, wght=700, opsz=40), "", 0, 0, 72, g["ink"])
+    t, w = text(font(SANS, wght=700, opsz=36), "", 0, 0, 72, g["ink"])
     body.append(t.replace("<path ", f'<path transform="translate({W - M - w} {M + 52})" ', 1))
     return card(W, H, g, body)
 

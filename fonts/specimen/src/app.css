@@ -58,7 +58,7 @@
 	color-scheme: dark;
 }
 
-/* the optical size the page pins (--opsz-pin, e.g. 'opsz' 40, for the version it shows) reaches every element: the
+/* the optical size the page pins (--opsz-pin, e.g. 'opsz' 36, for the version it shows) reaches every element: the
    font shorthand resets font-variation-settings, so the pin can't simply inherit. Unset, the browser picks opsz from
    font-size */
 *:not(svg, svg *) {

@@ -1,7 +1,7 @@
 """Builds the Llama and llama.cpp lockups and covers in logo/svg/ from the current icon, Llama Sans and Llama Mono.
 
 The icon comes from svg/icon/icon-light.svg; the wordmark is "Llama" in Llama Sans Bold at its Display optical size
-(fonts/variable/LlamaSans[opsz,wght].ttf at wght 700, opsz 40) or "llama.cpp", always lowercase, in Llama Mono Bold
+(fonts/variable/LlamaSans[opsz,wght].ttf at wght 700, opsz 36) or "llama.cpp", always lowercase, in Llama Mono Bold
 (fonts/variable/LlamaMono[wght].ttf at wght 700), shaped with HarfBuzz (so kerning applies) and outlined, so the logo
 follows the fonts whenever they change. The icon is 520 px tall at the left of a 600 px lockup, and the lockup's
 proportion is the font's own lockup icon (U+E002, in both fonts): the icon 1.24 times the cap height, centred on the
@@ -27,7 +27,7 @@ FONTS = os.path.join(ROOT, "..", "fonts", "variable")
 # each name's wordmark: its font and where on the axes it is cut. Llama in Llama Sans Bold, at the Display end of the
 # optical size axis; llama.cpp in Llama Mono Bold
 WORDMARKS = {
-    "llama": ("LlamaSans[opsz,wght].ttf", {"wght": 700, "opsz": 40}),
+    "llama": ("LlamaSans[opsz,wght].ttf", {"wght": 700, "opsz": 36}),
     "llama-cpp": ("LlamaMono[wght].ttf", {"wght": 700}),
 }
 ICON_SIZE, ICON_TOP = 520, 40  # the icon in a 600 px lockup

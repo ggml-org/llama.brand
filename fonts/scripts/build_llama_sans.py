@@ -1,4 +1,4 @@
-"""Llama Sans, one variable font over weight (wght 400–700) and optical size (opsz 10–40), built from Geist's
+"""Llama Sans, one variable font over weight (wght 400–700) and optical size (opsz 10–36), built from Geist's
 variable font.
 
 Geist (SIL Open Font License 1.1, no Reserved Font Name) supplies three masters: design weights 400
@@ -17,7 +17,7 @@ Run:  python scripts/build_llama_sans.py
 
 The optical size axis runs over three settings of the same outlines (SIZES). At opsz 16, "UI", it is for
 interfaces and running text: spaced and kerned after SF Pro's text sizes, with slightly deeper descenders. At opsz
-40, "Display", it is for headlines: tight tracking and stronger kerning. At opsz 10, "Small", it is UI set further
+36, "Display", it is for headlines: tight tracking and stronger kerning. At opsz 10, "Small", it is UI set further
 apart, for text under 16 px on screens. Sizes in between blend, and browsers set
 opsz from font-size on their own (font-optical-sizing: auto). Line spacing can't vary with opsz, so the whole axis
 has UI's line box, centred on the cap height for buttons and cards; headlines and prose set their own line-height.
@@ -58,7 +58,7 @@ SIZES = {
     # touch at small sizes, and its descenders run deeper, to `descender` units below the baseline.
     16: dict(name="UI", track=3, kern=1.05, pairs=0.75, fixes="UI_KERN", descender=155),
     # Display: headlines and big sizes, with tight tracking and stronger kerning.
-    40: dict(name="Display", track=-22, kern=1.15, pairs=1.00, fixes="DISPLAY_KERN"),
+    36: dict(name="Display", track=-22, kern=1.15, pairs=1.00, fixes="DISPLAY_KERN"),
 }
 # The line metrics for the whole axis (typo ascender, descender, line gap; win metrics stay at full height so
 # nothing clips): a 1.25 em line box whose midline sits exactly at half the cap height ((980 - 270) / 2 = 355 =
