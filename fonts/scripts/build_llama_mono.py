@@ -230,7 +230,9 @@ if __name__ == "__main__":
     var = TTFont(paths[0] if paths else sans.pinned_source(GEIST_MONO_PATH, GEIST_MONO_SHA256))
     for d in ("variable", "static"):
         os.makedirs(os.path.join(out_dir, d), exist_ok=True)
-    vf = sans.build_variable(build_masters(var), FAMILY)
+    masters = build_masters(var)
+    sans.merge_composites(masters)
+    vf = sans.build_variable(masters, FAMILY)
     add_calt(vf, TT_FEA + ligature_spacing_fea(vf))
     check_cells(vf)
     out = os.path.join(out_dir, "variable", "LlamaMono[wght].ttf")

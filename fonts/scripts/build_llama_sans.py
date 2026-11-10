@@ -443,8 +443,16 @@ def add_features(font, fea):
     gsub.FeatureList.FeatureCount = len(records)
 
 
+KEEP_OVERLAPS = set()  # glyphs whose overlaps stay: the named sizes didn't merge them alike (filled in by the build)
+UNITED = {}            # per glyph, the merged outline's structure in each build_masters call (None: not merged)
+
+
 def write_compatible(name, segs_by_master, masters):
-    """Back to TrueType quadratics, converting each cubic in all masters at once so point counts match."""
+    """Back to TrueType quadratics, converting each cubic in all masters at once so point counts match. Overlapping
+    contours are merged into one outline first (bg.unite), so outlined text (text-stroke) shows no inner lines."""
+    united = None if name in KEEP_OVERLAPS else bg.unite(segs_by_master)
+    UNITED[name] = UNITED.get(name, []) + [united and [[kind for kind, _ in c] for c in united[0]]]
+    segs_by_master = united or segs_by_master
     pens = [TTGlyphPen(None) for _ in masters]
     for ci in range(len(segs_by_master[0])):
         for pen, s in zip(pens, segs_by_master):
@@ -465,9 +473,29 @@ def write_compatible(name, segs_by_master, masters):
         g = pen.glyph()
         g.program = ttProgram.Program()
         g.program.fromBytecode(b"")
-        if g.numberOfContours > 0:
-            g.flags[0] |= 0x40  # OVERLAP_SIMPLE: masters keep Geist's overlapping contours
+        if g.numberOfContours > 0 and not united:
+            g.flags[0] |= 0x40  # OVERLAP_SIMPLE: this glyph keeps Geist's overlapping contours
         m["glyf"][name] = g
+
+
+def merge_composites(masters):
+    """Composites whose parts overlap (ogoneks, cedillas, slashes and bars, the ff and tt ligatures) redrawn as one
+    merged outline, in all the masters at once. The rest stay composites. Returns the names it redrew."""
+    done = []
+    for name in masters[0].getGlyphOrder():
+        if not all(m["glyf"][name].isComposite() for m in masters):
+            continue
+        quads = [read_contours(m["glyf"][name], m["glyf"]) for m in masters]
+        try:
+            plans = {(ci, si): plan_spline(*pts) for ci, segs in enumerate(quads[0])
+                     for si, (kind, pts) in enumerate(segs) if kind == "Q"}
+            cubics = [to_cubic(q, plans) for q in quads]
+        except ZeroDivisionError:  # a part with a curve of no length: leave it a composite
+            continue
+        if bg.unite(cubics):
+            write_compatible(name, cubics, masters)
+            done.append(name)
+    return done
 
 
 def strip_hinting(font):
@@ -634,6 +662,16 @@ PAIR_KERN = [
     ("HIMN", "nmrp", -20),                                                        # straight capitals, then n
     ("HIMN", "K", -16),
     ("OQD", "HIMNBEFLPR", -20),                                                   # round capitals, then stems
+    # pairs that read uneven in words (Kafka, quartz, Sphinx, LATVIA, fjord, 1741), evened out by eye
+    ("T", "V", 34), ("T", "Y", 36), ("T", "W", 16), ("V", "T", 22), ("Y", "T", 36), ("W", "T", 6),  # arms that met
+    ("L", "AÆ", 32),                                                              # L's foot under A's
+    ("K", "Y", 22), ("K", "T", 10), ("K", "V", 8), ("Y", "O", 8), ("O", "Y", 8),   # K's arm, then a top; Y by O
+    ("K", "a", 14), ("k", "a", 8),                                                # the leg's tip, then a's low bowl
+    ("a", "f", -38), ("q", "u", -16),                                             # stems that sat apart
+    ("f", "bhk", 16), ("f", "j", 10),                                             # f's bar, then a stem
+    ("r", "tf", 20),                                                              # r's arm, then a crossbar
+    ("nmhi", "x", 28), ("y", "x", 30),                                            # x after a stem, and after y
+    ("7", "4", -20),
 ]
 
 # Kerning measured against SF Pro (macOS's SFNS.ttf, at 400) and fixed in here, so the build doesn't need it: for each
@@ -660,18 +698,9 @@ TT_OVERLAP = 1   # t·t: how far the crossbars of a double t overlap, so they re
 DISPLAY_KERN = [  # the first three: SF at opsz 28
     ("VW", "-", -29), ("Y", ".,", -88), ("Y", "-", -73), ("r", "e", -15), ("r", "a", -21), ("r", "y", 16), ("y", "t", 8),
     ("t", "bhkl", 10),
+    ("o", "w", 8), ("w", "ceo", 8), ("r", "vw", 14),  # w between rounds, and v, w after r's arm, a touch more open
 ]
 
-    # pairs that read uneven in words (Kafka, quartz, Sphinx, LATVIA, fjord, 1741), evened out by eye
-    ("T", "V", 34), ("T", "Y", 36), ("T", "W", 16), ("V", "T", 22), ("Y", "T", 36), ("W", "T", 6),  # arms that met
-    ("L", "AÆ", 32),                                                              # L's foot under A's
-    ("K", "Y", 22), ("K", "T", 10), ("K", "V", 8), ("Y", "O", 8), ("O", "Y", 8),   # K's arm, then a top; Y by O
-    ("K", "a", 14), ("k", "a", 8),                                                # the leg's tip, then a's low bowl
-    ("a", "f", -38), ("q", "u", -16),                                             # stems that sat apart
-    ("f", "bhk", 16), ("f", "j", 10),                                             # f's bar, then a stem
-    ("r", "tf", 20),                                                              # r's arm, then a crossbar
-    ("nmhi", "x", 28), ("y", "x", 30),                                            # x after a stem, and after y
-    ("7", "4", -20),
 
 def add_kerning(font, groups, scale=1.0, composites=True):
     """Add pair kerning (values times scale) in its own lookup, appended to every 'kern' feature. With composites,
@@ -698,7 +727,6 @@ def add_kerning(font, groups, scale=1.0, composites=True):
                 pairs[(a, b)] = (rec, None)
     gpos = font["GPOS"].table
     lookup = buildLookup(buildPairPosGlyphs(pairs, font.getReverseGlyphMap()))
-    ("o", "w", 8), ("w", "ceo", 8), ("r", "vw", 14),  # w between rounds, and v, w after r's arm, a touch more open
     gpos.LookupList.Lookup.append(lookup)
     gpos.LookupList.LookupCount = len(gpos.LookupList.Lookup)
     idx = gpos.LookupList.LookupCount - 1
@@ -875,20 +903,30 @@ if __name__ == "__main__":
     var = TTFont(paths[0] if paths else geist_source())
     for d in ("variable", "static"):
         os.makedirs(os.path.join(out_dir, d), exist_ok=True)
-    masters_by_size = {}
-    for size, cfg in SIZES.items():
-        masters = build_masters(var, cfg["track"], cfg.get("descender", DESCENDER))
-        for m in masters:
-            scale_kerning(m, cfg["kern"])
-            if cfg.get("pairs"):
-                add_kerning(m, PAIR_KERN, cfg["pairs"])
-            if cfg.get("fixes"):
-                add_kerning(m, globals()[cfg["fixes"]])
-            tt = tt_join(m)  # the whole t·t spacing; Geist's own t·t kerning is already part of it
-            add_kerning(m, [("t", "t", tt - pair_kern(m, "t", "t"))], composites=False)  # ť and ţ keep their room
-            join_tt_liga(m, tt)  # and the tt ligature, which liga turns "tt" into, matches it
-            set_line_metrics(m, LINE)
-        masters_by_size[size] = masters
+    while True:
+        masters_by_size = {}
+        UNITED.clear()
+        for size, cfg in SIZES.items():
+            masters = build_masters(var, cfg["track"], cfg.get("descender", DESCENDER))
+            for m in masters:
+                scale_kerning(m, cfg["kern"])
+                if cfg.get("pairs"):
+                    add_kerning(m, PAIR_KERN, cfg["pairs"])
+                if cfg.get("fixes"):
+                    add_kerning(m, globals()[cfg["fixes"]])
+                tt = tt_join(m)  # the whole t·t spacing; Geist's own t·t kerning is already part of it
+                add_kerning(m, [("t", "t", tt - pair_kern(m, "t", "t"))], composites=False)  # ť and ţ keep their room
+                join_tt_liga(m, tt)  # and the tt ligature, which liga turns "tt" into, matches it
+                set_line_metrics(m, LINE)
+            masters_by_size[size] = masters
+        # a glyph's overlaps merge in every named size alike, or (built again) in none
+        uneven = {name for name, runs in UNITED.items() if any(r != runs[0] for r in runs)}
+        if not uneven:
+            break
+        KEEP_OVERLAPS.update(uneven)
+    merged = sorted(name for name, runs in UNITED.items() if runs[0])
+    merged += merge_composites([m for masters in masters_by_size.values() for m in masters])
+    print(f"merged the overlaps of {len(merged)} glyphs" + (f"; kept {sorted(KEEP_OVERLAPS)}" if KEEP_OVERLAPS else ""))
     vf = build_variable(masters_by_size)
     out = os.path.join(out_dir, "variable", "LlamaSans[opsz,wght].ttf")
     vf.save(out)

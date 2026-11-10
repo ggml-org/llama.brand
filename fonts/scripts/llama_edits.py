@@ -282,6 +282,236 @@ def round_curve(c, m=ROUND):
     return (p0, lerp(p0, corner, n1), lerp(p3, corner, n2), p3)
 
 
+# ---------- 3. overlaps ----------
+
+class _Tangled(Exception):
+    """Contours that touch along an edge or cross too often to untangle the same way in every master."""
+
+
+def _as_cubic(seg):
+    kind, pts = seg
+    return (pts[0], lerp(pts[0], pts[1], 1 / 3), lerp(pts[0], pts[1], 2 / 3), pts[1]) if kind == "L" else pts
+
+
+def _box(c):
+    xs, ys = [p[0] for p in c], [p[1] for p in c]
+    return min(xs), min(ys), max(xs), max(ys)
+
+
+def _crossings(a, b):
+    """Parameters (ta, tb) where cubics a and b cross, by halving both until the boxes are points."""
+    found, budget = [], [6000]
+
+    def walk(ca, a0, a1, cb, b0, b1):
+        budget[0] -= 1
+        if budget[0] < 0:
+            raise _Tangled
+        ba, bb = _box(ca), _box(cb)
+        if ba[2] < bb[0] or bb[2] < ba[0] or ba[3] < bb[1] or bb[3] < ba[1]:
+            return
+        if max(ba[2] - ba[0], ba[3] - ba[1], bb[2] - bb[0], bb[3] - bb[1]) < 0.02:
+            found.append(((a0 + a1) / 2, (b0 + b1) / 2))
+            return
+        am, bm = (a0 + a1) / 2, (b0 + b1) / 2
+        for pa, x0, x1 in zip(split(ca, 0.5), (a0, am), (am, a1)):
+            for pb, y0, y1 in zip(split(cb, 0.5), (b0, bm), (bm, b1)):
+                walk(pa, x0, x1, pb, y0, y1)
+
+    walk(a, 0, 1, b, 0, 1)
+    out = []
+    for ta, tb in sorted(found):
+        if not any(abs(ta - x) < 2e-3 and abs(tb - y) < 2e-3 for x, y in out):
+            out.append((ta, tb))
+    return out
+
+
+def _sub(c, t0, t1):
+    """The part of cubic c between t0 and t1."""
+    head = split(c, t1)[0] if t1 < 1 else c
+    return split(head, t0 / t1)[1] if t0 > 0 else head
+
+
+def _winding(polys, p):
+    """Winding number of point p in the closed polylines."""
+    w = 0
+    for poly in polys:
+        for (x0, y0), (x1, y1) in zip(poly, poly[1:] + poly[:1]):
+            if (y0 <= p[1]) != (y1 <= p[1]):
+                x = x0 + (x1 - x0) * (p[1] - y0) / (y1 - y0)
+                if x > p[0]:
+                    w += 1 if y1 > y0 else -1
+    return w
+
+
+def _still(c):
+    """A segment of no length (a corner one master draws and another doesn't, such as the a's foot)."""
+    return max(math.dist(c[0], p) for p in c[1:]) < 0.01
+
+
+def _cuts(contours):
+    """Where a glyph's segments cross each other: per segment (contour, index), its cuts in order as (t, the
+    segment it meets). A corner sitting on another segment cuts that segment only; joints between neighbours and
+    segments of no length cut nothing."""
+    segs = [((ci, si), _as_cubic(seg)) for ci, c in enumerate(contours) for si, seg in enumerate(c)]
+    segs = [(key, c, _box(c)) for key, c in segs if not _still(c)]
+    line = lambda key: contours[key[0]][key[1]][0] == "L"
+    cuts = {(ci, si): [] for ci, c in enumerate(contours) for si in range(len(c))}
+
+    def along(c, p):  # where p sits on the straight segment c, or None when it is off its line
+        d = (c[3][0] - c[0][0], c[3][1] - c[0][1])
+        l2 = d[0] * d[0] + d[1] * d[1]
+        if abs(d[0] * (p[1] - c[0][1]) - d[1] * (p[0] - c[0][0])) / math.sqrt(l2) > 0.02:
+            return None
+        return ((p[0] - c[0][0]) * d[0] + (p[1] - c[0][1]) * d[1]) / l2
+
+    for i, (ka, ca, A) in enumerate(segs):
+        for kb, cb, B in segs[i + 1:]:
+            if A[2] < B[0] or B[2] < A[0] or A[3] < B[1] or B[3] < A[1]:
+                continue
+            if ka[0] == kb[0] and (math.dist(ca[3], cb[0]) < 0.01 or math.dist(cb[3], ca[0]) < 0.01):
+                continue  # neighbours meet at their joint
+            if line(ka) and line(kb) and along(ca, cb[0]) is not None and along(ca, cb[3]) is not None:
+                # two edges on one line: each is cut where the other's ends sit on it
+                for key, c, other, ends in ((ka, ca, kb, (cb[0], cb[3])), (kb, cb, ka, (ca[0], ca[3]))):
+                    cuts[key] += [(t, other) for t in (along(c, e) for e in ends) if 1e-3 < t < 1 - 1e-3]
+                continue
+            for ta, tb in _crossings(ca, cb):
+                if 1e-3 < ta < 1 - 1e-3:
+                    cuts[ka].append((ta, kb))
+                if 1e-3 < tb < 1 - 1e-3:
+                    cuts[kb].append((tb, ka))
+    for key, found in cuts.items():
+        found.sort()
+        cuts[key] = [c for k, c in enumerate(found) if not k or c[0] - found[k - 1][0] > 2e-3]  # one cut per point
+    return cuts
+
+
+def _plan(contours, cuts):
+    """The outline of the union as contours of pieces (contour, segment, piece index), walked on one master. A
+    piece stays when it has ink on its right and none on its left; from the end of one, the walk goes on to the
+    piece that starts there, and where several do (a crossing, a corner on an edge) to the one that keeps to the
+    same ink."""
+    polys = [[point(_as_cubic(seg), k / 32) for seg in c for k in range(32)] for c in contours]
+    curve = lambda ci, si: _as_cubic(contours[ci][si])
+    span, keep, still = {}, set(), set()
+    for (ci, si), found in cuts.items():
+        c = curve(ci, si)
+        edges = [0] + [t for t, _ in found] + [1]
+        for k, (t0, t1) in enumerate(zip(edges, edges[1:])):
+            piece = (ci, si, k)
+            span[piece] = (t0, t1)
+            if _still(c) or math.dist(point(c, t0), point(c, t1)) < 0.5:
+                still.add(piece)
+                continue
+            m, d = point(c, (t0 + t1) / 2), tangent(c, (t0 + t1) / 2)
+            left = _winding(polys, (m[0] - d[1] * 0.75, m[1] + d[0] * 0.75))
+            right = _winding(polys, (m[0] + d[1] * 0.75, m[1] - d[0] * 0.75))
+            if left and not right:
+                raise _Tangled  # a contour running the wrong way round
+            if right and not left:
+                keep.add(piece)
+
+    def step(piece, by):  # the piece before or after along its contour
+        ci, si, k = piece
+        n = len(contours[ci])
+        if by > 0:
+            return (ci, si, k + 1) if k < len(cuts[(ci, si)]) else (ci, (si + 1) % n, 0)
+        return (ci, si, k - 1) if k else (ci, (si - 1) % n, len(cuts[(ci, (si - 1) % n)]))
+
+    for piece in still:  # a piece of no length stays when the pieces around it do
+        around = []
+        for by in (-1, 1):
+            q = step(piece, by)
+            while q in still and q != piece:
+                q = step(q, by)
+            around.append(q)
+        if all(q in keep for q in around):
+            keep.add(piece)
+
+    start_of = lambda q: point(curve(q[0], q[1]), span[q][0])
+    end_of = lambda q: point(curve(q[0], q[1]), span[q][1])
+
+    def heading(q, at_end=False):
+        c, (t0, t1) = curve(q[0], q[1]), span[q]
+        a, b = (point(c, t1 - (t1 - t0) * 0.05), point(c, t1)) if at_end else (point(c, t0), point(c, t0 + (t1 - t0) * 0.05))
+        return math.atan2(b[1] - a[1], b[0] - a[0])
+
+    marks = lambda q: (start_of(q), point(curve(q[0], q[1]), sum(span[q]) / 2), end_of(q))
+    first = []  # two edges running together on one line outline the same ink: one of them is enough
+    for q in sorted(keep - still):
+        if any(all(math.dist(a, b) < 0.3 for a, b in zip(marks(q), other)) for other in first):
+            keep.discard(q)
+        else:
+            first.append(marks(q))
+
+    plan, seen = [], set()
+    for start in sorted(keep - still):
+        if start in seen:
+            continue
+        loop, piece = [], start
+        while True:
+            seen.add(piece)
+            loop.append(piece)
+            nxt = step(piece, 1)
+            if nxt in still and nxt in keep:
+                piece = nxt
+                continue
+            here = end_of(piece)
+            options = [q for q in keep - still if math.dist(start_of(q), here) < 0.3]
+            if not options:
+                raise _Tangled
+            if len(options) > 1:  # with ink on the right, the first way out turning anticlockwise from the way in
+                back = heading(piece, at_end=True) + math.pi if piece not in still else None
+                if back is None:
+                    raise _Tangled
+                options.sort(key=lambda q: (heading(q) - back) % (2 * math.pi))
+            piece = options[0]
+            if piece == start:
+                break
+            if piece in seen:
+                raise _Tangled
+        plan.append(loop)
+    if seen != keep:
+        raise _Tangled
+    return plan
+
+
+def unite(segs_by_master):
+    """A glyph's overlapping contours merged into its outline, the same way in every master so they stay
+    point-compatible: the crossings are found in each master, and the first master decides which pieces between
+    them make the outline. Returns the masters' new contours, or None where there is nothing to merge or the
+    masters don't cross alike (those glyphs keep their overlaps)."""
+    try:
+        cuts = [_cuts(c) for c in segs_by_master]
+        if not any(cuts[0].values()):
+            return None
+        shape = lambda cs: {k: len(v) for k, v in cs.items()}
+        if any(shape(c) != shape(cuts[0]) for c in cuts[1:]):
+            return None
+        plan = _plan(segs_by_master[0], cuts[0])
+    except _Tangled:
+        return None
+    out = []
+    for contours, cs in zip(segs_by_master, cuts):
+        new = []
+        for loop in plan:
+            segs = []
+            for ci, si, k in loop:
+                kind, pts = contours[ci][si]
+                edges = [0] + [t for t, _ in cs[(ci, si)]] + [1]
+                c = _sub(_as_cubic((kind, pts)), edges[k], edges[k + 1])
+                segs.append(("L", (c[0], c[3])) if kind == "L" else ("C", c))
+            # each piece starts exactly where the one before it ends (or this master is cut differently)
+            for i, (kind, pts) in enumerate(segs):
+                end = segs[i - 1][1][-1]
+                if math.dist(end, pts[0]) > 1.5:
+                    return None
+                segs[i] = (kind, (end,) + tuple(pts[1:]))
+            new.append(segs)
+        out.append(new)
+    return out
+
+
 # ---------- build ----------
 
 def track(font, units):
