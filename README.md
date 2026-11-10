@@ -6,7 +6,7 @@ Official brand assets for **Llama.app** and **llama.cpp**: the logo, the Llama t
 logo/     the icon, the lockups, the covers, app icons and social profiles as SVG, WebP and PNG, plus the logo showcase
 fonts/    Llama Sans and Llama Mono, their build scripts and the specimen
 css/      the colours, the font faces, and communications' grounds and type scale
-readme/   this README's artwork, built from the fonts and the colours
+readme/   this README's artwork: cards built from the fonts and the colours, and the logo in use, rendered from the design system
 ```
 
 Install it from GitHub and import files by path:
@@ -67,6 +67,109 @@ Every icon and lockup also comes on its background (`-bg`), with the icon optica
 - **Social profiles** ([`logo/svg/social/`](./logo/svg/social)): avatars and banners for X, LinkedIn and YouTube, at each platform's size and inside its safe area.
 
 Every SVG also comes as a lossless WebP under [`logo/webp/`](./logo/webp) and a PNG under [`logo/png/`](./logo/png), in the same layout. See [`logo/`](./logo) for how the files are built and for the showcase that takes the icon apart.
+
+---
+
+## Using the logo
+
+These images are rendered from the Logo stories in the design system's Storybook, in llama.cpp's `tools/ui` (`npm run export:brand-readme -- --out <this repo>`), so they show the real components.
+
+### How the lockups are built
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./readme/logo/lockup-construction-dark.png">
+  <img alt="The Llama and llama.cpp lockups over their guides: the icon's box, the gap after it, the cap height or ascenders the icon centres on, the baseline, and the clear space of half the icon all round" src="./readme/logo/lockup-construction-light.png">
+</picture>
+
+The icon is 1.24 times Llama's cap height and centred on its capitals; in llama.cpp it is centred on the ascenders. The gap after the icon is part of the lockup glyph, U+E002, so it never needs measuring. Keep half the icon's height clear all round, with nothing else inside it.
+
+### Typed
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./readme/logo/lockup-typed-dark.png">
+  <img alt="Both lockups typed in their fonts" src="./readme/logo/lockup-typed-light.png">
+</picture>
+
+Type U+E002 straight before the name, with no space, in Bold. Llama Mono's icon is drawn a little larger, so set llama.cpp at 90% of Llama's size and the two icons match.
+
+### Sizes
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./readme/logo/lockup-sizes-dark.png">
+  <img alt="Both lockups at 64, 32, 16 and 12 px" src="./readme/logo/lockup-sizes-light.png">
+</picture>
+
+12 px is the smallest either is set at. Below that, use the icon alone.
+
+### Grounds
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./readme/logo/lockup-grounds-dark.png">
+  <img alt="Both lockups on white, ink, the day sky and the night sky; llama.cpp only on the neutral ones" src="./readme/logo/lockup-grounds-light.png">
+</picture>
+
+Both go on white, the greys and ink. Only Llama goes on colour, the day sky and the night sky.
+
+### Never
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./readme/logo/lockup-never-dark.png">
+  <img alt="What the lockups never do: the wrong face, capitals, a space after the icon, distorted, two colours, llama.cpp on colour, effects" src="./readme/logo/lockup-never-light.png">
+</picture>
+
+### In context
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./readme/logo/lockup-in-context-dark.png">
+  <img alt="The lockups in a site header, an app header, a terminal and a footer" src="./readme/logo/lockup-in-context-light.png">
+</picture>
+
+<img alt="llama.cpp's README banner, on ink and on white" src="./readme/logo/banner-llama-cpp.png">
+
+<img alt="The Llama lockup on the day sky and the night sky" src="./readme/logo/banner-llama.png">
+
+A banner is 3:1 with the lockup centred: llama.cpp's on ink or white, Llama's also on llama.app's day and night skies.
+
+### The icon in use
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./readme/logo/icon-glyphs-dark.png">
+  <img alt="The icon as a glyph of Llama Sans and Llama Mono: the lockup, in small text and in a headline" src="./readme/logo/icon-glyphs-light.png">
+</picture>
+
+Three glyphs carry the icon: U+E002, the lockup; U+E001, at 1.24 times the cap height, for small text and controls; U+E000, at the cap height, for headlines.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./readme/logo/icon-buttons-dark.png">
+  <img alt="Buttons that open or download Llama and llama.cpp, with the icon before the label" src="./readme/logo/icon-buttons-light.png">
+</picture>
+
+In a button the icon is U+E001 before the label, with a word space after it: no icon slot and no nudging.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./readme/logo/icon-badges-dark.png">
+  <img alt="Download badges for macOS, GitHub and GGUF, dark and light" src="./readme/logo/icon-badges-light.png">
+</picture>
+
+A download badge carries the icon at the height of its two lines: 48 px high, 40 when compact.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./readme/logo/icon-inline-dark.png">
+  <img alt="The icon inline in running text and in a headline" src="./readme/logo/icon-inline-light.png">
+</picture>
+
+In running text the icon takes U+E001, in a headline U+E000. It goes before the name it stands for, never in place of a word.
+
+<img alt="The Llama app icon in the macOS menu bar and Dock and in the Windows taskbar and tray, light and dark" src="./readme/logo/icon-in-place.png">
+
+The app icon in the macOS menu bar and Dock, and in the Windows taskbar and tray.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./readme/logo/icon-splash-dark.png">
+  <img alt="Splash screens with the icon centred" src="./readme/logo/icon-splash-light.png">
+</picture>
+
+While the app opens, the icon alone, centred.
 
 ---
 
