@@ -6,8 +6,10 @@ Official brand assets for **Llama.app** and **llama.cpp**: the logo, the Llama t
 logo/     the icon, the lockups, the covers, app icons and social profiles as SVG, WebP and PNG, plus the logo showcase
 fonts/    Llama Sans and Llama Mono, their build scripts and the specimen
 css/      the colours, the font faces, and communications' grounds and type scale
-readme/   this README's artwork: cards built from the fonts and the colours, and the logo in use, rendered from the design system
+readme/   this README's artwork, rendered from the design system's Storybook
 ```
+
+The README's artwork is rendered from the stories in the design system's Storybook, in llama.cpp's `tools/ui`, so it shows the real components: `npm run export:brand-readme -- --out <this repo>` there writes everything under `readme/`.
 
 Install it from GitHub and import files by path:
 
@@ -71,8 +73,6 @@ Every SVG also comes as a lossless WebP under [`logo/webp/`](./logo/webp) and a 
 ---
 
 ## Using the logo
-
-These images are rendered from the Logo stories in the design system's Storybook, in llama.cpp's `tools/ui` (`npm run export:brand-readme -- --out <this repo>`), so they show the real components.
 
 ### How the lockups are built
 
@@ -176,15 +176,25 @@ While the app opens, the icon alone, centred.
 ## Fonts
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="./readme/llama-sans-dark.svg">
-  <img alt="Llama Sans: Simple by default, powerful on request, in Regular, Medium, SemiBold and Bold" src="./readme/llama-sans-light.svg" width="800">
+  <source media="(prefers-color-scheme: dark)" srcset="./readme/fonts/llama-sans-dark.png">
+  <img alt="Llama Sans: one font for every size, spaced for text at 16, tight for headlines at 40, every weight from 400 to 700" src="./readme/fonts/llama-sans-light.png">
+</picture>
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./readme/fonts/llama-sans-weights-dark.png">
+  <img alt="Llama Sans in Regular, Medium, SemiBold and Bold" src="./readme/fonts/llama-sans-weights-light.png">
 </picture>
 
 **Llama Sans** is one variable font from 400 to 700, with an optical size axis from 10 to 36: spaced for interfaces (UI) at 16, tighter for headlines (Display) at its large end and looser for small text under 16, which browsers pick from the font-size.
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="./readme/llama-mono-dark.svg">
-  <img alt="Llama Mono: llama.cpp, a llama-server command and code with ligatures" src="./readme/llama-mono-light.svg" width="800">
+  <source media="(prefers-color-scheme: dark)" srcset="./readme/fonts/llama-mono-dark.png">
+  <img alt="Llama Mono: every character the same cell, Llama Sans’s letters set for code" src="./readme/fonts/llama-mono-light.png">
+</picture>
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./readme/fonts/llama-mono-in-code-dark.png">
+  <img alt="C code that loads a GGUF model, set in Llama Mono with its ligatures" src="./readme/fonts/llama-mono-in-code-light.png">
 </picture>
 
 **Llama Mono** is its monospaced sibling, for code, commands and numbers in columns: every character in one cell, its coding ligatures included.
@@ -196,8 +206,8 @@ Both carry the Llama icon as glyphs: U+E000 for headlines, and U+E002, the locku
 ## Colours
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="./readme/colours-dark.svg">
-  <img alt="The brand's colours: ink, light, sand, cinder and the day and night skies" src="./readme/colours-light.svg" width="800">
+  <source media="(prefers-color-scheme: dark)" srcset="./readme/colours/palette-dark.png">
+  <img alt="The brand's palette: grounds and ink, the gradients, and the colours for shapes and accents" src="./readme/colours/palette-light.png">
 </picture>
 
 Grounds stay neutral as a rule: the logo's ink and light, paper and sand. Cinder is the one accent: the `.cpp` of the llama.cpp logotype, and a mark on a detail. The colours are for shapes, figures and accents, never for status.
