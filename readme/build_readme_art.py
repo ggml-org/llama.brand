@@ -153,7 +153,7 @@ def sans_card(g):
     t, w = text(font(SANS, wght=700, opsz=40), "powerful on request.", M, 388, 112, g["ink"])
     fits(w, W - 2 * M, "headline")
     body.append(t)
-    t, _ = text(font(SANS, wght=400, opsz=24), "One variable font, from 400 to 700, with an optical size from 16 to 40.",
+    t, _ = text(font(SANS, wght=400, opsz=24), "One variable font, from 400 to 700, with an optical size from 10 to 40.",
                 M, 470, 34, g["muted"])
     body.append(t)
     # the four weights, at the UI end

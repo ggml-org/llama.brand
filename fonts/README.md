@@ -2,14 +2,15 @@
 
 The Llama type family. **Llama Sans** and **Llama Mono** are here now; Llama Serif will follow. Every path below is relative to this `fonts/` folder.
 
-Llama Sans is a neo-grotesk with an even stroke, round bowls and open, angle-cut terminals. It is one variable font with two axes: weight, from 400 to 700 (Regular, Medium, SemiBold and Bold at 400, 500, 600 and 700), and optical size, from 16 to 40. The optical size changes only the spacing, the kerning and the descender depth, between its two named ends:
+Llama Sans is a neo-grotesk with an even stroke, round bowls and open, angle-cut terminals. It is one variable font with two axes: weight, from 400 to 700 (Regular, Medium, SemiBold and Bold at 400, 500, 600 and 700), and optical size, from 10 to 40. The optical size changes only the spacing, the kerning and the descender depth, between its three named sizes:
 
 | opsz | | Tracking | Kerning | Descender | For |
 |---|---|---|---|---|---|
+| **10** | Small | +27 | UI's | 155 | Text under 16 px on screens: captions, labels, dense tables |
 | **16** | UI | +3 | 105%, pair corrections at 75%, then matched to SF Pro's text sizes | 155 | Buttons, cards, labels, interface and running text |
 | **40** | Display | −22 | 115%, pair corrections at 100%, then matched to SF Pro's display sizes | 140 | Headlines, large sizes |
 
-Browsers set the optical size from the font-size on their own (`font-optical-sizing: auto`, where opsz is the size in CSS px): text up to 16 px gets UI, 40 px and up gets Display, and the sizes in between blend. To pin one end, set `font-variation-settings: 'opsz' 16` or `40`.
+Browsers set the optical size from the font-size on their own (`font-optical-sizing: auto`, where opsz is the size in CSS px): 16 px text gets UI, 40 px and up gets Display, and the sizes in between blend. Under 16 px the letters are set further apart, 4 units for every px smaller, down to Small at 10 px, so small text stays open on a coarse pixel grid. To pin one size, set `font-variation-settings: 'opsz' 10`, `16` or `40`.
 
 The line box is the same at every size: 1.25 em, centred on the cap height, so capitals and cap-height icons sit exactly in the middle of a button or chip with equal top and bottom padding, with whole-pixel lines at 12, 16 and 20 px (15, 20 and 25 px). Headlines set their own tighter line (`line-height: 1.15`), and prose a looser one (`1.5`).
 
@@ -29,7 +30,7 @@ Geist Mono's coding ligatures (`->`, `=>`, `!==` …) stay, under `liga`, but ke
 ## Files
 
 ```
-variable/   LlamaSans[opsz,wght].ttf (wght 400–700, opsz 16–40), LlamaMono[wght].ttf (wght 400–700)
+variable/   LlamaSans[opsz,wght].ttf (wght 400–700, opsz 10–40), LlamaMono[wght].ttf (wght 400–700)
 static/     Regular, Medium, SemiBold and Bold of each, cut from the variable fonts (Llama Sans at opsz 16)
 scripts/    the font builds (build_llama_sans.py, build_llama_mono.py, llama_edits.py), the specimen export, requirements.txt
 specimen/   the specimen site (SvelteKit 3, Svelte 5), built to a single self-contained index.html
@@ -60,7 +61,7 @@ python3 -m venv .venv && .venv/bin/pip install -r scripts/requirements.txt
 cd specimen && npm install && npm run build
 ```
 
-`build_llama_sans.py` starts from Geist's variable font, committed in `sources/geist/` so the build needs no network, and checks its SHA-256 first. It takes three masters from it (400, 500, and 650 for the design's 700), applies the edits in `llama_edits.py` to all of them identically so they stay compatible, sets each master's spacing and kerning for both ends of the optical size axis (six masters in all), and writes the variable font plus its statics. The wght axis shows the design from 400 to `TOP_WEIGHT` (640) stretched over 400–700, so Medium (500), SemiBold (600) and Bold (700) are the design's 480, 560 and 640. The design settings are constants at the top of both scripts: terminal trim and angle (`OPEN`, `TK`), curve rounding (`ROUND`, `ROUND_BY_GLYPH`), widths (`WIDEN`), descender depth (`DESCENDER`, and UI's own `descender` in `SIZES`), the a's bowl and Bold foot (`A_BOWL_DROP`, `A_FOOT`), the t's arms and cuts (`T_SHAPE`, `T_TOP_DROP`, `T_FOOT_SLIDE`), how deep the notches cut where bowls and arms leave a stem (`JOIN_CUT`, or `--join-cut=N` to try another depth), an optional cap-height raise (`CAP_RAISE`), the two ends of the optical size axis (`SIZES`), the line box (`LINE`) and the kerning matched to SF Pro (`UI_KERN`, `DISPLAY_KERN`).
+`build_llama_sans.py` starts from Geist's variable font, committed in `sources/geist/` so the build needs no network, and checks its SHA-256 first. It takes three masters from it (400, 500, and 650 for the design's 700), applies the edits in `llama_edits.py` to all of them identically so they stay compatible, sets each master's spacing and kerning for each named size of the optical size axis (nine masters in all), and writes the variable font plus its statics. Where a glyph's contours overlap (a stem under a bowl, a crossbar over a stem, the joined ff and tt), the build merges them into one outline, the same way in every master, so outlined text (`-webkit-text-stroke`) shows no lines inside the letters; the few glyphs the masters don't cross alike keep their overlaps. The wght axis shows the design from 400 to `TOP_WEIGHT` (640) stretched over 400–700, so Medium (500), SemiBold (600) and Bold (700) are the design's 480, 560 and 640. The design settings are constants at the top of both scripts: terminal trim and angle (`OPEN`, `TK`), curve rounding (`ROUND`, `ROUND_BY_GLYPH`), widths (`WIDEN`), descender depth (`DESCENDER`, and UI's own `descender` in `SIZES`), the a's bowl and Bold foot (`A_BOWL_DROP`, `A_FOOT`), the t's arms and cuts (`T_SHAPE`, `T_TOP_DROP`, `T_FOOT_SLIDE`), how deep the notches cut where bowls and arms leave a stem (`JOIN_CUT`, or `--join-cut=N` to try another depth), an optional cap-height raise (`CAP_RAISE`), the named sizes of the optical size axis (`SIZES`, with `DEFAULT_SIZE` the one the statics and Llama Mono take), the line box (`LINE`) and the kerning matched to SF Pro (`UI_KERN`, `DISPLAY_KERN`).
 
 `build_llama_mono.py` does the same from Geist Mono (from the same Geist commit, committed in `sources/geist-mono/`), reusing the Sans build's functions; it fails if any glyph but the zero-width marks leaves the 600-unit cell.
 
