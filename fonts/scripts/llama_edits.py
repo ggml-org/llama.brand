@@ -13,7 +13,7 @@ from fontTools.ttLib.tables import ttProgram
 OPEN = 4         # how far every curved terminal is trimmed back along the stroke (font units), same for all glyphs
 OPEN_BY_GLYPH = {"a": -10, "S": 12, "s": 12}  # a: hook runs past Geist's; S, s: a little more open
 TK = 0.2         # cut angle: 0 = square to the stroke, 1 = horizontal
-TK_BY_GLYPH = {"a": 1.0, "S": 0.3, "s": 0.3}  # a: top terminal cut flat; S, s: cut a little more toward horizontal
+TK_BY_GLYPH = {"a": 1.0}  # a: the hook ends in a flat cut; every other terminal takes the family angle
 ROUND = 0.55     # 0 = Geist's curve tension, 1 = circular
 T_TOP_DROP = 32  # the t's stem top: how far its left corner drops, angling the cut
 T_FOOT_SLIDE = 26  # the t's foot end: how far its bottom corner slides in, angling the cut (0 = upright)
@@ -230,13 +230,21 @@ def straight_ends(name, segs, scale):
         col = sorted((p for p in pool if abs(p[0] - xm) < 1), key=lambda p: p[1])
         return col[0] if len(col) >= 2 else None
 
+    def family_cut(pool):
+        """The slide that leans an upright cut to the family angle (TK), from the cut's own height."""
+        c = lowest_of_rightmost(pool)
+        if not c:
+            return None
+        top = max(p[1] for p in pool if abs(p[0] - c[0]) < 1)
+        return c, (-1, 0), (top - c[1]) * TK / (1 - TK)
+
     out = []
     if name == "r":                                   # arm end: cut leans back at the bottom
-        c = lowest_of_rightmost(ends)
-        c and out.append((c, (-1, 0), 30 * scale))
+        cut = family_cut(ends)
+        cut and out.append(cut)
     if name == "f":                                   # hook end, above the crossbar
-        c = lowest_of_rightmost([p for p in ends if p[1] > 600])
-        c and out.append((c, (-1, 0), 30 * scale))
+        cut = family_cut([p for p in ends if p[1] > 600])
+        cut and out.append(cut)
     if name == "t":
         ym = max(p[1] for p in ends)                  # stem top: left corner drops
         top = sorted(p for p in ends if abs(p[1] - ym) < 1)
