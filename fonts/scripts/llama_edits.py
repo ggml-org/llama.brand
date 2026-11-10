@@ -8,6 +8,7 @@ and the straight-sided ends of r, t and f are angled. The constants below set ho
 Contours are lists of ("L", (a, b)) and ("C", (p0, h1, h2, p3)) segments.
 """
 import math
+from fontTools.ttLib import newTable
 from fontTools.ttLib.tables import ttProgram
 
 OPEN = 4         # how far every curved terminal is trimmed back along the stroke (font units), same for all glyphs
@@ -18,6 +19,8 @@ ROUND = 0.55     # 0 = Geist's curve tension, 1 = circular
 T_TOP_DROP = 32  # the t's stem top: how far its left corner drops, angling the cut
 T_FOOT_SLIDE = 26  # the t's foot end: how far its bottom corner slides in, angling the cut (0 = upright)
 CIRCLE = 0.5523  # cubic handle ratio of a circular quarter
+VERSION = "0.600"  # the fonts' version, in head and in the name table's version string
+VENDOR = "GGML"    # OS/2 vendor ID
 COPYRIGHT = ("Copyright 2024 The Geist Project Authors (https://github.com/vercel/geist-font). "
              "Modifications copyright 2026 the Llama Sans authors.")  # name ID 0; Llama Mono sets its own
 
@@ -538,11 +541,25 @@ def refit(font, base, new):
             hmtx[name] = (hmtx[name][0] + delta, hmtx[name][1])
 
 
+def stamp(font):
+    """What every font file carries besides its drawing: the version, the vendor and, the fonts being unhinted,
+    the few instructions that turn smart dropout control on, with grey-scale smoothing at every size."""
+    font["head"].fontRevision = float(VERSION)
+    font["OS/2"].achVendID = VENDOR
+    prep = font["prep"] = newTable("prep")
+    prep.program = ttProgram.Program()
+    prep.program.fromAssembly(["PUSHW[]", "511", "SCANCTRL[]", "PUSHB[]", "4", "SCANTYPE[]"])
+    gasp = font["gasp"] = newTable("gasp")
+    gasp.version, gasp.gaspRange = 1, {0xFFFF: 15}
+    font["head"].flags |= 1 << 3  # instructions may depend on the point size
+
+
 def finish(font, style, family="Llama Sans"):
     # Hinting was written for Geist's points; drop it rather than ship it broken.
     for tag in ("fpgm", "prep", "cvt "):
         if tag in font:
             del font[tag]
+    stamp(font)
     glyf = font["glyf"]
     for name in font.getGlyphOrder():
         g = glyf[name]
@@ -562,7 +579,7 @@ def finish(font, style, family="Llama Sans"):
     names = {
         0: COPYRIGHT,
         3: f"0.6;{ps}-{style}", 4: f"{family} {style}",
-        5: "Version 0.600; draft based on Geist", 6: f"{ps}-{style}",
+        5: f"Version {VERSION}; draft based on Geist", 6: f"{ps}-{style}",
     }
     if style in ("Regular", "Bold"):   # style-linked pair
         names.update({1: family, 2: style})

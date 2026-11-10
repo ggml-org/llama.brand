@@ -2,7 +2,7 @@
 
 The Llama type family. **Llama Sans** and **Llama Mono** are here now; Llama Serif will follow. Every path below is relative to this `fonts/` folder.
 
-Llama Sans is a neo-grotesk with an even stroke, round bowls and open, angle-cut terminals. It is one variable font with two axes: weight, from 400 to 700 (Regular, Medium, SemiBold and Bold at 400, 500, 600 and 700), and optical size, from 10 to 40. The optical size changes only the spacing, the kerning and the descender depth, between its three named sizes:
+Llama Sans is a neo-grotesk with an even stroke, round bowls and open, angle-cut terminals. It is one variable font with two axes: weight, from 400 to 700 (Regular, Medium, SemiBold and Bold at 400, 500, 600 and 700), and optical size, from 10 to 40. The optical size changes only the spacing, the kerning and the descender depth, between its three named sizes (in the font file they are named by size, 10pt, 16pt and 40pt):
 
 | opsz | | Tracking | Kerning | Descender | For |
 |---|---|---|---|---|---|

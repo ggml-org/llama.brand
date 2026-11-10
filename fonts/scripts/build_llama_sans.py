@@ -397,7 +397,7 @@ def add_icon(font, cell=None, scale=1, codepoint=ICON_CODEPOINT, right=ICON_SIDE
     k = size / 600
     top = (cap + size) / 2
     tt = TTGlyphPen(None)
-    pen = TransformPen(Cu2QuPen(tt, max_err=0.5, reverse_direction=True), (k, 0, 0, -k, (cell - size) / 2 if cell else ICON_SIDE, top))
+    pen = TransformPen(Cu2QuPen(tt, max_err=0.5), (k, 0, 0, -k, (cell - size) / 2 if cell else ICON_SIDE, top))
     for d in ICON_PATHS:
         parse_path(d, pen)
     g = tt.glyph()
@@ -792,9 +792,10 @@ def name_variable(vf, family, axes="wght"):
         nt.removeNames(nameID=nid)
     for nid, s in {0: bg.COPYRIGHT,
                    1: family, 2: "Regular", 3: f"0.6;{ps}[{axes}]", 4: f"{family} Regular",
-                   5: "Version 0.600; draft based on Geist", 6: f"{ps}-Regular", 25: ps}.items():
+                   5: f"Version {bg.VERSION}; draft based on Geist", 6: f"{ps}-Regular", 25: ps}.items():
         nt.setName(s, nid, 3, 1, 0x409)
         nt.setName(s, nid, 1, 0, 0)
+    bg.stamp(vf)
 
 
 def axis_weight(w):
@@ -866,7 +867,8 @@ def build_variable(masters_by_size, family="Llama Sans"):
             dict(value=w, name=s, flags=0x2 if w == 400 else 0, **({"linkedValue": 700} if w == 400 else {}))
             for w, s in NAMED]),
         dict(tag="opsz", name="Optical size", values=[
-            dict(value=size, name=SIZES[size]["name"], flags=0x2 if size == DEFAULT_SIZE else 0) for size in sizes]),
+            # named by size, as Google Fonts' axis registry has optical sizes (Small, UI and Display are our names)
+            dict(value=size, name=f"{size}pt", flags=0x2 if size == DEFAULT_SIZE else 0) for size in sizes]),
     ])
     vf["OS/2"].usWeightClass = 400
     return vf
